@@ -71,5 +71,20 @@ router.delete("/:id", async (req, res, next) => {
   }
 });
 
+// Upload Playwright storageState for an account to seed a logged-in session
+router.post("/:id/storage-state", async (req, res, next) => {
+  try {
+    const { storageState } = req.body || {};
+    if (!storageState) return res.status(400).json({ error: "storageState required" });
+    const account = await AmazonAccount.findOne({ _id: req.params.id, userId: req.user.id });
+    if (!account) return res.status(404).json({ error: "Account not found" });
+    account.storageState = storageState;
+    await account.save();
+    res.json({ ok: true });
+  } catch (e) {
+    next(e);
+  }
+});
+
 export default router;
 
