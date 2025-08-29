@@ -10,6 +10,7 @@ import authRoutes from "./routes/auth.js";
 import accountRoutes from "./routes/accounts.js";
 import balanceRoutes from "./routes/balances.js";
 import settingsRoutes from "./routes/settings.js";
+import userRoutes from "./routes/users.js";
 import { errorHandler } from "./middleware/error.js";
 
 const app = express();
@@ -79,12 +80,14 @@ app.use("/auth", authRoutes);
 app.use("/accounts", accountRoutes);
 app.use("/balances", balanceRoutes);
 app.use("/settings", settingsRoutes);
+app.use("/users", userRoutes);
 
 // API prefix mounts to match frontend baseURL ending with /api
 app.use("/api/auth", authRoutes);
 app.use("/api/accounts", accountRoutes);
 app.use("/api/balances", balanceRoutes);
 app.use("/api/settings", settingsRoutes);
+app.use("/api/users", userRoutes);
 
 app.use(errorHandler);
 
