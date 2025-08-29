@@ -6,10 +6,11 @@ export const useAuth = create((set, get) => ({
   accessToken: (typeof window!=='undefined' && localStorage.getItem('accessToken')) || null,
   refreshToken: (typeof window!=='undefined' && localStorage.getItem('refreshToken')) || null,
   loading: false,
-  async register(email, password) {
+  async register(emailOrPayload, maybePassword) {
     set({ loading: true })
     try {
-      const { data } = await api.post('/auth/register', { email, password })
+      const body = typeof emailOrPayload === 'object' ? emailOrPayload : { email: emailOrPayload, password: maybePassword }
+      const { data } = await api.post('/auth/register', body)
       setAccessToken(data.accessToken)
       localStorage.setItem('user', JSON.stringify(data.user))
       localStorage.setItem('refreshToken', data.refreshToken)

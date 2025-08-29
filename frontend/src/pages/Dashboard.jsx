@@ -57,7 +57,12 @@ export default function Dashboard(){
       <header className="topbar">
         <h1>Amazon Wallet Monitor</h1>
         <div className="spacer" />
-        <span>{user?.email}</span>
+        <span style={{display:'inline-flex',alignItems:'center',gap:8}}>
+          <span style={{width:28,height:28,borderRadius:'999px',background:'#222',display:'inline-flex',alignItems:'center',justifyContent:'center',fontWeight:700}}>
+            {(user?.name||user?.email||'?').slice(0,1).toUpperCase()}
+          </span>
+          <span>{user?.name||user?.email}</span>
+        </span>
         <button className="muted" onClick={()=>{ setEditing(null); setOpen(true) }}><FiPlus/> Add account</button>
         <button className="primary" onClick={async ()=>{ await refreshAll(accounts); await fetchAccounts(); }}><FiRefreshCcw/> Refresh All</button>
         <button className="danger" onClick={logout}><FiLogOut/> Logout</button>
