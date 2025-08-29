@@ -1,15 +1,10 @@
 import { chromium } from "playwright";
 
 const REGION_TO_HOST = {
-  "amazon.com": "https://www.amazon.com",
   "amazon.in": "https://www.amazon.in",
-  "amazon.co.uk": "https://www.amazon.co.uk",
-  "amazon.de": "https://www.amazon.de",
-  "amazon.ca": "https://www.amazon.ca",
-  "amazon.com.au": "https://www.amazon.com.au",
 };
 
-export async function fetchAmazonPayBalance({ region, email, password, interactive }) {
+export async function fetchAmazonPayBalance({ region, email, password, interactive, storageState }) {
   const baseUrl = REGION_TO_HOST[region];
   if (!baseUrl) throw new Error("Unsupported region");
 
@@ -20,6 +15,7 @@ export async function fetchAmazonPayBalance({ region, email, password, interacti
   });
   const context = await browser.newContext({
     viewport: { width: 1280, height: 900 },
+    storageState: storageState || undefined,
   });
   const page = await context.newPage();
 
@@ -43,7 +39,6 @@ export async function fetchAmazonPayBalance({ region, email, password, interacti
     const candidates = [
       `${baseUrl}/gp/sva/dashboard`,
       `${baseUrl}/gp/wallet`,
-      `${baseUrl}/amazonpay/home`,
     ];
 
     let found = false;
@@ -91,7 +86,12 @@ export async function fetchAmazonPayBalance({ region, email, password, interacti
     const parsed = parseCurrencyAmount(raw);
     if (!parsed) throw new Error("Failed to parse balance");
 
-    return parsed;
+    let newStorageState = null;
+    try {
+      newStorageState = await context.storageState();
+    } catch {}
+
+    return { ...parsed, storageState: newStorageState };
   } finally {
     // Do not close immediately to allow manual step if interactive; short delay
     await new Promise((r) => setTimeout(r, 500));
