@@ -23,16 +23,44 @@ export async function fetchAmazonPayBalance({ region, email, password, interacti
   const context = await browser.newContext({
     viewport: { width: 1280, height: 900 },
     storageState: storageState || undefined,
+    locale: "en-IN",
+    timezoneId: "Asia/Kolkata",
+    userAgent:
+      "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36",
   });
   const page = await context.newPage();
+  context.setDefaultNavigationTimeout(90000);
+  page.setDefaultTimeout(90000);
 
   try {
-    // Navigate to sign-in
-    await page.goto(`${baseUrl}/ap/signin`, { waitUntil: "domcontentloaded" });
-    await page.fill("#ap_email", email);
-    await page.click("#continue");
-    await page.fill("#ap_password", password);
-    await page.click("#signInSubmit");
+    // If already signed in via storageState, try wallet directly first
+    if (storageState) {
+      try {
+        await page.goto(`${baseUrl}/gp/sva/dashboard`, { waitUntil: "domcontentloaded" });
+      } catch {}
+    }
+
+    // If not on wallet, navigate to sign-in and perform login
+    const bodyText = (await page.textContent("body")) || "";
+    if (!/Amazon\s*Pay|Wallet/i.test(bodyText)) {
+      await page.goto(`${baseUrl}/ap/signin`, { waitUntil: "domcontentloaded" });
+      // Cookie consent (best-effort)
+      const consent = await page.$('#sp-cc-accept, text="Accept Cookies", [aria-label="Accept Cookies"]');
+      if (consent) {
+        try { await consent.click({ timeout: 3000 }); } catch {}
+      }
+
+      const emailLocator = page.locator('#ap_email, input[name="email"]');
+      await emailLocator.waitFor({ timeout: 60000 });
+      await emailLocator.fill(email);
+      const contBtn = page.locator('#continue, input#continue, button[name="continue"]');
+      if (await contBtn.count()) { await contBtn.first().click(); }
+      const passLocator = page.locator('#ap_password, input[name="password"]');
+      await passLocator.waitFor({ timeout: 60000 });
+      await passLocator.fill(password);
+      await page.click('#signInSubmit, input#signInSubmit');
+      await page.waitForLoadState('domcontentloaded');
+    }
 
     // If 2FA/Captcha present, let the user solve manually in visible browser.
     if (interactive && !isProd) {
