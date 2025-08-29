@@ -1,0 +1,29 @@
+services:
+  - type: web
+    name: amazon-wallet-backend
+    env: node
+    rootDir: backend
+    plan: starter
+    buildCommand: npm ci && npx playwright install --with-deps chromium
+    startCommand: npm start
+    autoDeploy: true
+    envVars:
+      - key: NODE_VERSION
+        value: 20
+      - key: MONGODB_URI
+        sync: false
+      - key: MONGODB_DB_NAME
+        value: amazon_wallet_monitor
+      - key: JWT_SECRET
+        sync: false
+      - key: JWT_REFRESH_SECRET
+        sync: false
+      - key: JWT_ACCESS_TTL
+        value: 15m
+      - key: JWT_REFRESH_TTL
+        value: 7d
+      - key: CREDENTIALS_ENCRYPTION_KEY
+        sync: false
+      - key: CORS_ORIGIN
+        sync: false
+
