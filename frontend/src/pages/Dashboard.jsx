@@ -39,7 +39,7 @@ export default function Dashboard(){
         <div className="spacer" />
         <span>{user?.email}</span>
         <button className="muted" onClick={()=>setOpen(true)}>Add account</button>
-        <button className="primary" onClick={()=>refreshAll(accounts)}>Refresh All</button>
+        <button className="primary" onClick={async ()=>{ await refreshAll(accounts); await fetchAccounts(); }}>Refresh All</button>
         <button className="danger" onClick={logout}>Logout</button>
       </header>
 
@@ -52,7 +52,13 @@ export default function Dashboard(){
 
       <section className="grid">
         {accounts.map(a => (
-          <AccountCard key={a.id} account={a} onRefresh={()=>refreshOne(a.id)} onEdit={()=>setOpen(true)} onDelete={()=>deleteAccount(a.id)} />
+          <AccountCard
+            key={a.id}
+            account={a}
+            onRefresh={async ()=>{ await refreshOne(a.id); await fetchAccounts(); }}
+            onEdit={()=>setOpen(true)}
+            onDelete={async ()=>{ await deleteAccount(a.id); await fetchAccounts(); }}
+          />
         ))}
       </section>
 
