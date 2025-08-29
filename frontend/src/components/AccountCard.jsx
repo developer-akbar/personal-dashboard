@@ -1,5 +1,6 @@
 import styles from './AccountCard.module.css'
 import { Link } from 'react-router-dom'
+import { FiRefreshCcw, FiEdit2, FiTrash2 } from 'react-icons/fi'
 
 export default function AccountCard({ account, onRefresh, onEdit, onDelete }) {
   return (
@@ -10,15 +11,15 @@ export default function AccountCard({ account, onRefresh, onEdit, onDelete }) {
       </div>
       <div className={styles.email}>{account.email}</div>
       <div className={styles.balance}>
-        <span>{account.lastCurrency}</span>
-        <strong>{Number(account.lastBalance || 0).toLocaleString()}</strong>
+        <span>{account.lastCurrency === 'INR' ? '₹' : account.lastCurrency}</span>
+        <strong>{Number(account.lastBalance || 0).toLocaleString('en-IN')}</strong>
       </div>
       <div className={styles.footer}>
         <small>Last refreshed: {account.lastRefreshedAt ? new Date(account.lastRefreshedAt).toLocaleString() : '—'}</small>
         <div className={styles.actions}>
-          <button onClick={() => onRefresh(account)} className={styles.primary}>Refresh</button>
-          <button onClick={() => onEdit(account)} className={styles.muted}>Edit</button>
-          <button onClick={() => onDelete(account)} className={styles.danger}>Delete</button>
+          <button onClick={() => onRefresh(account)} className={styles.primary}><FiRefreshCcw/> Refresh</button>
+          <button onClick={() => onEdit(account)} className={styles.muted}><FiEdit2/> Edit</button>
+          <button onClick={() => onDelete(account)} className={styles.danger}><FiTrash2/> Delete</button>
         </div>
       </div>
     </div>
