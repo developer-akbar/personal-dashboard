@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import { FiPlus, FiRefreshCcw, FiLogOut } from 'react-icons/fi'
 import { useAccounts } from '../store/useAccounts'
 import { useBalances } from '../store/useBalances'
 import { useAuth } from '../store/useAuth'
@@ -39,9 +40,9 @@ export default function Dashboard(){
         <h1>Amazon Wallet Monitor</h1>
         <div className="spacer" />
         <span>{user?.email}</span>
-        <button className="muted" onClick={()=>{ setEditing(null); setOpen(true) }}>Add account</button>
-        <button className="primary" onClick={async ()=>{ await refreshAll(accounts); await fetchAccounts(); }}>Refresh All</button>
-        <button className="danger" onClick={logout}>Logout</button>
+        <button className="muted" onClick={()=>{ setEditing(null); setOpen(true) }}><FiPlus/> Add account</button>
+        <button className="primary" onClick={async ()=>{ await refreshAll(accounts); await fetchAccounts(); }}><FiRefreshCcw/> Refresh All</button>
+        <button className="danger" onClick={logout}><FiLogOut/> Logout</button>
       </header>
 
       <section className="totals">

@@ -5,7 +5,7 @@ const userSchema = new mongoose.Schema(
   {
     email: { type: String, required: true, unique: true, index: true },
     passwordHash: { type: String, required: true },
-    baseCurrency: { type: String, default: "USD" },
+    baseCurrency: { type: String, default: "INR" },
     exchangeRates: {
       // Map currency code -> number rate relative to baseCurrency (1.0 for base)
       type: Map,

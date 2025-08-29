@@ -20,5 +20,17 @@ api.interceptors.request.use((config) => {
   return config
 })
 
+api.interceptors.response.use(
+  (res)=>res,
+  (err)=>{
+    if(err?.response?.status === 401){
+      try{ const toast = require('react-hot-toast'); toast.toast?.error?.('Session expired. Please sign in again.')}catch{}
+      try{ localStorage.removeItem('accessToken'); localStorage.removeItem('refreshToken'); localStorage.removeItem('user') }catch{}
+      try{ window.location.assign('/login') }catch{}
+    }
+    return Promise.reject(err)
+  }
+)
+
 export default api
 
