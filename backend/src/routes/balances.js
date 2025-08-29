@@ -30,7 +30,7 @@ router.post("/refresh/:accountId", async (req, res, next) => {
       region: account.region,
       email: account.email,
       password,
-      interactive: true,
+      interactive: process.env.NODE_ENV !== 'production',
     });
 
     account.lastBalance = amount;
@@ -56,7 +56,7 @@ router.post("/refresh-all", async (req, res, next) => {
         region: account.region,
         email: account.email,
         password,
-        interactive: true,
+        interactive: process.env.NODE_ENV !== 'production',
       });
       account.lastBalance = amount;
       account.lastCurrency = currency;

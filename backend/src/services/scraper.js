@@ -1,5 +1,6 @@
 import { chromium } from "playwright";
 import AmazonAccount from "../models/AmazonAccount.js";
+import AmazonAccount from "../models/AmazonAccount.js";
 
 const REGION_TO_HOST = {
   "amazon.com": "https://www.amazon.com",
@@ -14,7 +15,11 @@ export async function fetchAmazonPayBalance({ region, email, password, interacti
   const baseUrl = REGION_TO_HOST[region];
   if (!baseUrl) throw new Error("Unsupported region");
 
-  const browser = await chromium.launch({ headless: false });
+  const isProd = process.env.NODE_ENV === "production";
+  const browser = await chromium.launch({
+    headless: isProd ? true : false,
+    args: isProd ? ["--no-sandbox", "--disable-setuid-sandbox"] : [],
+  });
   const context = await browser.newContext({
     viewport: { width: 1280, height: 900 },
   });
@@ -29,7 +34,7 @@ export async function fetchAmazonPayBalance({ region, email, password, interacti
     await page.click("#signInSubmit");
 
     // If 2FA/Captcha present, let the user solve manually in visible browser.
-    if (interactive) {
+    if (interactive && !isProd) {
       await page.waitForLoadState("networkidle");
       // Give time for user to pass challenges; we wait for the account menu presence
       await page.waitForTimeout(2000);
