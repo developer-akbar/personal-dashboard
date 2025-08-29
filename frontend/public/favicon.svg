@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#4f46e5"/>
+      <stop offset="100%" stop-color="#22c55e"/>
+    </linearGradient>
+  </defs>
+  <rect width="128" height="128" rx="24" fill="#0b0b0b"/>
+  <path d="M32 80c12-28 24-42 44-42 12 0 20 6 20 18 0 15-12 26-28 26-8 0-14-2-20-6l-4 4c6 6 16 10 26 10 22 0 40-14 40-34 0-18-12-30-32-30-24 0-40 16-52 42l6 12z" fill="url(#g)"/>
+  <text x="64" y="96" text-anchor="middle" font-family="system-ui, sans-serif" font-size="24" fill="#eaeaea">₹</text>
+</svg>

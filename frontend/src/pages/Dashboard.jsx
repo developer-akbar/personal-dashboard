@@ -1,5 +1,8 @@
 import { useEffect, useMemo, useState } from 'react'
 import { FiPlus, FiRefreshCcw, FiLogOut } from 'react-icons/fi'
+import { DndContext, closestCenter } from '@dnd-kit/core'
+import { arrayMove, SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable'
+import { SortableItem } from '../shared/SortableItem'
 import { useAccounts } from '../store/useAccounts'
 import { useBalances } from '../store/useBalances'
 import { useAuth } from '../store/useAuth'
@@ -15,6 +18,8 @@ export default function Dashboard(){
   const { baseCurrency, exchangeRates, fetchSettings } = useSettings()
   const [open,setOpen]=useState(false)
   const [editing,setEditing]=useState(null)
+  const [query,setQuery]=useState('')
+  const [sortBy,setSortBy]=useState('order')
 
   useEffect(()=>{ fetchAccounts(); fetchSettings() },[])
 
@@ -34,6 +39,19 @@ export default function Dashboard(){
     }, 0)
   },[total, baseCurrency, exchangeRates])
 
+  const filtered = useMemo(()=>{
+    const q = query.trim().toLowerCase();
+    if(!q) return accounts;
+    return accounts.filter(a=> (a.label||'').toLowerCase().includes(q) || (a.email||'').toLowerCase().includes(q))
+  },[accounts, query])
+
+  const sortedFiltered = useMemo(()=>{
+    if(sortBy==='amount'){
+      return [...filtered].sort((a,b)=> (b.lastBalance||0) - (a.lastBalance||0))
+    }
+    return filtered
+  },[filtered, sortBy])
+
   return (
     <div className="container">
       <header className="topbar">
@@ -47,22 +65,45 @@ export default function Dashboard(){
 
       <section className="totals">
         {Object.entries(total).map(([cur,amount])=> (
-          <div className="pill" key={cur}>{cur} {Number(amount).toLocaleString()}</div>
+          <div className="pill" key={cur}>{cur==='INR'?'₹':cur} {Number(amount).toLocaleString('en-IN')}</div>
         ))}
-        <div className="pill">Total ({baseCurrency}) {Number(baseTotal||0).toLocaleString()}</div>
+        <div className="pill">Total ({baseCurrency==='INR'?'₹':baseCurrency}) {Number(baseTotal||0).toLocaleString('en-IN')}</div>
       </section>
 
-      <section className="grid">
-        {accounts.map(a => (
-          <AccountCard
-            key={a.id}
-            account={a}
-            onRefresh={async ()=>{ await refreshOne(a.id); await fetchAccounts(); }}
-            onEdit={()=>{ setEditing(a); setOpen(true) }}
-            onDelete={async ()=>{ await deleteAccount(a.id); await fetchAccounts(); }}
-          />
-        ))}
-      </section>
+      <div style={{display:'flex',gap:8,alignItems:'center',margin:'4px 0 8px'}}>
+        <input placeholder="Search accounts..." value={query} onChange={e=>setQuery(e.target.value)} style={{flex:1}} />
+        <select value={sortBy} onChange={e=>setSortBy(e.target.value)}>
+          <option value="order">Order</option>
+          <option value="amount">Amount</option>
+        </select>
+      </div>
+
+      <DndContext collisionDetection={closestCenter} onDragEnd={async ({active,over})=>{
+        if(!over || active.id===over.id) return;
+        const list = sortedFiltered;
+        const oldIndex = list.findIndex(x=>x.id===active.id);
+        const newIndex = list.findIndex(x=>x.id===over.id);
+        const moved = arrayMove(list, oldIndex, newIndex);
+        const payload = moved.map((a, idx)=> ({ id: a.id, order: Date.now() + idx }));
+        const api = (await import('../api/client')).default;
+        await api.post('/accounts/reorder', { items: payload });
+        await fetchAccounts();
+      }}>
+        <SortableContext items={sortedFiltered.map(a=>a.id)} strategy={verticalListSortingStrategy}>
+          <section className="grid">
+            {sortedFiltered.map(a => (
+              <SortableItem id={a.id} key={a.id}>
+                <AccountCard
+                  account={a}
+                  onRefresh={async ()=>{ await refreshOne(a.id); await fetchAccounts(); }}
+                  onEdit={()=>{ setEditing(a); setOpen(true) }}
+                  onDelete={async ()=>{ await deleteAccount(a.id); await fetchAccounts(); }}
+                />
+              </SortableItem>
+            ))}
+          </section>
+        </SortableContext>
+      </DndContext>
 
       <AddAccountModal
         open={open}

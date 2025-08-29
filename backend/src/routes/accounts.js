@@ -9,7 +9,7 @@ router.use(requireAuth);
 
 router.get("/", async (req, res, next) => {
   try {
-    const accounts = await AmazonAccount.find({ userId: req.user.id }).sort({ createdAt: -1 });
+    const accounts = await AmazonAccount.find({ userId: req.user.id }).sort({ order: 1, createdAt: 1 });
     res.json(
       accounts.map((a) => ({
         id: a._id,
@@ -19,6 +19,7 @@ router.get("/", async (req, res, next) => {
         lastBalance: a.lastBalance,
         lastCurrency: a.lastCurrency,
         lastRefreshedAt: a.lastRefreshedAt,
+        order: a.order ?? 0,
       }))
     );
   } catch (e) {
@@ -39,6 +40,7 @@ router.post("/", async (req, res, next) => {
       email,
       region,
       encryptedPassword,
+      order: Date.now(),
     });
     res.status(201).json({ id: account._id });
   } catch (e) {
@@ -69,6 +71,17 @@ router.delete("/:id", async (req, res, next) => {
   } catch (e) {
     next(e);
   }
+});
+
+// Bulk reorder
+router.post('/reorder', async (req, res, next) => {
+  try{
+    const { items } = req.body || {};
+    if(!Array.isArray(items)) return res.status(400).json({ error: 'items must be an array of {id, order}' });
+    const ops = items.map(({id, order})=> ({ updateOne: { filter: { _id: id, userId: req.user.id }, update: { order } } }));
+    if(ops.length) await AmazonAccount.bulkWrite(ops);
+    res.json({ ok: true });
+  }catch(e){ next(e) }
 });
 
 // Upload Playwright storageState for an account to seed a logged-in session
