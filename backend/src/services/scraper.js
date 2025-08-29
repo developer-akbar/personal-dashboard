@@ -1,6 +1,4 @@
 import { chromium } from "playwright";
-import AmazonAccount from "../models/AmazonAccount.js";
-import AmazonAccount from "../models/AmazonAccount.js";
 
 const REGION_TO_HOST = {
   "amazon.com": "https://www.amazon.com",
