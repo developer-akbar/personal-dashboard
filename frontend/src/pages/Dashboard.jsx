@@ -19,7 +19,7 @@ export default function Dashboard(){
   useEffect(()=>{ fetchAccounts(); fetchSettings() },[])
 
   const total = useMemo(()=>{
-    const byCurrency = accounts.reduce((acc,a)=>{ const cur=a.lastCurrency||'USD'; acc[cur]=(acc[cur]||0)+ (a.lastBalance||0); return acc },{})
+    const byCurrency = accounts.reduce((acc,a)=>{ const cur=a.lastCurrency||'INR'; acc[cur]=(acc[cur]||0)+ (a.lastBalance||0); return acc },{})
     return byCurrency
   },[accounts])
 

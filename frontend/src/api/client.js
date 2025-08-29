@@ -1,4 +1,5 @@
 import axios from 'axios'
+import toast from 'react-hot-toast'
 
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL || 'http://localhost:4000',
@@ -24,7 +25,7 @@ api.interceptors.response.use(
   (res)=>res,
   (err)=>{
     if(err?.response?.status === 401){
-      try{ const toast = require('react-hot-toast'); toast.toast?.error?.('Session expired. Please sign in again.')}catch{}
+      try{ toast.error('Session expired. Please sign in again.') }catch{}
       try{ localStorage.removeItem('accessToken'); localStorage.removeItem('refreshToken'); localStorage.removeItem('user') }catch{}
       try{ window.location.assign('/login') }catch{}
     }
