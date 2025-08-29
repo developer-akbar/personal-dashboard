@@ -41,7 +41,9 @@ const corsOptions = {
   },
   credentials: true,
   methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-  allowedHeaders: ["Content-Type", "Authorization"],
+  preflightContinue: false,
+  optionsSuccessStatus: 204,
+  // Do not specify allowedHeaders: let cors reflect Access-Control-Request-Headers
 };
 
 app.use(cors(corsOptions));
