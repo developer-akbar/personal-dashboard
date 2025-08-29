@@ -1,6 +1,11 @@
 import dotenv from "dotenv";
 dotenv.config();
 
+// Force Playwright to use browsers from node_modules cache at runtime
+if (!process.env.PLAYWRIGHT_BROWSERS_PATH) {
+  process.env.PLAYWRIGHT_BROWSERS_PATH = "0";
+}
+
 import http from "http";
 import app from "./app.js";
 import { connectToDatabase } from "./config/db.js";

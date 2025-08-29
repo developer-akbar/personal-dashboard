@@ -11,6 +11,8 @@ export async function fetchAmazonPayBalance({ region, email, password, interacti
   const isProd = process.env.NODE_ENV === "production";
   const browser = await chromium.launch({
     headless: isProd ? true : false,
+    channel: undefined,
+    executablePath: process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH || undefined,
     args: isProd ? ["--no-sandbox", "--disable-setuid-sandbox"] : [],
   });
   const context = await browser.newContext({
