@@ -1,0 +1,12 @@
+.card{background:#0b0b0b;border:1px solid #1f1f1f;border-radius:12px;padding:16px;display:flex;flex-direction:column;gap:10px}
+.header{display:flex;justify-content:space-between;align-items:center}
+.label{font-weight:600}
+.region{font-size:12px;opacity:.7}
+.email{font-size:12px;opacity:.8}
+.balance{display:flex;gap:8px;align-items:baseline}
+.footer{display:flex;justify-content:space-between;align-items:center}
+.actions{display:flex;gap:8px}
+.primary{background:#4f46e5;color:#fff;border:0;border-radius:8px;padding:6px 10px;cursor:pointer}
+.muted{background:#222;border:0;border-radius:8px;padding:6px 10px;color:#ddd;cursor:pointer}
+.danger{background:#ef4444;color:#fff;border:0;border-radius:8px;padding:6px 10px;cursor:pointer}
+

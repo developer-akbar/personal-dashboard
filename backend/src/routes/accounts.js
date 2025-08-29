@@ -1,0 +1,75 @@
+import { Router } from "express";
+import { requireAuth } from "../middleware/auth.js";
+import AmazonAccount from "../models/AmazonAccount.js";
+import { encryptSecret, maskEmail } from "../utils/crypto.js";
+
+const router = Router();
+
+router.use(requireAuth);
+
+router.get("/", async (req, res, next) => {
+  try {
+    const accounts = await AmazonAccount.find({ userId: req.user.id }).sort({ createdAt: -1 });
+    res.json(
+      accounts.map((a) => ({
+        id: a._id,
+        label: a.label,
+        email: maskEmail(a.email),
+        region: a.region,
+        lastBalance: a.lastBalance,
+        lastCurrency: a.lastCurrency,
+        lastRefreshedAt: a.lastRefreshedAt,
+      }))
+    );
+  } catch (e) {
+    next(e);
+  }
+});
+
+router.post("/", async (req, res, next) => {
+  try {
+    const { label, email, password, region } = req.body || {};
+    if (!label || !email || !password || !region) {
+      return res.status(400).json({ error: "label, email, password, region required" });
+    }
+    const encryptedPassword = encryptSecret(password);
+    const account = await AmazonAccount.create({
+      userId: req.user.id,
+      label,
+      email,
+      region,
+      encryptedPassword,
+    });
+    res.status(201).json({ id: account._id });
+  } catch (e) {
+    next(e);
+  }
+});
+
+router.put("/:id", async (req, res, next) => {
+  try {
+    const { label, email, password, region } = req.body || {};
+    const update = {};
+    if (label) update.label = label;
+    if (email) update.email = email;
+    if (region) update.region = region;
+    if (password) update.encryptedPassword = encryptSecret(password);
+
+    await AmazonAccount.updateOne({ _id: req.params.id, userId: req.user.id }, update);
+    res.json({ ok: true });
+  } catch (e) {
+    next(e);
+  }
+});
+
+router.delete("/:id", async (req, res, next) => {
+  try {
+    await AmazonAccount.deleteOne({ _id: req.params.id, userId: req.user.id });
+    res.json({ ok: true });
+  } catch (e) {
+    next(e);
+  }
+});
+
+export default router;
+
