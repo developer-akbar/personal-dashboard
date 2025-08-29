@@ -1,4 +1,6 @@
 import { chromium } from "playwright";
+import fs from "fs";
+import path from "path";
 
 const REGION_TO_HOST = {
   "amazon.in": "https://www.amazon.in",
@@ -9,10 +11,13 @@ export async function fetchAmazonPayBalance({ region, email, password, interacti
   if (!baseUrl) throw new Error("Unsupported region");
 
   const isProd = process.env.NODE_ENV === "production";
+  // Try to resolve a Chromium executable installed under node_modules cache
+  const resolvedExec = resolveChromiumExecutablePath();
+
   const browser = await chromium.launch({
     headless: isProd ? true : false,
     channel: undefined,
-    executablePath: process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH || undefined,
+    executablePath: process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH || resolvedExec || undefined,
     args: isProd ? ["--no-sandbox", "--disable-setuid-sandbox"] : [],
   });
   const context = await browser.newContext({
@@ -136,5 +141,23 @@ function parseCurrencyAmount(text) {
 
   if (!currency || Number.isNaN(amount)) return null;
   return { currency, amount };
+}
+
+function resolveChromiumExecutablePath() {
+  try {
+    const cacheBase = path.join(process.cwd(), "node_modules", ".cache", "ms-playwright");
+    if (!fs.existsSync(cacheBase)) return undefined;
+    const entries = fs.readdirSync(cacheBase).filter((d) => d.startsWith("chromium"));
+    if (!entries.length) return undefined;
+    // Prefer headless_shell installs if present
+    const preferred = entries.sort().reverse().find((d) => d.startsWith("chromium_headless_shell-")) || entries.sort().reverse()[0];
+    const candidateHeadless = path.join(cacheBase, preferred, "chrome-linux", "headless_shell");
+    if (fs.existsSync(candidateHeadless)) return candidateHeadless;
+    const candidateChrome = path.join(cacheBase, preferred, "chrome-linux", "chrome");
+    if (fs.existsSync(candidateChrome)) return candidateChrome;
+    return undefined;
+  } catch {
+    return undefined;
+  }
 }
 
