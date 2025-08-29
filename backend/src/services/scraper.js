@@ -44,11 +44,11 @@ export async function fetchAmazonPayBalance({ region, email, password, interacti
     const bodyText = (await page.textContent("body")) || "";
     if (!/Amazon\s*Pay|Wallet/i.test(bodyText)) {
       await page.goto(`${baseUrl}/ap/signin`, { waitUntil: "domcontentloaded" });
-      // Cookie consent (best-effort)
-      const consent = await page.$('#sp-cc-accept, text="Accept Cookies", [aria-label="Accept Cookies"]');
-      if (consent) {
-        try { await consent.click({ timeout: 3000 }); } catch {}
-      }
+      // Cookie consent (best-effort) with safe selectors
+      let accepted = false;
+      try { await page.click('#sp-cc-accept', { timeout: 2000 }); accepted = true; } catch {}
+      if (!accepted) { try { await page.getByRole('button', { name: /accept/i }).first().click({ timeout: 2000 }); accepted = true; } catch {} }
+      if (!accepted) { try { await page.getByText(/Accept Cookies/i).first().click({ timeout: 2000 }); } catch {} }
 
       const emailLocator = page.locator('#ap_email, input[name="email"]');
       await emailLocator.waitFor({ timeout: 60000 });
