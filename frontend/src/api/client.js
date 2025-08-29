@@ -6,10 +6,11 @@ const api = axios.create({
   timeout: 20000,
 })
 
-let accessToken = null
+let accessToken = (typeof window !== 'undefined' && localStorage.getItem('accessToken')) || null
 
 export function setAccessToken(token) {
   accessToken = token
+  try{ if (token) localStorage.setItem('accessToken', token); else localStorage.removeItem('accessToken') }catch{}
 }
 
 api.interceptors.request.use((config) => {

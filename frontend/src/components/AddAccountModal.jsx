@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import styles from './AddAccountModal.module.css'
 
-const REGIONS = ['amazon.com','amazon.in','amazon.co.uk','amazon.de','amazon.ca','amazon.com.au']
+const REGIONS = ['amazon.in']
 
 export default function AddAccountModal({ open, onClose, onSubmit, initial }) {
   const [label,setLabel]=useState(initial?.label||'')
