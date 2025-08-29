@@ -4,7 +4,7 @@ services:
     env: node
     rootDir: backend
     plan: starter
-    buildCommand: PLAYWRIGHT_BROWSERS_PATH=0 npm ci && PLAYWRIGHT_BROWSERS_PATH=0 npx playwright install chromium
+    buildCommand: PLAYWRIGHT_BROWSERS_PATH=0 npm ci && PLAYWRIGHT_BROWSERS_PATH=0 npx playwright install chromium-headless-shell
     startCommand: npm start
     autoDeploy: true
     envVars:

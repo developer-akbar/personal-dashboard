@@ -12,7 +12,7 @@ export async function fetchAmazonPayBalance({ region, email, password, interacti
 
   const isProd = process.env.NODE_ENV === "production";
   // Try to resolve a Chromium executable installed under node_modules cache
-  const resolvedExec = resolveChromiumExecutablePath();
+  const resolvedExec = resolveChromiumHeadlessPath();
 
   const browser = await chromium.launch({
     headless: isProd ? true : false,
@@ -143,7 +143,7 @@ function parseCurrencyAmount(text) {
   return { currency, amount };
 }
 
-function resolveChromiumExecutablePath() {
+function resolveChromiumHeadlessPath() {
   try {
     const cacheBase = path.join(process.cwd(), "node_modules", ".cache", "ms-playwright");
     if (!fs.existsSync(cacheBase)) return undefined;
