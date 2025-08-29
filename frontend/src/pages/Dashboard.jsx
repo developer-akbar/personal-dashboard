@@ -13,6 +13,7 @@ export default function Dashboard(){
   const { refreshing, progress, refreshOne, refreshAll } = useBalances()
   const { baseCurrency, exchangeRates, fetchSettings } = useSettings()
   const [open,setOpen]=useState(false)
+  const [editing,setEditing]=useState(null)
 
   useEffect(()=>{ fetchAccounts(); fetchSettings() },[])
 
@@ -38,7 +39,7 @@ export default function Dashboard(){
         <h1>Amazon Wallet Monitor</h1>
         <div className="spacer" />
         <span>{user?.email}</span>
-        <button className="muted" onClick={()=>setOpen(true)}>Add account</button>
+        <button className="muted" onClick={()=>{ setEditing(null); setOpen(true) }}>Add account</button>
         <button className="primary" onClick={async ()=>{ await refreshAll(accounts); await fetchAccounts(); }}>Refresh All</button>
         <button className="danger" onClick={logout}>Logout</button>
       </header>
@@ -56,13 +57,30 @@ export default function Dashboard(){
             key={a.id}
             account={a}
             onRefresh={async ()=>{ await refreshOne(a.id); await fetchAccounts(); }}
-            onEdit={()=>setOpen(true)}
+            onEdit={()=>{ setEditing(a); setOpen(true) }}
             onDelete={async ()=>{ await deleteAccount(a.id); await fetchAccounts(); }}
           />
         ))}
       </section>
 
-      <AddAccountModal open={open} onClose={()=>setOpen(false)} onSubmit={async (payload)=>{ await addAccount(payload); setOpen(false) }} />
+      <AddAccountModal
+        open={open}
+        initial={editing}
+        onClose={()=>{ setOpen(false); setEditing(null) }}
+        onSubmit={async (payload)=>{
+          if (editing) {
+            const { label, email, password, region } = payload
+            const update = { label, email, region }
+            if (password) update.password = password
+            await (await import('../store/useAccounts')).useAccounts.getState().updateAccount(editing.id, update)
+          } else {
+            await addAccount(payload)
+          }
+          await fetchAccounts();
+          setOpen(false)
+          setEditing(null)
+        }}
+      />
       <RefreshProgress refreshing={refreshing} progress={progress} />
     </div>
   )
