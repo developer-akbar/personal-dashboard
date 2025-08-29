@@ -14,16 +14,30 @@ import { errorHandler } from "./middleware/error.js";
 
 const app = express();
 
-const normalizeOrigin = (s) => (s || "").replace(/\/$/, "");
-const envOrigins = (process.env.CORS_ORIGIN || "").split(",").map((s) => s.trim()).filter(Boolean).map(normalizeOrigin);
+const normalizeOrigin = (s) => (s || "").trim().replace(/\/$/, "");
+const rawOrigins = (process.env.CORS_ORIGIN || "").split(",").map((s) => s.trim()).filter(Boolean);
+const envOrigins = rawOrigins.length ? rawOrigins : ["*"];
+
+function matchesAllowed(origin, allowed) {
+  if (allowed === "*") return true;
+  const normAllowed = normalizeOrigin(allowed);
+  const normOrigin = normalizeOrigin(origin);
+  if (normAllowed.includes("*")) {
+    // Convert wildcard to RegExp. Example: https://*.vercel.app
+    const escaped = normAllowed
+      .replace(/[.+?^${}()|[\]\\]/g, "\\$&")
+      .replace(/\\\*/g, ".*");
+    const re = new RegExp(`^${escaped}$`, "i");
+    return re.test(normOrigin);
+  }
+  return normAllowed.toLowerCase() === normOrigin.toLowerCase();
+}
+
 const corsOptions = {
   origin: (origin, callback) => {
-    // Allow non-browser requests or same-origin
     if (!origin) return callback(null, true);
-    const normalized = normalizeOrigin(origin);
-    if (envOrigins.length === 0) return callback(null, true);
-    if (envOrigins.includes(normalized)) return callback(null, true);
-    return callback(new Error("Not allowed by CORS"));
+    const ok = envOrigins.some((allowed) => matchesAllowed(origin, allowed));
+    return callback(ok ? null : new Error("Not allowed by CORS"), ok);
   },
   credentials: true,
   methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
