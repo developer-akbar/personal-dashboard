@@ -47,9 +47,10 @@ const corsOptions = {
 };
 
 app.use(cors(corsOptions));
+// Ensure preflight carries proper CORS headers (Express v5-safe)
 app.use((req, res, next) => {
   if (req.method === "OPTIONS") {
-    return res.status(204).end();
+    return cors(corsOptions)(req, res, () => res.sendStatus(204));
   }
   return next();
 });
