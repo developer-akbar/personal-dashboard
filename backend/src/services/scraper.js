@@ -91,34 +91,44 @@ export async function fetchAmazonPayBalance({ region, email, password, interacti
       await page.goto(baseUrl, { waitUntil: "domcontentloaded" });
     }
 
-    // Extract balance; selectors vary by region. Try several options
-    const selectors = [
-      '[data-testid="wallet-balance"]',
-      ".wallet-balance",
-      "text=/Balance/",
-      "#apx-content .a-color-price",
-      ".a-color-price",
+    // Extract balance; selectors vary by region. Try several options, India-first
+    const candidateLocators = [
+      page.locator('text=/Amazon\s*Pay\s*balance/i').first(),
+      page.locator('text=/Available\s*balance/i').first(),
+      page.locator('text=/Wallet\s*Balance/i').first(),
+      page.locator('[data-testid="wallet-balance"]').first(),
+      page.locator('#apx-content .a-color-price').first(),
+      page.locator('.a-color-price').first(),
     ];
 
     let raw = null;
-    for (const sel of selectors) {
-      const el = await page.$(sel);
-      if (el) {
-        raw = (await el.textContent())?.trim();
-        if (raw) break;
-      }
+    for (const loc of candidateLocators) {
+      try {
+        if (await loc.count()) {
+          // Read around the locator as well to catch nearby amount
+          const handle = await loc.elementHandle();
+          if (handle) {
+            const text = (await handle.evaluate((el) => el.closest('section,div,span')?.innerText || el.innerText || '')) || '';
+            const cleaned = text.replace(/\u00a0/g, ' ').trim();
+            const m = cleaned.match(/(₹|INR|\$|£|€)\s*([\d.,]+)/i) || cleaned.match(/([\d.,]+)\s*(INR)/i);
+            if (m) { raw = `${m[1] || 'INR'} ${m[2]}`; break; }
+          }
+        }
+      } catch {}
     }
 
     if (!raw) {
-      // Fallback: scrape by regex searching page text
-      const body = await page.textContent("body");
-      const match = body && body.match(/([A-Z]{3}|₹|£|€|\$)\s?([\d,]+(?:\.\d{1,2})?)/);
+      // Fallback: search the whole body text for a rupee amount first
+      const body = (await page.textContent('body'))?.replace(/\u00a0/g, ' ') || '';
+      let match = body.match(/(₹)\s*([\d.,]+)/);
+      if (!match) match = body.match(/(INR)\s*([\d.,]+)/i);
+      if (!match) match = body.match(/([\d.,]+)\s*(INR)/i);
       if (match) raw = `${match[1]} ${match[2]}`;
     }
 
     if (!raw) throw new Error("Unable to locate wallet balance on page");
 
-    const parsed = parseCurrencyAmount(raw);
+    const parsed = parseCurrencyAmount(raw, region);
     if (!parsed) throw new Error("Failed to parse balance");
 
     let newStorageState = null;
@@ -135,7 +145,7 @@ export async function fetchAmazonPayBalance({ region, email, password, interacti
   }
 }
 
-function parseCurrencyAmount(text) {
+function parseCurrencyAmount(text, region) {
   if (!text) return null;
   const mapSymbolToCode = {
     "$": "USD",
@@ -164,6 +174,15 @@ function parseCurrencyAmount(text) {
     if (m) {
       currency = mapSymbolToCode[m[1]] || null;
       amount = parseFloat(m[2].replace(/,/g, ""));
+    }
+  }
+
+  // 3) Region-specific tweak for amazon.in where amounts may appear like "1,234.56"
+  if (!amount && /amazon\.in$/.test(region || "")) {
+    m = trim.match(/([\d,]+(?:\.\d{1,2})?)\s*(INR)/i);
+    if (m) {
+      currency = "INR";
+      amount = parseFloat(m[1].replace(/,/g, ""));
     }
   }
 
