@@ -2,10 +2,10 @@
   "version": 2,
   "framework": null,
   "builds": [{ "src": "package.json", "use": "@vercel/static-build" }],
-  "routes": [
-    { "src": "/api/(.*)", "dest": "/api/$1" },
-    { "src": "/(.*)", "dest": "/index.html" }
+  "rewrites": [
+    { "source": "/(.*)", "destination": "/index.html" }
   ],
+  "cleanUrls": true,
   "env": {
     "VITE_API_URL": "${VITE_API_URL}"
   },
