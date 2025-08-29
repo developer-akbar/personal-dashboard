@@ -1,17 +1,12 @@
 services:
   - type: web
     name: amazon-wallet-backend
-    env: node
+    env: docker
     rootDir: backend
     plan: starter
-    buildCommand: PLAYWRIGHT_BROWSERS_PATH=0 npm ci && PLAYWRIGHT_BROWSERS_PATH=0 npx playwright install chromium-headless-shell
-    startCommand: npm start
     autoDeploy: true
+    dockerfilePath: Dockerfile
     envVars:
-      - key: NODE_VERSION
-        value: 20
-      - key: PLAYWRIGHT_BROWSERS_PATH
-        value: 0
       - key: MONGODB_URI
         sync: false
       - key: MONGODB_DB_NAME
