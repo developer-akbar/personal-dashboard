@@ -9,6 +9,14 @@ export default function AddAccountModal({ open, onClose, onSubmit, initial }) {
   const [password,setPassword]=useState('')
   const [region,setRegion]=useState(initial?.region||REGIONS[0])
 
+  // Reset fields when opening for a different account
+  useEffect(()=>{
+    setLabel(initial?.label||'')
+    setEmail(initial?.email||'')
+    setPassword('')
+    setRegion(initial?.region||REGIONS[0])
+  },[initial, open])
+
   if(!open) return null
   return (
     <div className={styles.backdrop}>

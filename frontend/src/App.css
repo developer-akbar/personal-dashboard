@@ -4,18 +4,19 @@ body { background:#0a0a0a; color:#eaeaea }
 .topbar{ display:flex; align-items:center; gap:10px; margin-bottom:16px }
 .spacer{ flex:1 }
 .container{ display:flex; flex-direction:column; gap:16px }
-.grid{ display:grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap:12px }
+.grid{ display:grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap:14px }
 @media (max-width: 900px){ .grid{ grid-template-columns: repeat(2,minmax(0,1fr)) } }
 @media (max-width: 600px){ .grid{ grid-template-columns: 1fr } }
 
-.panel{ background:#0b0b0b; border:1px solid #1f1f1f; border-radius:12px; padding:16px }
+.panel{ background:#0b0b0b; border:1px solid #1f1f1f; border-radius:14px; padding:16px }
 .centered{ display:flex; align-items:center; justify-content:center; min-height:100vh }
 .primary{ background:#4f46e5; color:#fff }
 .muted{ background:#222; color:#ddd }
 .danger{ background:#ef4444; color:#fff }
 
+button{ border-radius:10px }
 label{ display:flex; flex-direction:column; gap:6px; font-size:12px }
-input, select{ background:#111; border:1px solid #2a2a2a; border-radius:8px; padding:8px; color:#fff }
+input, select{ background:#111; border:1px solid #2a2a2a; border-radius:10px; padding:9px 10px; color:#fff }
 
 .totals{ display:flex; flex-wrap:wrap; gap:8px }
-.pill{ background:#111; border:1px solid #242424; border-radius:999px; padding:6px 12px }
+.pill{ background:#111; border:1px solid #242424; border-radius:999px; padding:8px 14px }
