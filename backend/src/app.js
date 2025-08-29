@@ -14,14 +14,24 @@ import { errorHandler } from "./middleware/error.js";
 
 const app = express();
 
-const corsOrigin = process.env.CORS_ORIGIN || "*";
+const normalizeOrigin = (s) => (s || "").replace(/\/$/, "");
+const envOrigins = (process.env.CORS_ORIGIN || "").split(",").map((s) => s.trim()).filter(Boolean).map(normalizeOrigin);
+const corsOptions = {
+  origin: (origin, callback) => {
+    // Allow non-browser requests or same-origin
+    if (!origin) return callback(null, true);
+    const normalized = normalizeOrigin(origin);
+    if (envOrigins.length === 0) return callback(null, true);
+    if (envOrigins.includes(normalized)) return callback(null, true);
+    return callback(new Error("Not allowed by CORS"));
+  },
+  credentials: true,
+  methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"],
+};
 
-app.use(
-  cors({
-    origin: corsOrigin === "*" ? true : corsOrigin.split(","),
-    credentials: true,
-  })
-);
+app.use(cors(corsOptions));
+app.options("*", cors(corsOptions));
 
 app.use(
   helmet({
@@ -40,11 +50,19 @@ const limiter = rateLimit({
 app.use(limiter);
 
 app.get("/health", (_req, res) => res.json({ ok: true }));
+app.get("/api/health", (_req, res) => res.json({ ok: true }));
 
+// Backward-compatible mounts
 app.use("/auth", authRoutes);
 app.use("/accounts", accountRoutes);
 app.use("/balances", balanceRoutes);
 app.use("/settings", settingsRoutes);
+
+// API prefix mounts to match frontend baseURL ending with /api
+app.use("/api/auth", authRoutes);
+app.use("/api/accounts", accountRoutes);
+app.use("/api/balances", balanceRoutes);
+app.use("/api/settings", settingsRoutes);
 
 app.use(errorHandler);
 
