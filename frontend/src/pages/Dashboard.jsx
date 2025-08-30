@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
-import { FiPlus, FiRefreshCcw, FiLogOut } from 'react-icons/fi'
+import { FiPlus, FiRefreshCcw } from 'react-icons/fi'
+import HeaderAvatar from '../components/HeaderAvatar'
 import { DndContext, closestCenter } from '@dnd-kit/core'
 import { arrayMove, SortableContext, verticalListSortingStrategy } from '@dnd-kit/sortable'
 import { SortableItem } from '../shared/SortableItem'
@@ -57,15 +58,9 @@ export default function Dashboard(){
       <header className="topbar">
         <h1>Amazon Wallet Monitor</h1>
         <div className="spacer" />
-        <span style={{display:'inline-flex',alignItems:'center',gap:8}}>
-          <span style={{width:28,height:28,borderRadius:'999px',background:'#222',display:'inline-flex',alignItems:'center',justifyContent:'center',fontWeight:700}}>
-            {(user?.name||user?.email||'?').slice(0,1).toUpperCase()}
-          </span>
-          <span>{user?.name||user?.email}</span>
-        </span>
+        <HeaderAvatar/>
         <button className="muted" onClick={()=>{ setEditing(null); setOpen(true) }}><FiPlus/> Add account</button>
         <button className="primary" onClick={async ()=>{ await refreshAll(accounts); await fetchAccounts(); }}><FiRefreshCcw/> Refresh All</button>
-        <button className="danger" onClick={logout}><FiLogOut/> Logout</button>
       </header>
 
       <section className="totals">

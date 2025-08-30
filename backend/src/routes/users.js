@@ -10,15 +10,17 @@ router.get("/me", async (req, res, next) => {
   try {
     const user = await User.findById(req.user.id).lean();
     if (!user) return res.status(404).json({ error: "Not found" });
-    res.json({ id: user._id, email: user.email, name: user.name, baseCurrency: user.baseCurrency });
+    res.json({ id: user._id, email: user.email, name: user.name, username: user.username, phone: user.phone, avatarUrl: user.avatarUrl, baseCurrency: user.baseCurrency });
   } catch (e) { next(e); }
 });
 
 router.put("/me", async (req, res, next) => {
   try {
-    const { name, baseCurrency } = req.body || {};
+    const { name, phone, avatarUrl, baseCurrency } = req.body || {};
     const update = {};
     if (typeof name === 'string') update.name = name;
+    if (typeof phone === 'string') update.phone = phone;
+    if (typeof avatarUrl === 'string') update.avatarUrl = avatarUrl;
     if (typeof baseCurrency === 'string') update.baseCurrency = baseCurrency;
     await User.updateOne({ _id: req.user.id }, update);
     res.json({ ok: true });
