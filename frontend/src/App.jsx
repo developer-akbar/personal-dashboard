@@ -1,10 +1,11 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
+import { HashRouter, Routes, Route, Navigate } from 'react-router-dom'
 import './App.css'
 import Login from './pages/Login'
 import Register from './pages/Register'
 import Dashboard from './pages/Dashboard'
 import AccountDetails from './pages/AccountDetails'
 import Settings from './pages/Settings'
+import Account from './pages/Account'
 import { useAuth } from './store/useAuth'
 
 function RequireAuth({ children }){
@@ -15,15 +16,16 @@ function RequireAuth({ children }){
 
 export default function App(){
   return (
-    <BrowserRouter>
+    <HashRouter>
       <Routes>
         <Route path="/login" element={<Login/>} />
         <Route path="/register" element={<Register/>} />
         <Route path="/dashboard" element={<RequireAuth><Dashboard/></RequireAuth>} />
+        <Route path="/account" element={<RequireAuth><Account/></RequireAuth>} />
         <Route path="/account/:id" element={<RequireAuth><AccountDetails/></RequireAuth>} />
         <Route path="/settings" element={<RequireAuth><Settings/></RequireAuth>} />
         <Route path="*" element={<Navigate to="/dashboard" replace />} />
       </Routes>
-    </BrowserRouter>
+    </HashRouter>
   )
 }
