@@ -26,7 +26,7 @@ router.post("/refresh/:accountId", async (req, res, next) => {
     if (!account) return res.status(404).json({ error: "Account not found" });
 
     const password = decryptSecret(account.encryptedPassword);
-    const { amount, currency, storageState } = await fetchAmazonPayBalance({
+    const { amount, currency, storageState, debug } = await fetchAmazonPayBalance({
       region: account.region,
       email: account.email,
       password,
@@ -41,7 +41,7 @@ router.post("/refresh/:accountId", async (req, res, next) => {
     await account.save();
 
     const snap = await Balance.create({ accountId: account._id, amount, currency });
-    res.json({ amount, currency, timestamp: snap.createdAt });
+    res.json({ amount, currency, timestamp: snap.createdAt, debug });
   } catch (e) {
     next(e);
   }
