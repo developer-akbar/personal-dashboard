@@ -15,7 +15,7 @@ export default function Account(){
 
   async function saveProfile(e){
     e.preventDefault(); setSaving(true)
-    try{ await api.put('/users/me',{ name }); toast.success('Profile updated') }
+    try{ await api.put('/users/me',{ name }); toast.success('Profile updated'); (await import('../store/useAuth')).useAuth.getState().setUser({ name }) }
     catch{ toast.error('Failed to update') }
     finally{ setSaving(false) }
   }
