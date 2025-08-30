@@ -34,9 +34,9 @@ export default function Account(){
   return (
     <div className="container">
       <header className="topbar">
-        <h2>Account</h2>
+        <button className="muted" onClick={()=> window.location.hash = '#/dashboard'}>← Back</button>
         <div className="spacer" />
-        <button className="danger" onClick={logout}>Logout</button>
+        <h2>Account</h2>
       </header>
 
       <div className="panel" style={{display:'flex',alignItems:'center',gap:12}}>
