@@ -53,21 +53,25 @@ router.post("/refresh-all", async (req, res, next) => {
     const results = [];
     for (let i = 0; i < accounts.length; i++) {
       const account = accounts[i];
-      const password = decryptSecret(account.encryptedPassword);
-      const { amount, currency, storageState } = await fetchAmazonPayBalance({
-        region: account.region,
-        email: account.email,
-        password,
-        interactive: process.env.NODE_ENV !== 'production',
-        storageState: account.storageState,
-      });
-      account.lastBalance = amount;
-      account.lastCurrency = currency;
-      account.lastRefreshedAt = new Date();
-      if (storageState) account.storageState = storageState;
-      await account.save();
-      const snap = await Balance.create({ accountId: account._id, amount, currency });
-      results.push({ accountId: account._id, amount, currency, index: i + 1, total: accounts.length, timestamp: snap.createdAt });
+      try {
+        const password = decryptSecret(account.encryptedPassword);
+        const { amount, currency, storageState } = await fetchAmazonPayBalance({
+          region: account.region,
+          email: account.email,
+          password,
+          interactive: process.env.NODE_ENV !== 'production',
+          storageState: account.storageState,
+        });
+        account.lastBalance = amount;
+        account.lastCurrency = currency;
+        account.lastRefreshedAt = new Date();
+        if (storageState) account.storageState = storageState;
+        await account.save();
+        const snap = await Balance.create({ accountId: account._id, amount, currency });
+        results.push({ accountId: account._id, amount, currency, index: i + 1, total: accounts.length, timestamp: snap.createdAt });
+      } catch (err) {
+        results.push({ accountId: account._id, error: err?.message || 'Refresh failed', index: i + 1, total: accounts.length });
+      }
     }
     res.json({ results });
   } catch (e) {
