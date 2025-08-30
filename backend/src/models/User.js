@@ -4,8 +4,11 @@ import bcrypt from "bcryptjs";
 const userSchema = new mongoose.Schema(
   {
     name: { type: String },
+    username: { type: String, unique: true, sparse: true },
     email: { type: String, required: true, unique: true, index: true },
     passwordHash: { type: String, required: true },
+    phone: { type: String },
+    avatarUrl: { type: String },
     baseCurrency: { type: String, default: "INR" },
     exchangeRates: {
       // Map currency code -> number rate relative to baseCurrency (1.0 for base)

@@ -7,18 +7,18 @@ const router = Router();
 
 router.post("/register", async (req, res, next) => {
   try {
-    const { name, email, password } = req.body || {};
+    const { name, email, password, username, phone, avatarUrl } = req.body || {};
     if (!email || !password) return res.status(400).json({ error: "Email and password required" });
 
     const existing = await User.findOne({ email });
     if (existing) return res.status(409).json({ error: "Email already in use" });
 
     const passwordHash = await bcrypt.hash(password, 12);
-    const user = await User.create({ name, email, passwordHash });
+    const user = await User.create({ name, email, username, phone, avatarUrl, passwordHash });
 
     const access = signAccessToken({ sub: String(user._id), email: user.email, name: user.name });
     const refresh = signRefreshToken({ sub: String(user._id), email: user.email, name: user.name });
-    res.json({ accessToken: access, refreshToken: refresh, user: { id: user._id, email: user.email, name: user.name } });
+    res.json({ accessToken: access, refreshToken: refresh, user: { id: user._id, email: user.email, name: user.name, username: user.username, phone: user.phone, avatarUrl: user.avatarUrl } });
   } catch (e) {
     next(e);
   }
@@ -34,7 +34,7 @@ router.post("/login", async (req, res, next) => {
     if (!ok) return res.status(401).json({ error: "Invalid credentials" });
     const access = signAccessToken({ sub: String(user._id), email: user.email, name: user.name });
     const refresh = signRefreshToken({ sub: String(user._id), email: user.email, name: user.name });
-    res.json({ accessToken: access, refreshToken: refresh, user: { id: user._id, email: user.email, name: user.name } });
+    res.json({ accessToken: access, refreshToken: refresh, user: { id: user._id, email: user.email, name: user.name, username: user.username, phone: user.phone, avatarUrl: user.avatarUrl } });
   } catch (e) {
     next(e);
   }
