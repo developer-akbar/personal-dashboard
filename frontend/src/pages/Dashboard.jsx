@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { FiPlus, FiRefreshCcw } from "react-icons/fi";
 import HeaderAvatar from "../components/HeaderAvatar";
-import { DndContext, closestCenter } from "@dnd-kit/core";
+import { DndContext, closestCenter, PointerSensor, TouchSensor, useSensor, useSensors } from "@dnd-kit/core";
 import {
   arrayMove,
   SortableContext,
@@ -26,6 +26,7 @@ export default function Dashboard() {
   const [editing, setEditing] = useState(null);
   const [query, setQuery] = useState("");
   const [sortBy, setSortBy] = useState("order");
+  const sensors = useSensors(useSensor(PointerSensor), useSensor(TouchSensor));
 
   useEffect(() => {
     fetchAccounts();
@@ -132,6 +133,7 @@ export default function Dashboard() {
         <Loader text="Loading accounts…" />
       ) : (
         <DndContext
+          sensors={sensors}
           collisionDetection={closestCenter}
           onDragEnd={async ({ active, over }) => {
             if (!over || active.id === over.id) return;

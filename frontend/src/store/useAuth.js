@@ -6,6 +6,12 @@ export const useAuth = create((set, get) => ({
   accessToken: (typeof window!=='undefined' && localStorage.getItem('accessToken')) || null,
   refreshToken: (typeof window!=='undefined' && localStorage.getItem('refreshToken')) || null,
   loading: false,
+  setUser(partial){
+    const current = get().user || {}
+    const next = { ...current, ...partial }
+    try{ localStorage.setItem('user', JSON.stringify(next)) }catch{}
+    set({ user: next })
+  },
   async register(emailOrPayload, maybePassword) {
     set({ loading: true })
     try {
