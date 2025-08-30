@@ -9,7 +9,7 @@ router.use(requireAuth);
 
 router.get("/", async (req, res, next) => {
   try {
-    const accounts = await AmazonAccount.find({ userId: req.user.id }).sort({ order: 1, createdAt: 1 });
+    const accounts = await AmazonAccount.find({ userId: req.user.id, isDeleted: { $ne: true } }).sort({ order: 1, createdAt: 1 });
     res.json(
       accounts.map((a) => ({
         id: a._id,
@@ -66,12 +66,20 @@ router.put("/:id", async (req, res, next) => {
 
 router.delete("/:id", async (req, res, next) => {
   try {
-    await AmazonAccount.deleteOne({ _id: req.params.id, userId: req.user.id });
+    await AmazonAccount.updateOne({ _id: req.params.id, userId: req.user.id }, { isDeleted: true, deletedAt: new Date() });
     res.json({ ok: true });
   } catch (e) {
     next(e);
   }
 });
+
+// Restore soft-deleted account
+router.post('/restore/:id', async (req,res,next)=>{
+  try{
+    await AmazonAccount.updateOne({ _id: req.params.id, userId: req.user.id }, { isDeleted: false, deletedAt: null });
+    res.json({ ok: true });
+  }catch(e){ next(e) }
+})
 
 // Bulk reorder
 router.post('/reorder', async (req, res, next) => {

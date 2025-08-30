@@ -13,6 +13,8 @@ const amazonAccountSchema = new mongoose.Schema(
     // Persisted cookies/localStorage to reduce repeated logins and bypass 2FA prompts
     storageState: { type: mongoose.Schema.Types.Mixed },
     order: { type: Number, default: 0 },
+    isDeleted: { type: Boolean, default: false, index: true },
+    deletedAt: { type: Date },
   },
   { timestamps: true }
 );

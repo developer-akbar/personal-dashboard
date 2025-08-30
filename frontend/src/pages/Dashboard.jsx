@@ -10,6 +10,7 @@ import AccountCard from "../components/AccountCard";
 import AddAccountModal from "../components/AddAccountModal";
 import RefreshProgress from "../components/RefreshProgress";
 import Loader from "../components/Loader";
+import ConfirmDialog from "../components/ConfirmDialog";
 
 export default function Dashboard() {
   const { user, logout } = useAuth();
@@ -20,6 +21,7 @@ export default function Dashboard() {
   const [editing, setEditing] = useState(null);
   const [query, setQuery] = useState("");
   const [sortBy, setSortBy] = useState("order");
+  const [confirm, setConfirm] = useState({ open:false, id:null });
   // DnD sensors removed
 
   useEffect(() => {
@@ -139,10 +141,7 @@ export default function Dashboard() {
                 setEditing(a);
                 setOpen(true);
               }}
-              onDelete={async () => {
-                await deleteAccount(a.id);
-                await fetchAccounts();
-              }}
+              onDelete={async () => { setConfirm({ open:true, id:a.id }) }}
             />
           ))}
         </section>
@@ -172,6 +171,13 @@ export default function Dashboard() {
         }}
       />
       <RefreshProgress refreshing={refreshing} progress={progress} />
+      <ConfirmDialog
+        open={confirm.open}
+        title="Delete account?"
+        message="This will soft-delete the account. You can restore it later."
+        onCancel={()=> setConfirm({ open:false, id:null })}
+        onConfirm={async ()=>{ await deleteAccount(confirm.id); await fetchAccounts(); setConfirm({ open:false, id:null }) }}
+      />
     </div>
   );
 }
