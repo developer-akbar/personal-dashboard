@@ -1,13 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { FiPlus, FiRefreshCcw } from "react-icons/fi";
 import HeaderAvatar from "../components/HeaderAvatar";
-import { DndContext, closestCenter, PointerSensor, TouchSensor, useSensor, useSensors } from "@dnd-kit/core";
-import {
-  arrayMove,
-  SortableContext,
-  verticalListSortingStrategy,
-} from "@dnd-kit/sortable";
-import { SortableItem } from "../shared/SortableItem";
+// DnD removed per request to ensure buttons work reliably
 import { useAccounts } from "../store/useAccounts";
 import { useBalances } from "../store/useBalances";
 import { useAuth } from "../store/useAuth";
@@ -26,7 +20,7 @@ export default function Dashboard() {
   const [editing, setEditing] = useState(null);
   const [query, setQuery] = useState("");
   const [sortBy, setSortBy] = useState("order");
-  const sensors = useSensors(useSensor(PointerSensor), useSensor(TouchSensor));
+  // DnD sensors removed
 
   useEffect(() => {
     fetchAccounts();
@@ -132,55 +126,26 @@ export default function Dashboard() {
       {!accounts.length ? (
         <Loader text="Loading accounts…" />
       ) : (
-        <DndContext
-          sensors={sensors}
-          collisionDetection={closestCenter}
-          onDragEnd={async ({ active, over }) => {
-            if (!over || active.id === over.id) return;
-            const list = sortedFiltered;
-            const oldIndex = list.findIndex((x) => x.id === active.id);
-            const newIndex = list.findIndex((x) => x.id === over.id);
-            const moved = arrayMove(list, oldIndex, newIndex);
-            const payload = moved.map((a, idx) => ({
-              id: a.id,
-              order: Date.now() + idx,
-            }));
-            const api = (await import("../api/client")).default;
-            await api.post("/accounts/reorder", { items: payload });
-            await fetchAccounts();
-          }}
-        >
-          <SortableContext
-            items={sortedFiltered.map((a) => a.id)}
-            strategy={verticalListSortingStrategy}
-          >
-            <section className="grid">
-              {sortedFiltered.map((a) => (
-                <SortableItem id={a.id} key={a.id}>
-                  {(dragHandleProps) => (
-                    <div {...dragHandleProps}>
-                      <AccountCard
-                        account={a}
-                        onRefresh={async () => {
-                          await refreshOne(a.id);
-                          await fetchAccounts();
-                        }}
-                        onEdit={() => {
-                          setEditing(a);
-                          setOpen(true);
-                        }}
-                        onDelete={async () => {
-                          await deleteAccount(a.id);
-                          await fetchAccounts();
-                        }}
-                      />
-                    </div>
-                  )}
-                </SortableItem>
-              ))}
-            </section>
-          </SortableContext>
-        </DndContext>
+        <section className="grid">
+          {sortedFiltered.map((a) => (
+            <AccountCard
+              key={a.id}
+              account={a}
+              onRefresh={async () => {
+                await refreshOne(a.id);
+                await fetchAccounts();
+              }}
+              onEdit={() => {
+                setEditing(a);
+                setOpen(true);
+              }}
+              onDelete={async () => {
+                await deleteAccount(a.id);
+                await fetchAccounts();
+              }}
+            />
+          ))}
+        </section>
       )}
 
       <AddAccountModal
