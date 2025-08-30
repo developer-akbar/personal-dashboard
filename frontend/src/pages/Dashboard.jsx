@@ -157,21 +157,25 @@ export default function Dashboard() {
             <section className="grid">
               {sortedFiltered.map((a) => (
                 <SortableItem id={a.id} key={a.id}>
-                  <AccountCard
-                    account={a}
-                    onRefresh={async () => {
-                      await refreshOne(a.id);
-                      await fetchAccounts();
-                    }}
-                    onEdit={() => {
-                      setEditing(a);
-                      setOpen(true);
-                    }}
-                    onDelete={async () => {
-                      await deleteAccount(a.id);
-                      await fetchAccounts();
-                    }}
-                  />
+                  {(dragHandleProps) => (
+                    <div {...dragHandleProps}>
+                      <AccountCard
+                        account={a}
+                        onRefresh={async () => {
+                          await refreshOne(a.id);
+                          await fetchAccounts();
+                        }}
+                        onEdit={() => {
+                          setEditing(a);
+                          setOpen(true);
+                        }}
+                        onDelete={async () => {
+                          await deleteAccount(a.id);
+                          await fetchAccounts();
+                        }}
+                      />
+                    </div>
+                  )}
                 </SortableItem>
               ))}
             </section>
