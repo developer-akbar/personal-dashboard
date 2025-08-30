@@ -70,25 +70,24 @@ export async function fetchAmazonPayBalance({ region, email, password, interacti
     }
 
     // Navigate to Amazon Pay balance page
-    // Region specific Amazon Pay URL may vary; we attempt a generic path and fallback
-    const candidates = [
-      `${baseUrl}/gp/sva/dashboard`,
-      `${baseUrl}/gp/wallet`,
-    ];
-
-    let found = false;
-    for (const url of candidates) {
-      await page.goto(url, { waitUntil: "domcontentloaded" });
-      const text = await page.textContent("body");
-      if (text && /Amazon\s*Pay|Wallet|Balance/i.test(text)) {
-        found = true;
-        break;
-      }
-    }
-
-    if (!found) {
-      // Try opening account menu to reach wallet link
-      await page.goto(baseUrl, { waitUntil: "domcontentloaded" });
+    // Prefer direct dashboard where #APayBalance lives; otherwise hop via amazonpay home
+    const navSteps = [];
+    try {
+      await page.goto(`${baseUrl}/gp/sva/dashboard`, { waitUntil: "domcontentloaded" });
+      navSteps.push(`goto ${baseUrl}/gp/sva/dashboard`);
+    } catch {}
+    if (!(await page.locator('#APayBalance').first().count())) {
+      // Try via amazonpay home and click the balance tile/link
+      try {
+        await page.goto(`${baseUrl}/amazonpay/home`, { waitUntil: "domcontentloaded" });
+        navSteps.push(`goto ${baseUrl}/amazonpay/home`);
+        const tileLink = page.locator('a[href*="/gp/sva/dashboard"], a[href*="/gp/wallet"], a:has-text("Amazon Pay Balance")').first();
+        if (await tileLink.count()) {
+          await tileLink.click({ timeout: 5000 });
+          navSteps.push('clicked balance tile link');
+          await page.waitForLoadState('domcontentloaded');
+        }
+      } catch {}
     }
 
     // Extract balance; selectors vary by region. Try several options, India-first
@@ -128,12 +127,17 @@ export async function fetchAmazonPayBalance({ region, email, password, interacti
     }
 
     if (!raw) {
-      // Fallback: search the whole body text for a rupee amount first
-      const body = (await page.textContent('body'))?.replace(/\u00a0/g, ' ') || '';
-      let match = body.match(/(₹)\s*([\d.,]+)/);
-      if (!match) match = body.match(/(INR)\s*([\d.,]+)/i);
-      if (!match) match = body.match(/([\d.,]+)\s*(INR)/i);
-      if (match) raw = `${match[1]} ${match[2]}`;
+      // Last resort: only look within the APayBalance container to avoid grabbing banner prices
+      try {
+        const container = await page.locator('#APayBalance').first().elementHandle();
+        if (container) {
+          const localText = (await container.evaluate(el => el.innerText || ''))?.replace(/\u00a0/g, ' ') || '';
+          let match = localText.match(/(₹)\s*([\d.,]+)/);
+          if (!match) match = localText.match(/(INR)\s*([\d.,]+)/i);
+          if (!match) match = localText.match(/([\d.,]+)\s*(INR)/i);
+          if (match) raw = `${match[1]} ${match[2]}`;
+        }
+      } catch {}
     }
 
     if (!raw) throw new Error("Unable to locate wallet balance on page");
@@ -151,6 +155,7 @@ export async function fetchAmazonPayBalance({ region, email, password, interacti
       matchedSelector,
       attemptedSelectors,
       extractedText: raw,
+      navSteps,
     };
 
     return { ...parsed, storageState: newStorageState, debug };
