@@ -11,6 +11,7 @@ import { useSettings } from '../store/useSettings'
 import AccountCard from '../components/AccountCard'
 import AddAccountModal from '../components/AddAccountModal'
 import RefreshProgress from '../components/RefreshProgress'
+import Loader from '../components/Loader'
 
 export default function Dashboard(){
   const { user, logout } = useAuth()
@@ -78,6 +79,9 @@ export default function Dashboard(){
         </select>
       </div>
 
+      {!accounts.length ? (
+        <Loader text="Loading accounts…" />
+      ) : (
       <DndContext collisionDetection={closestCenter} onDragEnd={async ({active,over})=>{
         if(!over || active.id===over.id) return;
         const list = sortedFiltered;
@@ -104,6 +108,7 @@ export default function Dashboard(){
           </section>
         </SortableContext>
       </DndContext>
+      )}
 
       <AddAccountModal
         open={open}
