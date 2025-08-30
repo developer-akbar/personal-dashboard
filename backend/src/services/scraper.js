@@ -92,18 +92,27 @@ export async function fetchAmazonPayBalance({ region, email, password, interacti
     }
 
     // Extract balance; selectors vary by region. Try several options, India-first
-    const candidateLocators = [
-      page.locator('text=/Amazon\s*Pay\s*balance/i').first(),
-      page.locator('text=/Available\s*balance/i').first(),
-      page.locator('text=/Wallet\s*Balance/i').first(),
-      page.locator('[data-testid="wallet-balance"]').first(),
-      page.locator('#apx-content .a-color-price').first(),
-      page.locator('.a-color-price').first(),
+    const attemptedSelectors = [];
+    let matchedSelector = null;
+    const candidateSelectors = [
+      // Direct container + amount on amazon.in
+      '#APayBalance .onep-instrument-amount-desktop .currency-green',
+      '#APayBalance .currency-green',
+      // Text-based anchors
+      'text=/Amazon\\s*Pay\\s*Balance/i',
+      'text=/Available\\s*balance/i',
+      'text=/Wallet\\s*Balance/i',
+      '[data-testid="wallet-balance"]',
+      '#apx-content .a-color-price',
+      '.a-color-price',
     ];
 
+    const candidateLocators = candidateSelectors.map(sel => ({ sel, loc: sel.startsWith('text=') ? page.locator(sel.replace('text=', '')) : page.locator(sel) }));
+
     let raw = null;
-    for (const loc of candidateLocators) {
+    for (const { sel, loc } of candidateLocators) {
       try {
+        attemptedSelectors.push(sel);
         if (await loc.count()) {
           // Read around the locator as well to catch nearby amount
           const handle = await loc.elementHandle();
@@ -112,6 +121,7 @@ export async function fetchAmazonPayBalance({ region, email, password, interacti
             const cleaned = text.replace(/\u00a0/g, ' ').trim();
             const m = cleaned.match(/(₹|INR|\$|£|€)\s*([\d.,]+)/i) || cleaned.match(/([\d.,]+)\s*(INR)/i);
             if (m) { raw = `${m[1] || 'INR'} ${m[2]}`; break; }
+            matchedSelector = sel;
           }
         }
       } catch {}
@@ -136,7 +146,14 @@ export async function fetchAmazonPayBalance({ region, email, password, interacti
       newStorageState = await context.storageState();
     } catch {}
 
-    return { ...parsed, storageState: newStorageState };
+    const debug = {
+      url: page.url(),
+      matchedSelector,
+      attemptedSelectors,
+      extractedText: raw,
+    };
+
+    return { ...parsed, storageState: newStorageState, debug };
   } finally {
     // Do not close immediately to allow manual step if interactive; short delay
     await new Promise((r) => setTimeout(r, 500));
