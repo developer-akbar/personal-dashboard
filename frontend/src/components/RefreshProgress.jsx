@@ -1,3 +1,4 @@
+import React from 'react'
 import styles from './RefreshProgress.module.css'
 
 export default function RefreshProgress({ refreshing, progress }) {

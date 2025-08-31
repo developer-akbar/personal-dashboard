@@ -1,3 +1,5 @@
+import React from 'react'
+
 export default function ConfirmDialog({ open, title='Are you sure?', message, onCancel, onConfirm }){
   if(!open) return null
   return (
