@@ -20,7 +20,7 @@ export default function Dashboard() {
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState(null);
   const [query, setQuery] = useState("");
-  const [sortBy, setSortBy] = useState("order"); // order | amount | label | refreshed
+  const [sortBy, setSortBy] = useState("amount"); // order | amount | label | refreshed
   const [filterTag, setFilterTag] = useState("");
   const [filterRegion, setFilterRegion] = useState("");
   const [filterStatus, setFilterStatus] = useState(""); // '', ok, error, never
