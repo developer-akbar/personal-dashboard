@@ -76,7 +76,7 @@ export default function Dashboard() {
         <HeaderAvatar />
       </header>
 
-      <div className="action-buttons">
+      <div className="action-buttons" style={{position:'sticky', top:0, zIndex:10, background:'transparent', display:'flex', gap:8, paddingBottom:8}}>
         <button
           className="muted"
           onClick={() => {
@@ -95,6 +95,15 @@ export default function Dashboard() {
         >
           <FiRefreshCcw /> Refresh All
         </button>
+        <button className="muted" onClick={async ()=>{
+          // Export current view to CSV
+          const rows = [['Label','Email','Region','Balance','Currency','Last Refreshed']]
+          for(const a of sortedFiltered){ rows.push([a.label, a.email, a.region, String(a.lastBalance||0), a.lastCurrency||'', a.lastRefreshedAt? new Date(a.lastRefreshedAt).toISOString(): '' ]) }
+          const csv = rows.map(r=> r.map(c=>`"${String(c).replace(/"/g,'""')}"`).join(',')).join('\n')
+          const blob = new Blob([csv], {type:'text/csv'})
+          const url = URL.createObjectURL(blob)
+          const a = document.createElement('a'); a.href=url; a.download='accounts.csv'; a.click(); URL.revokeObjectURL(url)
+        }}>Export CSV</button>
       </div>
 
       <section className="totals">
@@ -142,6 +151,7 @@ export default function Dashboard() {
                 setOpen(true);
               }}
               onDelete={async () => { setConfirm({ open:true, id:a.id }) }}
+              onTogglePin={async ()=>{ const api=(await import('../api/client')).default; await api.put(`/accounts/${a.id}`, { pinned: !a.pinned }); await fetchAccounts() }}
             />
           ))}
         </section>
