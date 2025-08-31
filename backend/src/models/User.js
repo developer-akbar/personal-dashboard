@@ -16,6 +16,7 @@ const userSchema = new mongoose.Schema(
       of: Number,
       default: {},
     },
+    refreshSchedule: { type: String, enum: ['off','daily','weekly'], default: 'off' },
   },
   { timestamps: true }
 );
