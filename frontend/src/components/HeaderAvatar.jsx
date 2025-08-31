@@ -1,9 +1,11 @@
 import { useState, useRef, useEffect } from "react";
 import { useAuth } from "../store/useAuth";
 import { Link } from "react-router-dom";
+import { useTheme } from "../store/useTheme";
 
 export default function HeaderAvatar() {
   const { user, logout } = useAuth();
+  const { theme, setTheme } = useTheme();
   const [open, setOpen] = useState(false);
   const ref = useRef(null);
   useEffect(() => {
@@ -42,6 +44,14 @@ export default function HeaderAvatar() {
           <Link to="/account" onClick={() => setOpen(false)} style={itemStyle}>
             View Profile
           </Link>
+          <div style={{padding:'8px 12px'}}>
+            <div style={{fontSize:12,opacity:.8,marginBottom:6}}>Theme</div>
+            <div style={{display:'flex',gap:6}}>
+              <button className="muted" onClick={()=> setTheme('light')}>Light</button>
+              <button className="muted" onClick={()=> setTheme('dark')}>Dark</button>
+              <button className="muted" onClick={()=> setTheme('system')}>System</button>
+            </div>
+          </div>
           <Link
             onClick={logout}
             style={{ ...itemStyle, width: "100%", textAlign: "left" }}

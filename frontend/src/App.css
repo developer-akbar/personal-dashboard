@@ -5,6 +5,11 @@ body {
   background: #0a0a0a;
   color: #eaeaea;
 }
+#root { transition: background-color .2s ease, color .2s ease }
+[data-theme="light"] body { background:#f9fafb; color:#0a0a0a }
+[data-theme="light"] .panel{ background:#ffffff; border-color:#e5e7eb }
+[data-theme="light"] .muted{ background:#f3f4f6; color:#111 }
+[data-theme="light"] .pill{ background:#f3f4f6; border-color:#e5e7eb }
 #root {
   max-width: 1100px;
   margin: 0 auto;

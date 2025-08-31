@@ -6,16 +6,17 @@ import toast from 'react-hot-toast'
 export default function Account(){
   const { user, logout } = useAuth()
   const [name,setName]=useState(user?.name||'')
+  const [avatarUrl,setAvatarUrl]=useState(user?.avatarUrl||'')
   const [saving,setSaving]=useState(false)
   const [cpLoading,setCpLoading]=useState(false)
 
   useEffect(()=>{ (async()=>{
-    try{ const { data } = await api.get('/users/me'); setName(data.name||'') }catch{}
+    try{ const { data } = await api.get('/users/me'); setName(data.name||''); setAvatarUrl(data.avatarUrl||'') }catch{}
   })() },[])
 
   async function saveProfile(e){
     e.preventDefault(); setSaving(true)
-    try{ await api.put('/users/me',{ name }); toast.success('Profile updated'); (await import('../store/useAuth')).useAuth.getState().setUser({ name }) }
+    try{ await api.put('/users/me',{ name, avatarUrl }); toast.success('Profile updated'); (await import('../store/useAuth')).useAuth.getState().setUser({ name, avatarUrl }) }
     catch{ toast.error('Failed to update') }
     finally{ setSaving(false) }
   }
@@ -52,6 +53,10 @@ export default function Account(){
       <div className="panel">
         <h3 style={{marginTop:0}}>Profile</h3>
         <form onSubmit={saveProfile} style={{display:'flex',flexDirection:'column',gap:12}}>
+          <div style={{display:'flex',alignItems:'center',gap:12}}>
+            <img src={avatarUrl||'https://via.placeholder.com/64'} alt="avatar" width={48} height={48} style={{borderRadius:999}}/>
+            <label style={{flex:1}}>Avatar URL<input value={avatarUrl} onChange={e=>setAvatarUrl(e.target.value)} placeholder="https://..." /></label>
+          </div>
           <label>Name<input value={name} onChange={e=>setName(e.target.value)} required /></label>
           <button className="primary" type="submit" disabled={saving}>{saving? 'Saving...' : 'Save'}</button>
         </form>

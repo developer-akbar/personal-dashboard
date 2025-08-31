@@ -30,6 +30,14 @@ export default function Dashboard() {
   useEffect(() => {
     fetchAccounts();
     fetchSettings();
+    // Keyboard shortcuts
+    function onKey(e){
+      if (e.target && (e.target.tagName==='INPUT' || e.target.tagName==='TEXTAREA')) return;
+      if (e.key==='a'){ setEditing(null); setOpen(true) }
+      if (e.key==='r'){ (async()=>{ await refreshAll(accounts); await fetchAccounts() })() }
+    }
+    window.addEventListener('keydown', onKey)
+    return ()=> window.removeEventListener('keydown', onKey)
   }, []);
 
   const total = useMemo(() => {
