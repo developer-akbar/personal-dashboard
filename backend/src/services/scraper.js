@@ -209,6 +209,7 @@ export async function fetchAmazonRewards({ region, email, password, interactive,
     if (interactive && !isProd) { await page.waitForLoadState('networkidle'); await page.waitForTimeout(500); }
 
     const candidatePages = [
+      `${baseUrl}/h/rewards`,
       `${baseUrl}/amazonpay/rewards`,
       `${baseUrl}/gp/coupons`,
       `${baseUrl}/amazonpay/home`,
@@ -220,7 +221,59 @@ export async function fetchAmazonRewards({ region, email, password, interactive,
         await page.goto(url, { waitUntil: 'domcontentloaded' });
         diagnostics.pagesTried.push(url);
       } catch { continue; }
-      // Heuristic: find cards/tiles with reward/offer keywords and avoid obvious nav/shortcuts
+      // Prefer structured coupon containers if present
+      const couponCards = await page.locator('.coupon-container, .coupon-content').all();
+      if (couponCards.length > 0) {
+        for (const card of couponCards) {
+          try {
+            const title = (await (await card.$('.coupon-description-main'))?.innerText() || '').replace(/\s+/g,' ').trim();
+            const sub = (await (await card.$('.coupon-description-sub'))?.innerText() || '').replace(/\s+/g,' ').trim();
+            const expiryText = (await (await card.$('.coupon-date'))?.innerText() || '').replace(/\s+/g,' ').trim();
+            const labelText = (await (await card.$('.image_wrapper_label'))?.innerText() || '').replace(/\s+/g,' ').trim();
+            const detailHref = await (await card.$('a.reward-ad-detail-link'))?.getAttribute('href');
+            const buyHref = await (await card.$('.coupon-cta-issued a.a-button-text, .cta-wrapper a.a-button-text'))?.getAttribute('href');
+            const redirectionUrl = await (await card.$('[redirection-url]'))?.getAttribute('redirection-url');
+            const href = [detailHref, buyHref, redirectionUrl].filter(Boolean).map(h=> h.startsWith('/')? `${baseUrl}${h}` : h)[0] || null;
+
+            const textBlob = `${title} ${sub} ${labelText} ${expiryText}`.trim();
+            if (!textBlob) continue;
+            diagnostics.scanned++;
+
+            // Parse fields from structured pieces
+            const { minAmount, minCurrency } = deriveMinAmount(`${sub} ${title}`);
+            const cashback = deriveCashback(`${title} ${sub}`);
+            const expiry = expiryText ? deriveExpiry(`Valid till ${expiryText}`) : { date: null, text: expiryText || null };
+            const paymentMethod = labelText || derivePaymentMethod(textBlob);
+            const onWhat = deriveOnWhat(textBlob) || deriveOnWhat(href||'');
+            const category = deriveCategory(`${textBlob} ${href||''}`);
+
+            const rewardObj = {
+              title: title || 'Offer',
+              description: sub || '',
+              href,
+              sourceUrl: url,
+              category,
+              paymentMethod,
+              onWhat,
+              minAmount: minAmount ?? null,
+              minCurrency: minCurrency || (region === 'amazon.in' ? 'INR' : null),
+              cashbackText: cashback.text || null,
+              cashbackAmount: cashback.amount ?? null,
+              cashbackMaxAmount: cashback.maxAmount ?? null,
+              cashbackPercent: cashback.percent ?? null,
+              expiresAt: expiry.date ?? null,
+              expiryText: expiry.text || expiryText || null,
+            };
+            rewards.push(rewardObj);
+            diagnostics.kept++;
+            if (diagnostics.samples.length < 20) diagnostics.samples.push({ snippet: textBlob.slice(0,240), ...rewardObj });
+          } catch {}
+        }
+        // If we found structured coupons, move to next page candidate
+        continue;
+      }
+
+      // Fallback: heuristic scan
       const cards = await page.locator('article, section, div.a-cardui, div, a').all();
       for (const card of cards) {
         try {
