@@ -1,31 +1,54 @@
 * {
   box-sizing: border-box;
 }
-body { background: var(--bg); color: var(--text); }
-#root { transition: background-color .2s ease, color .2s ease }
+body {
+  background: var(--bg);
+  color: var(--text);
+}
+#root {
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
 :root {
-  --bg: #0a0a0a; --text: #eaeaea;
-  --panel-bg: #0b0b0b; --panel-border: #1f1f1f;
-  --card-bg: #0b0b0b; --card-border: #1f1f1f;
-  --muted-bg: #222; --muted-text: #ddd;
-  --primary-bg: #4f46e5; --danger-bg: #ef4444;
-  --pill-bg: #111; --pill-border: #242424;
-  --input-bg: #111; --input-border: #2a2a2a; --input-text: #fff;
-  --toolbar-bg: rgba(10,10,10,.85);
+  --bg: #0a0a0a;
+  --text: #eaeaea;
+  --panel-bg: #0b0b0b;
+  --panel-border: #1f1f1f;
+  --card-bg: #0b0b0b;
+  --card-border: #1f1f1f;
+  --muted-bg: #222;
+  --muted-text: #ddd;
+  --primary-bg: #4f46e5;
+  --danger-bg: #ef4444;
+  --pill-bg: #111;
+  --pill-border: #242424;
+  --input-bg: #111;
+  --input-border: #2a2a2a;
+  --input-text: #fff;
+  --toolbar-bg: rgba(10, 10, 10, 0.85);
   --profile-menu-bg: #0b0b0b;
-  --avatar-bg: #2a2a2a; --avatar-border: #444;
+  --avatar-bg: #2a2a2a;
+  --avatar-border: #444;
 }
 :root[data-theme="light"] {
-  --bg: #f9fafb; --text: #0a0a0a;
-  --panel-bg: #ffffff; --panel-border: #e5e7eb;
-  --card-bg: #ffffff; --card-border: #e5e7eb;
-  --muted-bg: #eef2ff; --muted-text: #111;
-  --primary-bg: #4338ca; --danger-bg: #dc2626;
-  --pill-bg: #f3f4f6; --pill-border: #e5e7eb;
-  --input-bg: #ffffff; --input-border: #e5e7eb; --input-text: #111;
-  --toolbar-bg: rgba(255,255,255,.85);
+  --bg: #f9fafb;
+  --text: #0a0a0a;
+  --panel-bg: #ffffff;
+  --panel-border: #e5e7eb;
+  --card-bg: #ffffff;
+  --card-border: #e5e7eb;
+  --muted-bg: #eef2ff;
+  --muted-text: #111;
+  --primary-bg: #4338ca;
+  --danger-bg: #dc2626;
+  --pill-bg: #f3f4f6;
+  --pill-border: #e5e7eb;
+  --input-bg: #ffffff;
+  --input-border: #e5e7eb;
+  --input-text: #111;
+  --toolbar-bg: rgba(255, 255, 255, 0.85);
   --profile-menu-bg: #ffffff;
-  --avatar-bg: #e5e7eb; --avatar-border: #94a3b8;
+  --avatar-bg: #e5e7eb;
+  --avatar-border: #94a3b8;
 }
 #root {
   max-width: 1100px;
@@ -37,8 +60,7 @@ body { background: var(--bg); color: var(--text); }
 .topbar {
   display: flex;
   align-items: center;
-  gap: 10px;
-  margin-bottom: 1rem;
+  gap: 1rem;
 }
 .topbar {
   flex-wrap: wrap;
@@ -54,7 +76,7 @@ body { background: var(--bg); color: var(--text); }
 .container {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 0.75rem;
 }
 .grid {
   display: grid;
@@ -74,7 +96,7 @@ body { background: var(--bg); color: var(--text); }
 
 .panel {
   background: var(--panel-bg);
-  border: 1px solid var(--panel-border);
+  border: 2px solid var(--panel-border);
   border-radius: 14px;
   padding: 16px;
   box-shadow: 0 8px 18px rgba(0, 0, 0, 0.25);
@@ -85,14 +107,26 @@ body { background: var(--bg); color: var(--text); }
   justify-content: center;
   min-height: 100vh;
 }
-.primary { background: var(--primary-bg); color: #fff; }
-.muted { background: var(--muted-bg); color: var(--muted-text); }
-.danger { background: var(--danger-bg); color: #fff; }
+.primary {
+  background: var(--primary-bg);
+  color: #fff;
+}
+.muted {
+  background: var(--muted-bg);
+  color: var(--muted-text);
+}
+.danger {
+  background: var(--danger-bg);
+  color: #fff;
+}
 
 button {
   border-radius: 10px;
 }
-button:focus-visible, input:focus-visible, select:focus-visible, a:focus-visible {
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+a:focus-visible {
   outline: 2px solid #4f46e5;
   outline-offset: 2px;
 }
@@ -113,7 +147,13 @@ label {
   width: 250px;
 }
 input,
-select { background: var(--input-bg); border: 1px solid var(--input-border); border-radius: 10px; padding: 9px 10px; color: var(--input-text); }
+select {
+  background: var(--input-bg);
+  border: 2px solid var(--input-border);
+  border-radius: 10px;
+  padding: 9px 10px;
+  color: var(--input-text);
+}
 
 .totals {
   display: flex;
@@ -153,14 +193,25 @@ select { background: var(--input-bg); border: 1px solid var(--input-border); bor
   flex-wrap: wrap;
 }
 
-.profile-menu { background: var(--profile-menu-bg); }
-.profile-menu > *:hover { background: rgba(120, 120, 120, .2) !important; }
+.profile-menu {
+  background: var(--profile-menu-bg);
+  position: absolute;
+  right: 0px;
+  top: calc(100% + 8px);
+  border: 2px solid rgb(68 65 65);
+  border-radius: 12px;
+  min-width: 200px;
+  box-shadow: rgba(0, 0, 0, 0.25) 0px 8px 18px;
+  z-index: 1000;
+}
+.profile-menu > *:hover {
+  background: rgba(120, 120, 120, 0.2) !important;
+}
 
 @media (max-width: 600px) {
-  .topbar {
-    gap: 8px;
+  .action-buttons {
+    justify-content: flex-start;
   }
-  button { padding: 12px 14px; }
 }
 
 /* Filters bar layout */
@@ -172,13 +223,28 @@ select { background: var(--input-bg); border: 1px solid var(--input-border); bor
   margin: 4px 0 8px;
 }
 @media (max-width: 900px) {
-  .filters { grid-template-columns: 1fr 1fr; }
+  .filters {
+    grid-template-columns: 1fr 1fr;
+  }
 }
 @media (max-width: 600px) {
-  .filters { grid-template-columns: 1fr; }
-  .filters input, .filters select, .filters button { width: 100%; }
+  .filters {
+    grid-template-columns: 1fr;
+  }
+  .filters input,
+  .filters select,
+  .filters button {
+    width: 100%;
+  }
 }
 
 /* Selection UX for checkboxes */
-.card .checkbox { opacity: 0; pointer-events: none; transition: opacity .15s ease; }
-.select-mode .checkbox { opacity: 1; pointer-events: auto; }
+.card .checkbox {
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.15s ease;
+}
+.select-mode .checkbox {
+  opacity: 1;
+  pointer-events: auto;
+}
