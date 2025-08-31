@@ -1,6 +1,6 @@
 import React from "react";
 import { useEffect, useMemo, useState } from "react";
-import { FiPlus, FiRefreshCcw } from "react-icons/fi";
+import { FiPlus, FiRefreshCcw, FiFilter } from "react-icons/fi";
 import HeaderAvatar from "../components/HeaderAvatar";
 // DnD removed per request to ensure buttons work reliably
 import { useAccounts } from "../store/useAccounts";
@@ -26,6 +26,7 @@ export default function Dashboard() {
   const [confirm, setConfirm] = useState({ open:false, id:null });
   const [selectedIds, setSelectedIds] = useState(new Set());
   const [selectMode, setSelectMode] = useState(false);
+  const [showFilters, setShowFilters] = useState(false);
   // DnD sensors removed
 
   useEffect(() => {
@@ -206,13 +207,14 @@ export default function Dashboard() {
         </section>
       )}
 
-      <div className="filters">
-        <input
-          placeholder="Search accounts..."
-          aria-label="Search accounts"
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-        />
+      <div style={{display:'grid', gridTemplateColumns:'1fr auto', gap:8, margin:'8px 0'}}>
+        <input placeholder="Search accounts..." aria-label="Search accounts" value={query} onChange={(e)=> setQuery(e.target.value)} />
+        <button className="muted" onClick={()=> setShowFilters(v=>!v)} aria-expanded={showFilters} aria-controls="filters-panel" title={showFilters? 'Hide filters' : 'Show filters'}>
+          <FiFilter /> {showFilters? 'Hide' : 'Filters'}
+        </button>
+      </div>
+      {showFilters && (
+      <div className="filters" id="filters-panel">
         <select aria-label="Sort by" value={sortBy} onChange={(e) => setSortBy(e.target.value)}>
           <option value="order">Default order</option>
           <option value="amount">Amount (desc)</option>
@@ -241,6 +243,7 @@ export default function Dashboard() {
           <button className="muted" aria-label="Clear filters" onClick={()=>{ setFilterRegion(''); setFilterStatus(''); setFilterTag(''); setQuery('') }}>Clear</button>
         )}
       </div>
+      )}
 
       {!accounts.length ? (
         <Loader text="Loading accounts…" />
