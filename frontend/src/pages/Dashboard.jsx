@@ -51,6 +51,24 @@ export default function Dashboard() {
       return sum + amount / rate;
     }, 0);
   }, [total, baseCurrency, exchangeRates]);
+  const tagTotalsBase = useMemo(() => {
+    const out = new Map();
+    for (const a of accounts) {
+      const tags = Array.isArray(a.tags) ? a.tags : [];
+      const amount = Number(a.lastBalance || 0);
+      if (!amount) continue;
+      const cur = a.lastCurrency || baseCurrency;
+      let inBase = amount;
+      if (cur !== baseCurrency) {
+        const rate = exchangeRates?.[cur];
+        if (rate && rate > 0) inBase = amount / rate; else continue;
+      }
+      for (const t of tags) {
+        out.set(t, (out.get(t) || 0) + inBase);
+      }
+    }
+    return Array.from(out.entries()).sort((a,b)=> b[1]-a[1]);
+  }, [accounts, baseCurrency, exchangeRates]);
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -95,6 +113,10 @@ export default function Dashboard() {
         <div className="spacer" />
         <HeaderAvatar />
       </header>
+      <div style={{display:'flex',alignItems:'baseline',gap:8,margin:'4px 0 8px'}}>
+        <div style={{fontSize:14,opacity:.8}}>Total ({baseCurrency==='INR'?'₹':baseCurrency}):</div>
+        <div style={{fontSize:22,fontWeight:700}}>{Number(baseTotal||0).toLocaleString('en-IN')}</div>
+      </div>
 
       <div className="action-buttons" style={{position:'sticky', top:0, zIndex:10, background:'transparent', display:'flex', gap:8, paddingBottom:8}}>
         <button
@@ -123,7 +145,16 @@ export default function Dashboard() {
           const blob = new Blob([csv], {type:'text/csv'})
           const url = URL.createObjectURL(blob)
           const a = document.createElement('a'); a.href=url; a.download='accounts.csv'; a.click(); URL.revokeObjectURL(url)
-        }}>Export CSV</button>
+        }}>Export View CSV</button>
+        <button className="muted" onClick={async ()=>{
+          const api=(await import('../api/client')).default; const { data } = await api.get('/accounts')
+          const rows = [["Label","Email","Region","Balance","Currency","Last Refreshed","Pinned","Tags"]]
+          for(const a of data){ rows.push([a.label, a.email, a.region, String(a.lastBalance||0), a.lastCurrency||'', a.lastRefreshedAt? new Date(a.lastRefreshedAt).toISOString(): '', a.pinned? 'yes':'no', (a.tags||[]).join('|') ]) }
+          const csv = rows.map(r=> r.map(c=>`"${String(c).replace(/"/g,'""')}"`).join(',')).join('\n')
+          const blob = new Blob([csv], {type:'text/csv'})
+          const url = URL.createObjectURL(blob)
+          const a = document.createElement('a'); a.href=url; a.download='accounts-full.csv'; a.click(); URL.revokeObjectURL(url)
+        }}>Export All CSV</button>
       </div>
 
       <section className="totals">
@@ -133,6 +164,13 @@ export default function Dashboard() {
           </div>
         ))}
       </section>
+      {tagTotalsBase.length > 0 && (
+        <section className="totals">
+          {tagTotalsBase.map(([tag, amt]) => (
+            <div className="pill" key={tag}>{tag}: {baseCurrency==='INR'?'₹':baseCurrency} {Number(amt||0).toLocaleString('en-IN')}</div>
+          ))}
+        </section>
+      )}
 
       <div
         style={{
