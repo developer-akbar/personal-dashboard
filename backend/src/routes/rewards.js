@@ -13,7 +13,7 @@ router.get('/:accountId', async (req,res,next)=>{
     const account = await AmazonAccount.findOne({ _id: req.params.accountId, userId: req.user.id, isDeleted: { $ne: true } })
     if(!account) return res.status(404).json({ error: 'Account not found' })
     const password = decryptSecret(account.encryptedPassword)
-    const { rewards, storageState } = await fetchAmazonRewards({
+    const { rewards, storageState, debug } = await fetchAmazonRewards({
       region: account.region,
       email: account.email,
       password,
@@ -25,7 +25,8 @@ router.get('/:accountId', async (req,res,next)=>{
     account.lastRewardsAt = new Date()
     account.lastRewardsError = null
     await account.save()
-    res.json({ accountId: account.id, rewards })
+    const wantDebug = String(req.query.debug||'').toLowerCase() === '1'
+    res.json(wantDebug ? { accountId: account.id, rewards, debug } : { accountId: account.id, rewards })
   }catch(e){
     try{ await AmazonAccount.updateOne({ _id: req.params.accountId }, { lastRewardsError: e.message }) }catch{}
     next(e)
@@ -35,7 +36,7 @@ router.get('/:accountId', async (req,res,next)=>{
 // POST /rewards/refresh-all - fetch rewards for all accounts (concurrently)
 router.post('/refresh-all', async (req,res,next)=>{
   try{
-    const { batchSize = 3 } = req.body || {}
+    const { batchSize = 3, debug=false } = req.body || {}
     const accounts = await AmazonAccount.find({ userId: req.user.id, isDeleted: { $ne: true } }).sort({ order: 1, createdAt: 1 })
     const results = []
     const errors = []
@@ -43,7 +44,7 @@ router.post('/refresh-all', async (req,res,next)=>{
       const batch = accounts.slice(i, i+batchSize)
       const settled = await Promise.allSettled(batch.map(async (account)=>{
         const password = decryptSecret(account.encryptedPassword)
-        const { rewards, storageState } = await fetchAmazonRewards({
+        const { rewards, storageState, debug: dbg } = await fetchAmazonRewards({
           region: account.region,
           email: account.email,
           password,
@@ -55,7 +56,7 @@ router.post('/refresh-all', async (req,res,next)=>{
         account.lastRewardsAt = new Date()
         account.lastRewardsError = null
         await account.save()
-        return { accountId: account.id, rewardsCount: rewards.length }
+        return debug ? { accountId: account.id, rewardsCount: rewards.length, debug: dbg } : { accountId: account.id, rewardsCount: rewards.length }
       }))
       settled.forEach(s=>{
         if (s.status === 'fulfilled') results.push(s.value)
