@@ -1,3 +1,4 @@
+import React from "react";
 import styles from "./AccountCard.module.css";
 import { Link } from "react-router-dom";
 import { FiRefreshCcw, FiEdit2, FiTrash2, FiStar } from "react-icons/fi";
@@ -5,10 +6,10 @@ import { FiRefreshCcw, FiEdit2, FiTrash2, FiStar } from "react-icons/fi";
 export default function AccountCard({ account, onRefresh, onEdit, onDelete, onTogglePin, selected=false, onToggleSelect, onLongPressActivate, showCheckboxes=false }) {
   // simple long-press activation for mobile
   let pressTimer;
-  const onTouchStart = (e)=>{
+  const onTouchStart = ()=>{
     pressTimer = setTimeout(()=>{ onLongPressActivate?.(); }, 500)
   }
-  const onTouchEnd = (e)=>{ if(pressTimer) clearTimeout(pressTimer) }
+  const onTouchEnd = ()=>{ if(pressTimer) clearTimeout(pressTimer) }
   return (
     <div className={styles.card} onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}>
       <div className={styles.header}>
