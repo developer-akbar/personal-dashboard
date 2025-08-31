@@ -58,10 +58,11 @@ router.post("/refresh/:accountId", async (req, res, next) => {
 router.post("/refresh-all", async (req, res, next) => {
   try {
     const accounts = await AmazonAccount.find({ userId: req.user.id }).sort({ createdAt: 1 });
+    const batchSize = Math.max(1, Math.min(5, Number(req.body?.batchSize) || 3));
     const results = [];
-    for (let i = 0; i < accounts.length; i++) {
-      const account = accounts[i];
-      try {
+    for (let i = 0; i < accounts.length; i += batchSize) {
+      const chunk = accounts.slice(i, i + batchSize);
+      const settled = await Promise.allSettled(chunk.map(async (account, idx) => {
         const password = decryptSecret(account.encryptedPassword);
         const { amount, currency, storageState } = await fetchAmazonPayBalance({
           region: account.region,
@@ -76,15 +77,23 @@ router.post("/refresh-all", async (req, res, next) => {
         if (storageState) account.storageState = storageState;
         await account.save();
         const snap = await Balance.create({ accountId: account._id, amount, currency });
-        results.push({ accountId: account._id, amount, currency, index: i + 1, total: accounts.length, timestamp: snap.createdAt });
-      } catch (err) {
-        account.lastError = err?.message || 'Refresh failed';
-        account.lastErrorAt = new Date();
-        try { await account.save(); } catch {}
-        results.push({ accountId: account._id, error: err?.message || 'Refresh failed', index: i + 1, total: accounts.length });
+        return { accountId: account._id, amount, currency, index: i + idx + 1, total: accounts.length, timestamp: snap.createdAt };
+      }));
+      for (const r of settled) {
+        if (r.status === 'fulfilled') results.push(r.value);
+        else {
+          const err = r.reason;
+          const acc = chunk[settled.indexOf(r)];
+          if (acc) {
+            acc.lastError = err?.message || 'Refresh failed';
+            acc.lastErrorAt = new Date();
+            try { await acc.save(); } catch {}
+            results.push({ accountId: acc._id, error: acc.lastError, index: accounts.indexOf(acc) + 1, total: accounts.length });
+          }
+        }
       }
     }
-    res.json({ results });
+    res.json({ results, batchSize });
   } catch (e) {
     next(e);
   }
