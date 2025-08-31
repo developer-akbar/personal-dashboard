@@ -190,6 +190,7 @@ export async function fetchAmazonRewards({ region, email, password, interactive,
   page.setDefaultTimeout(90000);
 
   const navSteps = [];
+  const diagnostics = { pagesTried: [], scanned: 0, kept: 0, samples: [] };
   try {
     // Ensure logged in similarly to balance flow
     if (storageState) {
@@ -217,6 +218,7 @@ export async function fetchAmazonRewards({ region, email, password, interactive,
     for (const url of candidatePages) {
       try {
         await page.goto(url, { waitUntil: 'domcontentloaded' });
+        diagnostics.pagesTried.push(url);
       } catch { continue; }
       // Heuristic: find cards/tiles with reward/offer keywords and avoid obvious nav/shortcuts
       const cards = await page.locator('article, section, div.a-cardui, div, a').all();
@@ -224,6 +226,7 @@ export async function fetchAmazonRewards({ region, email, password, interactive,
         try {
           const text = (await card.innerText()).replace(/\u00a0/g,' ').replace(/\s+/g,' ').trim();
           if (!text) continue;
+          diagnostics.scanned++;
           if (/(shortcuts|keyboard shortcuts|skip to main|deliver to)/i.test(text)) continue;
           if (!/(reward|offer|cash\s*back|cashback|voucher|coupon|flat|upto|up to|%\s*cash|off\b)/i.test(text)) continue;
 
@@ -238,7 +241,7 @@ export async function fetchAmazonRewards({ region, email, password, interactive,
 
           let href = null;
           try { const link = await card.$('a[href]'); if (link) { href = await link.getAttribute('href'); if (href && href.startsWith('/')) href = baseUrl + href; } } catch {}
-          rewards.push({
+          const rewardObj = {
             title,
             description,
             href,
@@ -254,7 +257,12 @@ export async function fetchAmazonRewards({ region, email, password, interactive,
             cashbackPercent: cashback.percent ?? null,
             expiresAt: expiry.date ?? null,
             expiryText: expiry.text || null,
-          });
+          };
+          rewards.push(rewardObj);
+          diagnostics.kept++;
+          if (diagnostics.samples.length < 20) {
+            diagnostics.samples.push({ snippet: text.slice(0, 240), ...rewardObj });
+          }
           if (rewards.length >= 50) break;
         } catch {}
       }
@@ -275,7 +283,7 @@ export async function fetchAmazonRewards({ region, email, password, interactive,
       deduped.push(r);
     }
 
-    return { rewards: deduped, storageState: newStorageState, debug: { navSteps, pagesTried: candidatePages } };
+    return { rewards: deduped, storageState: newStorageState, debug: { navSteps, ...diagnostics } };
   } finally {
     await new Promise(r=>setTimeout(r, 300));
     await context.close();
