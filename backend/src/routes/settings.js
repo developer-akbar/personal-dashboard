@@ -17,10 +17,11 @@ router.get("/", async (req, res, next) => {
 
 router.put("/", async (req, res, next) => {
   try {
-    const { baseCurrency, exchangeRates } = req.body || {};
+    const { baseCurrency, exchangeRates, refreshSchedule } = req.body || {};
     const update = {};
     if (baseCurrency) update.baseCurrency = baseCurrency;
     if (exchangeRates) update.exchangeRates = exchangeRates;
+    if (refreshSchedule) update.refreshSchedule = refreshSchedule;
     await User.updateOne({ _id: req.user.id }, update);
     res.json({ ok: true });
   } catch (e) {
