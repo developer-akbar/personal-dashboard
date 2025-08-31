@@ -43,6 +43,14 @@ router.post("/refresh/:accountId", async (req, res, next) => {
     const snap = await Balance.create({ accountId: account._id, amount, currency });
     res.json({ amount, currency, timestamp: snap.createdAt, debug });
   } catch (e) {
+    try {
+      const account = await AmazonAccount.findOne({ _id: req.params.accountId, userId: req.user.id });
+      if (account) {
+        account.lastError = e?.message || 'Refresh failed';
+        account.lastErrorAt = new Date();
+        await account.save();
+      }
+    } catch {}
     next(e);
   }
 });
@@ -70,6 +78,9 @@ router.post("/refresh-all", async (req, res, next) => {
         const snap = await Balance.create({ accountId: account._id, amount, currency });
         results.push({ accountId: account._id, amount, currency, index: i + 1, total: accounts.length, timestamp: snap.createdAt });
       } catch (err) {
+        account.lastError = err?.message || 'Refresh failed';
+        account.lastErrorAt = new Date();
+        try { await account.save(); } catch {}
         results.push({ accountId: account._id, error: err?.message || 'Refresh failed', index: i + 1, total: accounts.length });
       }
     }
