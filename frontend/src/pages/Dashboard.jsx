@@ -145,7 +145,7 @@ export default function Dashboard() {
         <div style={{fontSize:22,fontWeight:700}}>{Number(baseTotal||0).toLocaleString('en-IN')}</div>
       </div>
 
-      <div className="action-buttons" style={{position:'sticky', top:0, zIndex:10, background:'transparent', display:'flex', gap:8, paddingBottom:8}}>
+      <div className="action-buttons" style={{position:'sticky', top:0, zIndex:10, display:'flex', gap:8, paddingBottom:8, background:'var(--toolbar-bg, transparent)', backdropFilter:'saturate(180%) blur(8px)'}}>
         <button
           className="muted"
           onClick={() => {
@@ -252,6 +252,7 @@ export default function Dashboard() {
               key={a.id}
               account={a}
               selected={selectedIds.has(a.id)}
+              showCheckboxes={selectMode}
               onLongPressActivate={()=> setSelectMode(true)}
               onRefresh={async () => {
                 await refreshOne(a.id);
