@@ -26,7 +26,17 @@ const amazonAccountSchema = new mongoose.Schema(
         description: String,
         href: String,
         sourceUrl: String,
+        category: String, // Shopping | Recharge & Bills | Gift Cards | Travel | Other
+        paymentMethod: String, // e.g., Amazon Pay UPI, Balance, ICICI Credit Card
+        onWhat: String, // contextual surface like Mobile Recharge, Electricity Bill, Gift Cards
+        minAmount: Number,
+        minCurrency: String,
+        cashbackText: String,
+        cashbackAmount: Number,
+        cashbackMaxAmount: Number,
+        cashbackPercent: Number,
         expiresAt: Date,
+        expiryText: String,
       }, { _id: false })
     ], default: [] },
     lastRewardsAt: { type: Date },
