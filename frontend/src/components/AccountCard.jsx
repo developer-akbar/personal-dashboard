@@ -1,8 +1,8 @@
 import styles from "./AccountCard.module.css";
 import { Link } from "react-router-dom";
-import { FiRefreshCcw, FiEdit2, FiTrash2 } from "react-icons/fi";
+import { FiRefreshCcw, FiEdit2, FiTrash2, FiStar } from "react-icons/fi";
 
-export default function AccountCard({ account, onRefresh, onEdit, onDelete }) {
+export default function AccountCard({ account, onRefresh, onEdit, onDelete, onTogglePin }) {
   return (
     <div className={styles.card}>
       <div className={styles.header}>
@@ -11,6 +11,9 @@ export default function AccountCard({ account, onRefresh, onEdit, onDelete }) {
         </div>
         <div className={styles.region}>
           {account.region}
+          <button type="button" onClick={(e)=>{ e.stopPropagation(); onTogglePin?.(account) }} title={account.pinned? 'Unpin' : 'Pin'} style={{marginLeft:8, background:'transparent', border:0, color: account.pinned? '#fbbf24' : '#888', cursor:'pointer'}}>
+            <FiStar/>
+          </button>
           {account.lastError && (
             <span title={account.lastError} style={{marginLeft:8, color:'#ef4444', fontSize:12}}>• Error</span>
           )}

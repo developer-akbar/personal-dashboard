@@ -9,7 +9,7 @@ router.use(requireAuth);
 
 router.get("/", async (req, res, next) => {
   try {
-    const accounts = await AmazonAccount.find({ userId: req.user.id, isDeleted: { $ne: true } }).sort({ order: 1, createdAt: 1 });
+    const accounts = await AmazonAccount.find({ userId: req.user.id, isDeleted: { $ne: true } }).sort({ pinned: -1, order: 1, createdAt: 1 });
     res.json(
       accounts.map((a) => ({
         id: a._id,
@@ -20,6 +20,8 @@ router.get("/", async (req, res, next) => {
         lastCurrency: a.lastCurrency,
         lastRefreshedAt: a.lastRefreshedAt,
         order: a.order ?? 0,
+        pinned: !!a.pinned,
+        tags: a.tags || [],
       }))
     );
   } catch (e) {
@@ -29,7 +31,7 @@ router.get("/", async (req, res, next) => {
 
 router.post("/", async (req, res, next) => {
   try {
-    const { label, email, password, region } = req.body || {};
+    const { label, email, password, region, pinned, tags } = req.body || {};
     if (!label || !email || !password || !region) {
       return res.status(400).json({ error: "label, email, password, region required" });
     }
@@ -41,6 +43,8 @@ router.post("/", async (req, res, next) => {
       region,
       encryptedPassword,
       order: Date.now(),
+      pinned: !!pinned,
+      tags: Array.isArray(tags) ? tags : [],
     });
     res.status(201).json({ id: account._id });
   } catch (e) {
@@ -50,11 +54,13 @@ router.post("/", async (req, res, next) => {
 
 router.put("/:id", async (req, res, next) => {
   try {
-    const { label, email, password, region } = req.body || {};
+    const { label, email, password, region, pinned, tags } = req.body || {};
     const update = {};
     if (label) update.label = label;
     if (email) update.email = email;
     if (region) update.region = region;
+    if (typeof pinned === 'boolean') update.pinned = pinned;
+    if (Array.isArray(tags)) update.tags = tags;
     if (password) update.encryptedPassword = encryptSecret(password);
 
     await AmazonAccount.updateOne({ _id: req.params.id, userId: req.user.id }, update);

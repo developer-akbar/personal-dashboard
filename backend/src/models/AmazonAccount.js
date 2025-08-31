@@ -17,6 +17,8 @@ const amazonAccountSchema = new mongoose.Schema(
     deletedAt: { type: Date },
     lastError: { type: String },
     lastErrorAt: { type: Date },
+    pinned: { type: Boolean, default: false, index: true },
+    tags: { type: [String], default: [] },
   },
   { timestamps: true }
 );
