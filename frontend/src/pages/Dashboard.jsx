@@ -1,10 +1,10 @@
+import React from "react";
 import { useEffect, useMemo, useState } from "react";
 import { FiPlus, FiRefreshCcw } from "react-icons/fi";
 import HeaderAvatar from "../components/HeaderAvatar";
 // DnD removed per request to ensure buttons work reliably
 import { useAccounts } from "../store/useAccounts";
 import { useBalances } from "../store/useBalances";
-import { useAuth } from "../store/useAuth";
 import { useSettings } from "../store/useSettings";
 import AccountCard from "../components/AccountCard";
 import AddAccountModal from "../components/AddAccountModal";
@@ -13,7 +13,6 @@ import Loader from "../components/Loader";
 import ConfirmDialog from "../components/ConfirmDialog";
 
 export default function Dashboard() {
-  const { user, logout } = useAuth();
   const { accounts, fetchAccounts, addAccount, deleteAccount } = useAccounts();
   const { refreshing, progress, refreshOne, refreshAll } = useBalances();
   const { baseCurrency, exchangeRates, fetchSettings } = useSettings();
@@ -135,7 +134,7 @@ export default function Dashboard() {
   return (
     <div className={`container ${selectMode? 'select-mode' : ''}`}>
       <header className="topbar">
-        <h3>Amazon Wallet Monitor</h3>
+        <h2>Amazon Wallet Monitor</h2>
         <div className="spacer" />
         <HeaderAvatar />
       </header>

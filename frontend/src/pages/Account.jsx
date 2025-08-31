@@ -1,3 +1,4 @@
+import React from 'react'
 import { useEffect, useState } from 'react'
 import api from '../api/client'
 import { useAuth } from '../store/useAuth'
@@ -35,13 +36,12 @@ export default function Account(){
   return (
     <div className="container">
       <header className="topbar">
-        <button className="muted" onClick={()=> window.location.hash = '#/dashboard'}>← Back</button>
-        <div className="spacer" />
-        <h2>Account</h2>
+        <button className="muted" onClick={()=> window.location.hash = '#/dashboard'}>←</button>
+        <h3>Account</h3>
       </header>
 
       <div className="panel" style={{display:'flex',alignItems:'center',gap:12}}>
-        <div style={{width:48,height:48,borderRadius:'999px',background:'#222',display:'inline-flex',alignItems:'center',justifyContent:'center',fontWeight:700,fontSize:18}}>
+        <div style={{width:48,height:48,borderRadius:'999px',background:'var(--avatar-bg)',display:'inline-flex',alignItems:'center',justifyContent:'center',fontWeight:700,fontSize:18}}>
           {(user?.name||user?.email||'?').slice(0,1).toUpperCase()}
         </div>
         <div>
