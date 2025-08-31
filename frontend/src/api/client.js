@@ -22,13 +22,14 @@ api.interceptors.request.use((config) => {
 })
 
 api.interceptors.response.use(
-  (res)=>res,
+  (res)=>{ try{ localStorage.setItem('lastApiMeta', JSON.stringify({ url: res.config?.url, status: res.status, at: Date.now() })) }catch{}; return res },
   (err)=>{
     if(err?.response?.status === 401){
       try{ toast.error('Session expired. Please sign in again.') }catch{}
       try{ localStorage.removeItem('accessToken'); localStorage.removeItem('refreshToken'); localStorage.removeItem('user') }catch{}
       try{ window.location.hash = '#/login' }catch{}
     }
+    try{ localStorage.setItem('lastApiMeta', JSON.stringify({ url: err?.config?.url, status: err?.response?.status || 0, error: err?.message, at: Date.now() })) }catch{}
     return Promise.reject(err)
   }
 )

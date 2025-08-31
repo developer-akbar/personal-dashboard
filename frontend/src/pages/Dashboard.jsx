@@ -31,11 +31,15 @@ export default function Dashboard() {
   const [showFilters, setShowFilters] = useState(false);
   const [tab, setTab] = useState('balance');
   const { byAccount, fetchForAccount, refreshAll: refreshAllRewards } = useRewards();
+  const [health, setHealth] = useState({ ok:false, db:'unknown' })
+  const [debugOpen, setDebugOpen] = useState(localStorage.getItem('debugPanel')==='1')
+  const [jwtExp, setJwtExp] = useState(null)
   // DnD sensors removed
 
   useEffect(() => {
     fetchAccounts();
     fetchSettings();
+    ;(async()=>{ try{ const api=(await import('../api/client')).default; const { data } = await api.get('/health'); setHealth({ ok: !!data?.ok, db: data?.db||'unknown' }) }catch{} })()
     // Keyboard shortcuts
     function onKey(e){
       if (e.target && (e.target.tagName==='INPUT' || e.target.tagName==='TEXTAREA')) return;
@@ -45,6 +49,18 @@ export default function Dashboard() {
     window.addEventListener('keydown', onKey)
     return ()=> window.removeEventListener('keydown', onKey)
   }, []);
+
+  useEffect(()=>{
+    const t = setInterval(()=>{
+      try{
+        const token = localStorage.getItem('accessToken');
+        if(!token){ setJwtExp(null); return }
+        const payload = JSON.parse(atob(token.split('.')[1]||''))
+        setJwtExp(payload?.exp ? payload.exp*1000 : null)
+      }catch{ setJwtExp(null) }
+    }, 1000)
+    return ()=> clearInterval(t)
+  },[])
 
   const total = useMemo(() => {
     const byCurrency = accounts.reduce((acc, a) => {
@@ -148,6 +164,23 @@ export default function Dashboard() {
         <div style={{fontSize:14,opacity:.8,marginLeft:12}}>Total ({baseCurrency==='INR'?'₹':baseCurrency}):</div>
         <div style={{fontSize:22,fontWeight:700}}>{Number(baseTotal||0).toLocaleString('en-IN')}</div>
       </div>
+      <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',margin:'6px 0'}}>
+        <small style={{opacity:.8}}>Backend: <b style={{color: health.ok? '#10b981':'#ef4444'}}>{health.ok? 'up':'down'}</b> • DB: <b>{health.db}</b></small>
+        <div style={{display:'inline-flex',gap:8,alignItems:'center'}}>
+          <a className="muted" href="https://github.com/developer-akbar/personal-dashboard/blob/main/SESSIONS.md" target="_blank" rel="noreferrer" title="Help: sessions and scraping" style={{textDecoration:'none',padding:'4px 8px',borderRadius:8}}>?</a>
+          <button className="muted" onClick={()=>{ const v = debugOpen?'0':'1'; localStorage.setItem('debugPanel', v); setDebugOpen(!debugOpen) }}>{debugOpen? 'Hide debug':'Show debug'}</button>
+        </div>
+      </div>
+
+      {jwtExp && (jwtExp - Date.now() < 5*60*1000) && (
+        <div className="panel" style={{display:'flex',justifyContent:'space-between',alignItems:'center'}}>
+          <div>Session expires in <b>{Math.max(0, Math.floor((jwtExp - Date.now())/1000))}s</b></div>
+          <button className="primary" onClick={async()=>{
+            const api=(await import('../api/client')).default;
+            try{ const { data } = await api.post('/auth/refresh'); localStorage.setItem('accessToken', data?.accessToken||'') }catch{}
+          }}>Refresh session</button>
+        </div>
+      )}
       <div className="panel" role="tablist" aria-label="View switch" style={{display:'inline-flex',gap:6, padding:6}}>
         <button className={tab==='balance'? 'primary':'muted'} role="tab" aria-selected={tab==='balance'} onClick={()=> setTab('balance')}>Balance</button>
         <button className={tab==='rewards'? 'primary':'muted'} role="tab" aria-selected={tab==='rewards'} onClick={()=> setTab('rewards')}>Rewards</button>
@@ -215,6 +248,28 @@ export default function Dashboard() {
             <div className="pill" key={tag}>{tag}: {baseCurrency==='INR'?"₹":baseCurrency} {Number(amt||0).toLocaleString('en-IN')}</div>
           ))}
         </section>
+      )}
+
+      {debugOpen && (
+        <div className="panel" style={{marginTop:8}}>
+          <div style={{display:'flex',justifyContent:'space-between',alignItems:'center'}}>
+            <strong>Debug</strong>
+            <div style={{display:'inline-flex',gap:8}}>
+              <button className="muted" onClick={async()=>{
+                const api=(await import('../api/client')).default
+                const cmd = `curl -s ${api.defaults.baseURL}/rewards/refresh-all -H 'Authorization: Bearer ${localStorage.getItem('accessToken')||''}' -H 'Content-Type: application/json' -d '{"debug":true}'`
+                await navigator.clipboard.writeText(cmd)
+              }}>Copy curl refresh-all</button>
+              <button className="muted" onClick={async()=>{
+                const api=(await import('../api/client')).default
+                const firstId = accounts[0]?.id || 'ACCOUNT_ID'
+                const cmd = `curl -s ${api.defaults.baseURL}/rewards/${firstId}?debug=1 -H 'Authorization: Bearer ${localStorage.getItem('accessToken')||''}'`
+                await navigator.clipboard.writeText(cmd)
+              }}>Copy curl rewards (first)</button>
+            </div>
+          </div>
+          <pre style={{whiteSpace:'pre-wrap'}}>{(()=>{ try{ return JSON.stringify(JSON.parse(localStorage.getItem('lastApiMeta')||'{}'), null, 2)}catch{return ''} })()}</pre>
+        </div>
       )}
 
       <div style={{display:'grid', gridTemplateColumns:'1fr auto', gap:8, margin:'8px 0'}}>
