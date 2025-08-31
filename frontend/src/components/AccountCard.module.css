@@ -50,7 +50,7 @@
   flex-wrap: wrap;
 }
 .primary {
-  background: #4f46e5;
+  background: var(--primary-bg);
   color: #fff;
   border: 0;
   border-radius: 8px;
@@ -58,15 +58,15 @@
   cursor: pointer;
 }
 .muted {
-  background: #222;
+  background: var(--muted-bg);
   border: 0;
   border-radius: 8px;
   padding: 8px 12px;
-  color: #ddd;
+  color: var(--muted-text);
   cursor: pointer;
 }
 .danger {
-  background: #ef4444;
+  background: var(--danger-bg);
   color: #fff;
   border: 0;
   border-radius: 8px;
@@ -75,7 +75,7 @@
 }
 .checkbox{ width:18px; height:18px }
 .tags{ display:flex; gap:6px; flex-wrap:wrap; margin-top:6px }
-.tag{ border-radius:999px; padding:.2rem .5rem; border:1px solid #2a2a2a; font-size:11px }
+.tag{ border-radius:999px; padding:.2rem .5rem; border:1px solid var(--pill-border); font-size:11px }
 @media (max-width: 600px) {
   .footer {
     flex-direction: column;
