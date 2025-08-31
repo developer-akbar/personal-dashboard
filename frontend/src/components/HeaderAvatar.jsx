@@ -1,3 +1,4 @@
+import React from "react";
 import { useState, useRef, useEffect } from "react";
 import { useAuth } from "../store/useAuth";
 import { Link } from "react-router-dom";
@@ -5,7 +6,7 @@ import { useTheme } from "../store/useTheme";
 
 export default function HeaderAvatar() {
   const { user, logout } = useAuth();
-  const { theme, setTheme } = useTheme();
+  const { setTheme } = useTheme();
   const [open, setOpen] = useState(false);
   const ref = useRef(null);
   useEffect(() => {
@@ -29,17 +30,6 @@ export default function HeaderAvatar() {
       </button>
       {open && (
         <div className="profile-menu"
-          style={{
-            position: "absolute",
-            right: 0,
-            top: "calc(100% + 8px)",
-            background: "#0b0b0b",
-            border: "1px solid #1f1f1f",
-            borderRadius: 12,
-            minWidth: 200,
-            boxShadow: "0 8px 18px rgba(0,0,0,.25)",
-            zIndex: 1000,
-          }}
         >
           <Link to="/account" onClick={() => setOpen(false)} style={itemStyle}>
             View Profile
