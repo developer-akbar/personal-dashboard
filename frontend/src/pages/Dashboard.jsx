@@ -180,46 +180,39 @@ export default function Dashboard() {
         </section>
       )}
 
-      <div
-        style={{
-          display: "flex",
-          gap: 8,
-          alignItems: "center",
-          margin: "4px 0 8px",
-        }}
-      >
+      <div className="filters">
         <input
           placeholder="Search accounts..."
+          aria-label="Search accounts"
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          style={{ flex: 1 }}
         />
-        <select value={sortBy} onChange={(e) => setSortBy(e.target.value)} title="Sort by">
+        <select aria-label="Sort by" value={sortBy} onChange={(e) => setSortBy(e.target.value)}>
           <option value="order">Default order</option>
           <option value="amount">Amount (desc)</option>
           <option value="label">Label (A→Z)</option>
           <option value="refreshed">Last refreshed (newest)</option>
         </select>
-        <select value={filterRegion} onChange={(e)=> setFilterRegion(e.target.value)} title="Region">
+        <select aria-label="Filter by region" value={filterRegion} onChange={(e)=> setFilterRegion(e.target.value)}>
           <option value="">All regions</option>
           {Array.from(new Set(accounts.map(a=>a.region))).map(r=> (
             <option key={r} value={r}>{r}</option>
           ))}
         </select>
-        <select value={filterStatus} onChange={(e)=> setFilterStatus(e.target.value)} title="Status">
+        <select aria-label="Filter by status" value={filterStatus} onChange={(e)=> setFilterStatus(e.target.value)}>
           <option value="">All status</option>
           <option value="ok">OK</option>
           <option value="error">Error</option>
           <option value="never">Never refreshed</option>
         </select>
-        <select value={filterTag} onChange={(e)=> setFilterTag(e.target.value)} title="Tag">
+        <select aria-label="Filter by tag" value={filterTag} onChange={(e)=> setFilterTag(e.target.value)}>
           <option value="">All tags</option>
           {Array.from(new Set(accounts.flatMap(a=> Array.isArray(a.tags)? a.tags : []))).map(t=> (
             <option key={t} value={t}>{t}</option>
           ))}
         </select>
         {(filterRegion || filterStatus || filterTag || query) && (
-          <button className="muted" onClick={()=>{ setFilterRegion(''); setFilterStatus(''); setFilterTag(''); setQuery('') }}>Clear</button>
+          <button className="muted" aria-label="Clear filters" onClick={()=>{ setFilterRegion(''); setFilterStatus(''); setFilterTag(''); setQuery('') }}>Clear</button>
         )}
       </div>
 
