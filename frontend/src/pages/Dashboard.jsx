@@ -7,6 +7,8 @@ import { useAccounts } from "../store/useAccounts";
 import { useBalances } from "../store/useBalances";
 import { useSettings } from "../store/useSettings";
 import AccountCard from "../components/AccountCard";
+import RewardsList from "../components/RewardsList";
+import { useRewards } from "../store/useRewards";
 import AddAccountModal from "../components/AddAccountModal";
 import RefreshProgress from "../components/RefreshProgress";
 import Loader from "../components/Loader";
@@ -27,6 +29,8 @@ export default function Dashboard() {
   const [selectedIds, setSelectedIds] = useState(new Set());
   const [selectMode, setSelectMode] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
+  const [tab, setTab] = useState('balance');
+  const { byAccount, fetchForAccount, refreshAll: refreshAllRewards } = useRewards();
   // DnD sensors removed
 
   useEffect(() => {
@@ -144,6 +148,10 @@ export default function Dashboard() {
         <div style={{fontSize:14,opacity:.8,marginLeft:12}}>Total ({baseCurrency==='INR'?'₹':baseCurrency}):</div>
         <div style={{fontSize:22,fontWeight:700}}>{Number(baseTotal||0).toLocaleString('en-IN')}</div>
       </div>
+      <div className="panel" role="tablist" aria-label="View switch" style={{display:'inline-flex',gap:6, padding:6}}>
+        <button className={tab==='balance'? 'primary':'muted'} role="tab" aria-selected={tab==='balance'} onClick={()=> setTab('balance')}>Balance</button>
+        <button className={tab==='rewards'? 'primary':'muted'} role="tab" aria-selected={tab==='rewards'} onClick={()=> setTab('rewards')}>Rewards</button>
+      </div>
 
       <div className="action-buttons" style={{position:'sticky', top:0, zIndex:10, display:'flex', gap:8, paddingBottom:8, background:'var(--toolbar-bg, transparent)', backdropFilter:'saturate(180%) blur(8px)'}}>
         <button
@@ -192,6 +200,7 @@ export default function Dashboard() {
         )}
       </div>
 
+      {tab==='balance' && (
       <section className="totals">
         {Object.entries(total).map(([cur, amount]) => (
           <div className="pill" key={cur}>
@@ -199,10 +208,11 @@ export default function Dashboard() {
           </div>
         ))}
       </section>
-      {tagTotalsBase.length > 0 && (
+      )}
+      {tab==='balance' && tagTotalsBase.length > 0 && (
         <section className="totals">
           {tagTotalsBase.map(([tag, amt]) => (
-            <div className="pill" key={tag}>{tag}: {baseCurrency==='INR'?'₹':baseCurrency} {Number(amt||0).toLocaleString('en-IN')}</div>
+            <div className="pill" key={tag}>{tag}: {baseCurrency==='INR'?"₹":baseCurrency} {Number(amt||0).toLocaleString('en-IN')}</div>
           ))}
         </section>
       )}
@@ -213,7 +223,7 @@ export default function Dashboard() {
           <FiFilter /> {showFilters? 'Hide' : 'Filters'}
         </button>
       </div>
-      {showFilters && (
+      {tab==='balance' && showFilters && (
       <div className="filters" id="filters-panel">
         <select aria-label="Sort by" value={sortBy} onChange={(e) => setSortBy(e.target.value)}>
           <option value="order">Default order</option>
@@ -245,7 +255,7 @@ export default function Dashboard() {
       </div>
       )}
 
-      {!accounts.length ? (
+      {tab==='balance' && (!accounts.length ? (
         <Loader text="Loading accounts…" />
       ) : (
         <section className="grid">
@@ -270,6 +280,31 @@ export default function Dashboard() {
             />
           ))}
         </section>
+      ))}
+
+      {tab==='rewards' && (
+        <div className="panel" style={{display:'flex',justifyContent:'space-between',alignItems:'center',gap:8}}>
+          <div style={{opacity:.8}}>Rewards are fetched live from your accounts. Click Refresh to update all.</div>
+          <button className="primary" onClick={async()=>{ await refreshAllRewards(); }}>Refresh</button>
+        </div>
+      )}
+      {tab==='rewards' && (
+        !accounts.length ? <Loader text="Loading accounts…"/> : (
+          <section className="grid">
+            {accounts.map(a=>{
+              const st = byAccount[a.id] || { items: [], loading:false, error:null }
+              return (
+                <article key={a.id} className="panel" style={{display:'flex',flexDirection:'column',gap:8}}>
+                  <div style={{display:'flex',justifyContent:'space-between',alignItems:'center'}}>
+                    <strong>{a.label}</strong>
+                    <button className="muted" onClick={()=> fetchForAccount(a.id)}>{st.loading? 'Loading…' : 'Fetch'}</button>
+                  </div>
+                  <RewardsList items={st.items} loading={st.loading} error={st.error} onRefresh={()=> fetchForAccount(a.id)} />
+                </article>
+              )
+            })}
+          </section>
+        )
       )}
 
       <AddAccountModal

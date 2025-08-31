@@ -167,6 +167,88 @@ export async function fetchAmazonPayBalance({ region, email, password, interacti
   }
 }
 
+export async function fetchAmazonRewards({ region, email, password, interactive, storageState }) {
+  const baseUrl = REGION_TO_HOST[region];
+  if (!baseUrl) throw new Error("Unsupported region");
+
+  const isProd = process.env.NODE_ENV === "production";
+  const resolvedExec = resolveChromiumHeadlessPath();
+  const browser = await chromium.launch({
+    headless: isProd ? true : false,
+    executablePath: process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH || resolvedExec || undefined,
+    args: isProd ? ["--no-sandbox", "--disable-setuid-sandbox"] : [],
+  });
+  const context = await browser.newContext({
+    viewport: { width: 1280, height: 900 },
+    storageState: storageState || undefined,
+    locale: "en-IN",
+    timezoneId: "Asia/Kolkata",
+    userAgent: "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36",
+  });
+  const page = await context.newPage();
+  context.setDefaultNavigationTimeout(90000);
+  page.setDefaultTimeout(90000);
+
+  const navSteps = [];
+  try {
+    // Ensure logged in similarly to balance flow
+    if (storageState) {
+      try { await page.goto(`${baseUrl}/gp/sva/dashboard`, { waitUntil: 'domcontentloaded' }); navSteps.push('goto wallet (state)'); } catch {}
+    }
+    let body = (await page.textContent('body')) || '';
+    if (!/Account|Amazon\s*Pay|Hello,|Sign Out/i.test(body)) {
+      await page.goto(`${baseUrl}/ap/signin`, { waitUntil: 'domcontentloaded' });
+      const emailInput = page.locator('#ap_email, input[name="email"]'); await emailInput.waitFor({ timeout: 60000 }); await emailInput.fill(email);
+      const contBtn = page.locator('#continue, input#continue, button[name="continue"]').first(); if (await contBtn.count()) await contBtn.click();
+      const pass = page.locator('#ap_password, input[name="password"]'); await pass.waitFor({ timeout: 60000 }); await pass.fill(password);
+      await page.click('#signInSubmit, input#signInSubmit');
+      await page.waitForLoadState('domcontentloaded');
+    }
+
+    if (interactive && !isProd) { await page.waitForLoadState('networkidle'); await page.waitForTimeout(500); }
+
+    const candidatePages = [
+      `${baseUrl}/amazonpay/rewards`,
+      `${baseUrl}/gp/coupons`,
+      `${baseUrl}/amazonpay/home`,
+    ];
+
+    const rewards = [];
+    for (const url of candidatePages) {
+      try {
+        await page.goto(url, { waitUntil: 'domcontentloaded' });
+      } catch { continue; }
+      // Heuristic: find cards/tiles with reward/offer keywords
+      const cards = await page.locator('a, article, div, section').all();
+      for (const card of cards) {
+        try {
+          const text = (await card.innerText()).replace(/\u00a0/g,' ').trim();
+          if (!text) continue;
+          if (!/(reward|offer|cash\s*back|cashback|voucher|coupon)/i.test(text)) continue;
+          // Extract title as first line up to 80 chars
+          const lines = text.split(/\n+/).map(s=>s.trim()).filter(Boolean);
+          const title = (lines[0] || 'Offer').slice(0, 120);
+          const description = (lines.slice(1).join(' ').slice(0, 240)) || '';
+          let href = null;
+          try { const link = await card.$('a[href]'); if (link) { href = await link.getAttribute('href'); if (href && href.startsWith('/')) href = baseUrl + href; } } catch {}
+          rewards.push({ title, description, href, sourceUrl: url });
+          if (rewards.length >= 50) break;
+        } catch {}
+      }
+      if (rewards.length >= 1) {
+        // We collected something meaningful from this page; continue to others to enrich
+      }
+      if (rewards.length >= 50) break;
+    }
+
+    let newStorageState = null; try { newStorageState = await context.storageState(); } catch {}
+    return { rewards, storageState: newStorageState, debug: { navSteps, pagesTried: candidatePages } };
+  } finally {
+    await new Promise(r=>setTimeout(r, 300));
+    await context.close();
+    await browser.close();
+  }
+}
 function parseCurrencyAmount(text, region) {
   if (!text) return null;
   const mapSymbolToCode = {

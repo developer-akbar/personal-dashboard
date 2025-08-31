@@ -19,6 +19,18 @@ const amazonAccountSchema = new mongoose.Schema(
     lastErrorAt: { type: Date },
     pinned: { type: Boolean, default: false, index: true },
     tags: { type: [String], default: [] },
+    // Rewards cache (lightweight)
+    lastRewards: { type: [
+      new mongoose.Schema({
+        title: String,
+        description: String,
+        href: String,
+        sourceUrl: String,
+        expiresAt: Date,
+      }, { _id: false })
+    ], default: [] },
+    lastRewardsAt: { type: Date },
+    lastRewardsError: { type: String },
   },
   { timestamps: true }
 );
