@@ -17,6 +17,11 @@
   justify-content: space-between;
   align-items: center;
 }
+.headerLeft{
+  display:flex;
+  align-items:center;
+  gap:8px;
+}
 .label {
   font-weight: 700;
   font-size: 16px;
@@ -71,6 +76,9 @@
   padding: 8px 12px;
   cursor: pointer;
 }
+.checkbox{ width:18px; height:18px }
+.tags{ display:flex; gap:6px; flex-wrap:wrap; margin-top:6px }
+.tag{ border-radius:999px; padding:.2rem .5rem; border:1px solid #2a2a2a; font-size:11px }
 @media (max-width: 600px) {
   .footer {
     flex-direction: column;

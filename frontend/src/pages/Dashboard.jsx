@@ -25,6 +25,7 @@ export default function Dashboard() {
   const [filterRegion, setFilterRegion] = useState("");
   const [filterStatus, setFilterStatus] = useState(""); // '', ok, error, never
   const [confirm, setConfirm] = useState({ open:false, id:null });
+  const [selectedIds, setSelectedIds] = useState(new Set());
   // DnD sensors removed
 
   useEffect(() => {
@@ -163,6 +164,12 @@ export default function Dashboard() {
           const url = URL.createObjectURL(blob)
           const a = document.createElement('a'); a.href=url; a.download='accounts-full.csv'; a.click(); URL.revokeObjectURL(url)
         }}>Export All CSV</button>
+        {selectedIds.size>0 && (
+          <div style={{marginLeft:'auto', display:'inline-flex', gap:8, alignItems:'baseline'}}>
+            <span style={{opacity:.8}}>Selected Total ({baseCurrency==='INR'?'₹':baseCurrency}):</span>
+            <strong>{computeSelectedTotal()}</strong>
+          </div>
+        )}
       </div>
 
       <section className="totals">
@@ -224,6 +231,7 @@ export default function Dashboard() {
             <AccountCard
               key={a.id}
               account={a}
+              selected={selectedIds.has(a.id)}
               onRefresh={async () => {
                 await refreshOne(a.id);
                 await fetchAccounts();
@@ -234,6 +242,7 @@ export default function Dashboard() {
               }}
               onDelete={async () => { setConfirm({ open:true, id:a.id }) }}
               onTogglePin={async ()=>{ const api=(await import('../api/client')).default; await api.put(`/accounts/${a.id}`, { pinned: !a.pinned }); await fetchAccounts() }}
+              onToggleSelect={(acc,checked)=>{ setSelectedIds(prev=>{ const next=new Set(prev); if(checked) next.add(acc.id); else next.delete(acc.id); return next }) }}
             />
           ))}
         </section>
