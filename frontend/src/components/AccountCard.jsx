@@ -9,7 +9,12 @@ export default function AccountCard({ account, onRefresh, onEdit, onDelete }) {
         <div className={styles.label}>
           <Link to={`/account/${account.id}`}>{account.label}</Link>
         </div>
-        <div className={styles.region}>{account.region}</div>
+        <div className={styles.region}>
+          {account.region}
+          {account.lastError && (
+            <span title={account.lastError} style={{marginLeft:8, color:'#ef4444', fontSize:12}}>• Error</span>
+          )}
+        </div>
       </div>
       <div className="account-details">
         <div className={styles.email}>{account.email}</div>
