@@ -13,6 +13,7 @@ import settingsRoutes from "./routes/settings.js";
 import rewardsRoutes from "./routes/rewards.js";
 import userRoutes from "./routes/users.js";
 import { errorHandler } from "./middleware/error.js";
+import mongoose from 'mongoose'
 
 const app = express();
 
@@ -74,7 +75,10 @@ const limiter = rateLimit({
 app.use(limiter);
 
 app.get("/health", (_req, res) => res.json({ ok: true }));
-app.get("/api/health", (_req, res) => res.json({ ok: true }));
+app.get("/api/health", (_req, res) => {
+  const db = mongoose.connection?.readyState
+  res.json({ ok: true, db: db === 1 ? 'connected' : db === 2 ? 'connecting' : db === 0 ? 'disconnected' : 'unknown' })
+});
 
 // Backward-compatible mounts
 app.use("/auth", authRoutes);
