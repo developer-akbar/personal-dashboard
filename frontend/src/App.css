@@ -15,7 +15,7 @@ body { background: var(--bg); color: var(--text); }
   --profile-menu-bg: #0b0b0b;
   --avatar-bg: #2a2a2a; --avatar-border: #444;
 }
-[data-theme="light"] :root {
+:root[data-theme="light"] {
   --bg: #f9fafb; --text: #0a0a0a;
   --panel-bg: #ffffff; --panel-border: #e5e7eb;
   --card-bg: #ffffff; --card-border: #e5e7eb;
@@ -32,9 +32,7 @@ body { background: var(--bg); color: var(--text); }
   margin: 0 auto;
   padding-inline: 1rem;
 }
-/* Toolbar background tokens */
-:root { --toolbar-bg: rgba(10,10,10,.85); }
-[data-theme="light"] :root { --toolbar-bg: rgba(255,255,255,.85); }
+/* Toolbar background token is defined with variables above */
 
 .topbar {
   display: flex;
@@ -140,8 +138,8 @@ select { background: var(--input-bg); border: 1px solid var(--input-border); bor
   width: 3rem;
   height: 3rem;
   border-radius: 999px;
-  border: 2px dotted #9b2710;
-  background: #109b71;
+  border: 2px solid var(--avatar-border);
+  background: var(--avatar-bg);
   display: inline-flex;
   align-items: center;
   justify-content: center;
