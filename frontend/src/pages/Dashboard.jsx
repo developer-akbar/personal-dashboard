@@ -115,6 +115,22 @@ export default function Dashboard() {
     return list;
   }, [filtered, sortBy]);
 
+  function computeSelectedTotal(){
+    let sum = 0;
+    for (const a of accounts) {
+      if (!selectedIds.has(a.id)) continue;
+      const amount = Number(a.lastBalance || 0);
+      const cur = a.lastCurrency || baseCurrency;
+      let inBase = amount;
+      if (cur !== baseCurrency) {
+        const rate = exchangeRates?.[cur];
+        if (rate && rate > 0) inBase = amount / rate; else continue;
+      }
+      sum += inBase;
+    }
+    return Number(sum || 0).toLocaleString('en-IN');
+  }
+
   return (
     <div className="container">
       <header className="topbar">
