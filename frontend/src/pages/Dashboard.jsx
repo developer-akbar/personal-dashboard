@@ -252,6 +252,7 @@ export default function Dashboard() {
               key={a.id}
               account={a}
               selected={selectedIds.has(a.id)}
+              onLongPressActivate={()=> setSelectMode(true)}
               onRefresh={async () => {
                 await refreshOne(a.id);
                 await fetchAccounts();

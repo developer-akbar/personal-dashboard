@@ -2,9 +2,15 @@ import styles from "./AccountCard.module.css";
 import { Link } from "react-router-dom";
 import { FiRefreshCcw, FiEdit2, FiTrash2, FiStar } from "react-icons/fi";
 
-export default function AccountCard({ account, onRefresh, onEdit, onDelete, onTogglePin, selected=false, onToggleSelect }) {
+export default function AccountCard({ account, onRefresh, onEdit, onDelete, onTogglePin, selected=false, onToggleSelect, onLongPressActivate }) {
+  // simple long-press activation for mobile
+  let pressTimer;
+  const onTouchStart = (e)=>{
+    pressTimer = setTimeout(()=>{ onLongPressActivate?.(); }, 500)
+  }
+  const onTouchEnd = (e)=>{ if(pressTimer) clearTimeout(pressTimer) }
   return (
-    <div className={styles.card}>
+    <div className={styles.card} onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}>
       <div className={styles.header}>
         <div className={styles.headerLeft}>
           <input aria-label="Select account" className={styles.checkbox} type="checkbox" checked={!!selected} onChange={(e)=>{ e.stopPropagation(); onToggleSelect?.(account, e.target.checked) }} />

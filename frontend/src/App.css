@@ -179,7 +179,4 @@ select {
 
 /* Selection UX for checkboxes */
 .card .checkbox { opacity: 0; pointer-events: none; transition: opacity .15s ease; }
-@media (hover: hover) and (pointer: fine) {
-  .card:hover .checkbox { opacity: 1; pointer-events: auto; }
-}
 .select-mode .checkbox { opacity: 1; pointer-events: auto; }
