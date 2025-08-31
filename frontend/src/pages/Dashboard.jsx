@@ -26,6 +26,7 @@ export default function Dashboard() {
   const [filterStatus, setFilterStatus] = useState(""); // '', ok, error, never
   const [confirm, setConfirm] = useState({ open:false, id:null });
   const [selectedIds, setSelectedIds] = useState(new Set());
+  const [selectMode, setSelectMode] = useState(false);
   // DnD sensors removed
 
   useEffect(() => {
@@ -132,14 +133,15 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="container">
+    <div className={`container ${selectMode? 'select-mode' : ''}`}>
       <header className="topbar">
         <h3>Amazon Wallet Monitor</h3>
         <div className="spacer" />
         <HeaderAvatar />
       </header>
       <div style={{display:'flex',alignItems:'baseline',gap:8,margin:'4px 0 8px'}}>
-        <div style={{fontSize:14,opacity:.8}}>Total ({baseCurrency==='INR'?'₹':baseCurrency}):</div>
+        <div style={{fontSize:14,opacity:.8}}>Accounts: {accounts.length}</div>
+        <div style={{fontSize:14,opacity:.8,marginLeft:12}}>Total ({baseCurrency==='INR'?'₹':baseCurrency}):</div>
         <div style={{fontSize:22,fontWeight:700}}>{Number(baseTotal||0).toLocaleString('en-IN')}</div>
       </div>
 
@@ -181,9 +183,11 @@ export default function Dashboard() {
           const a = document.createElement('a'); a.href=url; a.download='accounts-full.csv'; a.click(); URL.revokeObjectURL(url)
         }}>Export All CSV</button>
         {selectedIds.size>0 && (
-          <div style={{marginLeft:'auto', display:'inline-flex', gap:8, alignItems:'baseline'}}>
-            <span style={{opacity:.8}}>Selected Total ({baseCurrency==='INR'?'₹':baseCurrency}):</span>
+          <div style={{marginLeft:'auto', display:'inline-flex', gap:12, alignItems:'baseline'}}>
+            <span style={{opacity:.8}}>Selected: {selectedIds.size}</span>
+            <span style={{opacity:.8}}>Amount ({baseCurrency==='INR'?'₹':baseCurrency}):</span>
             <strong>{computeSelectedTotal()}</strong>
+            <button className="muted" onClick={()=>{ setSelectedIds(new Set()); setSelectMode(false) }}>Clear selection</button>
           </div>
         )}
       </div>
@@ -258,7 +262,7 @@ export default function Dashboard() {
               }}
               onDelete={async () => { setConfirm({ open:true, id:a.id }) }}
               onTogglePin={async ()=>{ const api=(await import('../api/client')).default; await api.put(`/accounts/${a.id}`, { pinned: !a.pinned }); await fetchAccounts() }}
-              onToggleSelect={(acc,checked)=>{ setSelectedIds(prev=>{ const next=new Set(prev); if(checked) next.add(acc.id); else next.delete(acc.id); return next }) }}
+              onToggleSelect={(acc,checked)=>{ setSelectedIds(prev=>{ const next=new Set(prev); if(checked){ next.add(acc.id); setSelectMode(true) } else { next.delete(acc.id); if(next.size===0) setSelectMode(false) } return next }) }}
             />
           ))}
         </section>
