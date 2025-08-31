@@ -20,7 +20,10 @@ export default function Dashboard() {
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState(null);
   const [query, setQuery] = useState("");
-  const [sortBy, setSortBy] = useState("order");
+  const [sortBy, setSortBy] = useState("order"); // order | amount | label | refreshed
+  const [filterTag, setFilterTag] = useState("");
+  const [filterRegion, setFilterRegion] = useState("");
+  const [filterStatus, setFilterStatus] = useState(""); // '', ok, error, never
   const [confirm, setConfirm] = useState({ open:false, id:null });
   // DnD sensors removed
 
@@ -51,21 +54,38 @@ export default function Dashboard() {
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
-    if (!q) return accounts;
-    return accounts.filter(
-      (a) =>
-        (a.label || "").toLowerCase().includes(q) ||
-        (a.email || "").toLowerCase().includes(q)
-    );
-  }, [accounts, query]);
-
-  const sortedFiltered = useMemo(() => {
-    if (sortBy === "amount") {
-      return [...filtered].sort(
-        (a, b) => (b.lastBalance || 0) - (a.lastBalance || 0)
+    let list = accounts;
+    if (q) {
+      list = list.filter(
+        (a) =>
+          (a.label || "").toLowerCase().includes(q) ||
+          (a.email || "").toLowerCase().includes(q)
       );
     }
-    return filtered;
+    if (filterRegion) {
+      list = list.filter((a) => a.region === filterRegion);
+    }
+    if (filterStatus) {
+      if (filterStatus === 'ok') list = list.filter((a) => !a.lastError && !!a.lastRefreshedAt);
+      if (filterStatus === 'error') list = list.filter((a) => !!a.lastError);
+      if (filterStatus === 'never') list = list.filter((a) => !a.lastRefreshedAt);
+    }
+    if (filterTag) {
+      list = list.filter((a) => Array.isArray(a.tags) && a.tags.includes(filterTag));
+    }
+    return list;
+  }, [accounts, query, filterRegion, filterStatus, filterTag]);
+
+  const sortedFiltered = useMemo(() => {
+    const list = [...filtered];
+    if (sortBy === "amount") {
+      list.sort((a, b) => (b.lastBalance || 0) - (a.lastBalance || 0));
+    } else if (sortBy === "label") {
+      list.sort((a, b) => (a.label || '').localeCompare(b.label || ''));
+    } else if (sortBy === "refreshed") {
+      list.sort((a, b) => new Date(b.lastRefreshedAt || 0) - new Date(a.lastRefreshedAt || 0));
+    }
+    return list;
   }, [filtered, sortBy]);
 
   return (
@@ -128,10 +148,33 @@ export default function Dashboard() {
           onChange={(e) => setQuery(e.target.value)}
           style={{ flex: 1 }}
         />
-        <select value={sortBy} onChange={(e) => setSortBy(e.target.value)}>
-          <option value="order">Order</option>
-          <option value="amount">Amount</option>
+        <select value={sortBy} onChange={(e) => setSortBy(e.target.value)} title="Sort by">
+          <option value="order">Default order</option>
+          <option value="amount">Amount (desc)</option>
+          <option value="label">Label (A→Z)</option>
+          <option value="refreshed">Last refreshed (newest)</option>
         </select>
+        <select value={filterRegion} onChange={(e)=> setFilterRegion(e.target.value)} title="Region">
+          <option value="">All regions</option>
+          {Array.from(new Set(accounts.map(a=>a.region))).map(r=> (
+            <option key={r} value={r}>{r}</option>
+          ))}
+        </select>
+        <select value={filterStatus} onChange={(e)=> setFilterStatus(e.target.value)} title="Status">
+          <option value="">All status</option>
+          <option value="ok">OK</option>
+          <option value="error">Error</option>
+          <option value="never">Never refreshed</option>
+        </select>
+        <select value={filterTag} onChange={(e)=> setFilterTag(e.target.value)} title="Tag">
+          <option value="">All tags</option>
+          {Array.from(new Set(accounts.flatMap(a=> Array.isArray(a.tags)? a.tags : []))).map(t=> (
+            <option key={t} value={t}>{t}</option>
+          ))}
+        </select>
+        {(filterRegion || filterStatus || filterTag || query) && (
+          <button className="muted" onClick={()=>{ setFilterRegion(''); setFilterStatus(''); setFilterTag(''); setQuery('') }}>Clear</button>
+        )}
       </div>
 
       {!accounts.length ? (
