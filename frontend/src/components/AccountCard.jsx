@@ -2,7 +2,7 @@ import styles from "./AccountCard.module.css";
 import { Link } from "react-router-dom";
 import { FiRefreshCcw, FiEdit2, FiTrash2, FiStar } from "react-icons/fi";
 
-export default function AccountCard({ account, onRefresh, onEdit, onDelete, onTogglePin, selected=false, onToggleSelect, onLongPressActivate }) {
+export default function AccountCard({ account, onRefresh, onEdit, onDelete, onTogglePin, selected=false, onToggleSelect, onLongPressActivate, showCheckboxes=false }) {
   // simple long-press activation for mobile
   let pressTimer;
   const onTouchStart = (e)=>{
@@ -13,7 +13,9 @@ export default function AccountCard({ account, onRefresh, onEdit, onDelete, onTo
     <div className={styles.card} onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}>
       <div className={styles.header}>
         <div className={styles.headerLeft}>
-          <input aria-label="Select account" className={styles.checkbox} type="checkbox" checked={!!selected} onChange={(e)=>{ e.stopPropagation(); onToggleSelect?.(account, e.target.checked) }} />
+          {showCheckboxes && (
+            <input aria-label="Select account" className={styles.checkbox} type="checkbox" checked={!!selected} onChange={(e)=>{ e.stopPropagation(); onToggleSelect?.(account, e.target.checked) }} />
+          )}
           <Link to={`/account/${account.id}`}>{account.label}</Link>
         </div>
         <div className={styles.region}>
