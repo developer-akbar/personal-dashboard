@@ -218,20 +218,43 @@ export async function fetchAmazonRewards({ region, email, password, interactive,
       try {
         await page.goto(url, { waitUntil: 'domcontentloaded' });
       } catch { continue; }
-      // Heuristic: find cards/tiles with reward/offer keywords
-      const cards = await page.locator('a, article, div, section').all();
+      // Heuristic: find cards/tiles with reward/offer keywords and avoid obvious nav/shortcuts
+      const cards = await page.locator('article, section, div.a-cardui, div, a').all();
       for (const card of cards) {
         try {
-          const text = (await card.innerText()).replace(/\u00a0/g,' ').trim();
+          const text = (await card.innerText()).replace(/\u00a0/g,' ').replace(/\s+/g,' ').trim();
           if (!text) continue;
-          if (!/(reward|offer|cash\s*back|cashback|voucher|coupon)/i.test(text)) continue;
-          // Extract title as first line up to 80 chars
-          const lines = text.split(/\n+/).map(s=>s.trim()).filter(Boolean);
-          const title = (lines[0] || 'Offer').slice(0, 120);
-          const description = (lines.slice(1).join(' ').slice(0, 240)) || '';
+          if (/(shortcuts|keyboard shortcuts|skip to main|deliver to)/i.test(text)) continue;
+          if (!/(reward|offer|cash\s*back|cashback|voucher|coupon|flat|upto|up to|%\s*cash|off\b)/i.test(text)) continue;
+
+          // Extract key fields
+          const { title, description } = deriveTitleAndDescription(text);
+          const category = deriveCategory(text);
+          const paymentMethod = derivePaymentMethod(text);
+          const onWhat = deriveOnWhat(text);
+          const { minAmount, minCurrency } = deriveMinAmount(text);
+          const cashback = deriveCashback(text);
+          const expiry = deriveExpiry(text);
+
           let href = null;
           try { const link = await card.$('a[href]'); if (link) { href = await link.getAttribute('href'); if (href && href.startsWith('/')) href = baseUrl + href; } } catch {}
-          rewards.push({ title, description, href, sourceUrl: url });
+          rewards.push({
+            title,
+            description,
+            href,
+            sourceUrl: url,
+            category,
+            paymentMethod,
+            onWhat,
+            minAmount: minAmount ?? null,
+            minCurrency: minCurrency || (region === 'amazon.in' ? 'INR' : null),
+            cashbackText: cashback.text || null,
+            cashbackAmount: cashback.amount ?? null,
+            cashbackMaxAmount: cashback.maxAmount ?? null,
+            cashbackPercent: cashback.percent ?? null,
+            expiresAt: expiry.date ?? null,
+            expiryText: expiry.text || null,
+          });
           if (rewards.length >= 50) break;
         } catch {}
       }
@@ -242,13 +265,90 @@ export async function fetchAmazonRewards({ region, email, password, interactive,
     }
 
     let newStorageState = null; try { newStorageState = await context.storageState(); } catch {}
-    return { rewards, storageState: newStorageState, debug: { navSteps, pagesTried: candidatePages } };
+    // Deduplicate similar rewards by title+href combo
+    const deduped = [];
+    const seen = new Set();
+    for (const r of rewards) {
+      const key = `${(r.title||'').toLowerCase()}|${r.href||r.sourceUrl}`;
+      if (seen.has(key)) continue;
+      seen.add(key);
+      deduped.push(r);
+    }
+
+    return { rewards: deduped, storageState: newStorageState, debug: { navSteps, pagesTried: candidatePages } };
   } finally {
     await new Promise(r=>setTimeout(r, 300));
     await context.close();
     await browser.close();
   }
 }
+
+// Helpers to parse structured fields from unstructured text
+function deriveTitleAndDescription(text){
+  const m = text.match(/^(.*?)\.?\s(.*)$/) || []
+  const title = (m[1] && m[1].length <= 140 ? m[1] : (text.split(/\.|:/)[0]||text).slice(0,140)).trim()
+  const description = (m[2] || text).slice(0, 500).trim()
+  return { title, description }
+}
+
+function deriveCategory(text){
+  if (/recharge|bill|electricity|dth|postpaid|prepaid|gas|lpg/i.test(text)) return 'Recharge & Bills'
+  if (/gift\s*card|giftcard|gv\b/i.test(text)) return 'Gift Cards'
+  if (/flight|bus|train|travel/i.test(text)) return 'Travel'
+  if (/shopping|order|cart|buy|appliances|fashion|grocery/i.test(text)) return 'Shopping'
+  return 'Other'
+}
+
+function derivePaymentMethod(text){
+  const patterns = [
+    /amazon pay upi/i,
+    /amazon pay balance/i,
+    /(icici|hdfc|sbi|axis|kotak|bob|yes|idfc).*?(credit|debit) card/i,
+    /(visa|mastercard|rupay).*card/i,
+    /(netbanking|wallet)/i,
+  ]
+  for (const p of patterns){ const m = text.match(p); if (m) return m[0].replace(/\s+/g,' ').trim() }
+  return null
+}
+
+function deriveOnWhat(text){
+  const m = text.match(/on\s+(mobile recharge|electricity bill|dth|recharge|bill payments?|gift cards?|shopping|orders?|flight|bus|train)/i)
+  return m ? capitalize(m[1]) : null
+}
+
+function deriveMinAmount(text){
+  // Examples: min order value ₹200, on ₹99+, min spend of ₹500, orders of ₹1,000 or more
+  const m = text.match(/(?:min(?:imum)?\s*(?:order)?\s*(?:value|spend)?\s*(?:of)?\s*|on\s*|orders?\s*of\s*)(₹|rs\.?|inr)?\s*([\d,]+)\+?/i)
+  if (!m) return { minAmount: null, minCurrency: null }
+  const cur = (m[1]||'').toUpperCase().replace(/RS\.?/,'INR').replace('₹','INR') || null
+  const amt = Number((m[2]||'').replace(/,/g,''))
+  return { minAmount: Number.isFinite(amt)? amt : null, minCurrency: cur }
+}
+
+function deriveCashback(text){
+  // Percent
+  const p = text.match(/(\d{1,2})%\s*cashback/i)
+  // Flat/up to amount
+  const a = text.match(/\b(flat|upto|up to)\s*(₹|rs\.?|inr)?\s*([\d,]+)\s*(?:cash\s*back|cashback|off)?/i)
+  const max = text.match(/max(?:imum)?\s*(?:up to)?\s*(₹|rs\.?|inr)?\s*([\d,]+)/i)
+  const out = { text: null, amount: null, maxAmount: null, percent: null }
+  if (p) out.percent = Number(p[1])
+  if (a) out.amount = Number((a[3]||'').replace(/,/g,'')), out.text = a[0]
+  if (max) out.maxAmount = Number((max[2]||'').replace(/,/g,''))
+  if (!out.text && p) out.text = p[0]
+  return out
+}
+
+function deriveExpiry(text){
+  const m = text.match(/(valid\s*(?:till|until|up to)|ends\s*(?:on)?|expire[sd]?\s*(?:on)?|till)\s*([A-Za-z]{3,9}\s*\d{1,2},?\s*\d{2,4}|\d{1,2}\s*[A-Za-z]{3,9}\s*\d{2,4}|\d{1,2}[\/\-.]\d{1,2}[\/\-.]\d{2,4})/i)
+  if (!m) return { date: null, text: null }
+  const raw = m[2]
+  let date = null
+  try { const d = Date.parse(raw); if (!Number.isNaN(d)) date = new Date(d) } catch {}
+  return { date, text: m[0] }
+}
+
+function capitalize(s){ try{ return s.charAt(0).toUpperCase() + s.slice(1) }catch{ return s } }
 function parseCurrencyAmount(text, region) {
   if (!text) return null;
   const mapSymbolToCode = {
