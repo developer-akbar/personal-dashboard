@@ -3,11 +3,13 @@ import { useState, useRef, useEffect } from "react";
 import { useAuth } from "../store/useAuth";
 import { Link } from "react-router-dom";
 import { useTheme } from "../store/useTheme";
+import { FiSun, FiMoon, FiMonitor } from 'react-icons/fi'
 
 export default function HeaderAvatar() {
   const { user, logout } = useAuth();
-  const { setTheme } = useTheme();
+  const { theme, setTheme } = useTheme();
   const [open, setOpen] = useState(false);
+  const [imgError, setImgError] = useState(false);
   const ref = useRef(null);
   useEffect(() => {
     function onDoc(e) {
@@ -19,29 +21,28 @@ export default function HeaderAvatar() {
   const letter = (user?.name || user?.email || "?").slice(0, 1).toUpperCase();
   return (
     <div ref={ref} style={{ position: "relative" }}>
-      <button
-        className="muted avatar"
-        onClick={() => setOpen((v) => !v)}
-        style={{ display: "inline-flex", alignItems: "center", gap: 8 }}
-      >
-        <span style={{ fontSize: "1rem" }}>{letter}</span>
-        
-        {/* <span>{user?.name || user?.email}</span> */}
+      <button className="muted avatar" onClick={() => setOpen((v) => !v)} style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
+        {user?.avatarUrl && !imgError ? (
+          <img src={user.avatarUrl} alt="Avatar" onError={()=> setImgError(true)} style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }} />
+        ) : (
+          <span style={{ fontSize: "1rem" }}>{letter}</span>
+        )}
       </button>
       {open && (
-        <div className="profile-menu"
-        >
+        <div className="profile-menu panel" style={{ position:'absolute', right:0, top:'calc(100% + 8px)', minWidth:200, zIndex:1000 }}>
           <Link to="/account" onClick={() => setOpen(false)} style={itemStyle}>
             View Profile
           </Link>
-          <div style={{padding:'8px 12px'}}>
-            <div style={{fontSize:12,opacity:.8,marginBottom:6}}>Theme</div>
-            <div style={{display:'flex',gap:6}}>
-              <button className="muted" onClick={()=> setTheme('light')}>Light</button>
-              <button className="muted" onClick={()=> setTheme('dark')}>Dark</button>
-              <button className="muted" onClick={()=> setTheme('system')}>System</button>
-            </div>
-          </div>
+          <button
+            className="muted"
+            onClick={()=> setTheme(theme==='light' ? 'dark' : theme==='dark' ? 'system' : 'light')}
+            style={{display:'flex',alignItems:'center',gap:8,margin:'8px 12px'}}
+            aria-label={`Theme: ${theme}. Click to change.`}
+            title={`Theme: ${theme}. Click to change.`}
+          >
+            {theme==='light' ? <FiSun/> : theme==='dark' ? <FiMoon/> : <FiMonitor/>}
+            Theme: {theme}
+          </button>
           <Link
             onClick={logout}
             style={{ ...itemStyle, width: "100%", textAlign: "left" }}
