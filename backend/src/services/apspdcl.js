@@ -30,22 +30,47 @@ export async function fetchApspdclBill({ serviceNumber, interactive, storageStat
     const bodyText = (await page.textContent('body'))?.replace(/\u00a0/g,' ').trim() || ''
     debug.snippet = bodyText.slice(0, 2000)
     // Extract fields
-    const amountMatch = bodyText.match(/(Amount\s*Due|Bill\s*Amount|Total)\s*[:\-]?\s*(₹|INR)?\s*([\d,]+(?:\.\d{1,2})?)/i)
-    const dueDateMatch = bodyText.match(/Due\s*Date\s*[:\-]?\s*([A-Za-z]{3,9}\s*\d{1,2},?\s*\d{2,4}|\d{1,2}[\/\-.]\d{1,2}[\/\-.]\d{2,4})/i)
-    const billDateMatch = bodyText.match(/Bill\s*Date\s*[:\-]?\s*([A-Za-z]{3,9}\s*\d{1,2},?\s*\d{2,4}|\d{1,2}[\/\-.]\d{1,2}[\/\-.]\d{2,4})/i)
-    const nameMatch = bodyText.match(/Customer\s*Name\s*[:\-]?\s*([A-Za-z][A-Za-z\s.]+)/i)
+    // Prefer DOM extraction from table rows if present
+    let amount = null, dueDate=null, billDate=null, customerName=null
+    try{
+      const rows = await page.$$('table.tb_detail tr')
+      for (const r of rows){
+        const label = (await (await r.$('td:nth-child(1)'))?.innerText()||'').trim()
+        const value = (await (await r.$('td:nth-child(2), td.rtd'))?.innerText()||'').trim()
+        if (/Customer\s*Name/i.test(label)) customerName = value
+        if (/Bill\s*Date/i.test(label)) billDate = parseMaybeDate(value)
+        if (/Due\s*Date/i.test(label)) dueDate = parseMaybeDate(value)
+        if (/(Arrear|Current\s*Demand|Amount\s*Due|Bill\s*Amount|Total)/i.test(label)){
+          const n = Number((value||'').replace(/[,₹INR\s]/gi,''))
+          if (!Number.isNaN(n)) amount = (amount||0) + n
+        }
+      }
+    }catch{}
+    // Fallback to regex if table not found
+    if (amount==null){
+      const amountMatch = bodyText.match(/(Arrear\s*Amount|Current\s*Demand|Amount\s*Due|Bill\s*Amount|Total)\s*[:\-]?\s*(₹|INR)?\s*([\d,]+(?:\.\d{1,2})?)/i)
+      if (amountMatch) amount = Number((amountMatch[3]||'').replace(/,/g,''))
+    }
+    if (dueDate==null){
+      const dueDateMatch = bodyText.match(/Due\s*Date\s*[:\-]?\s*([A-Za-z]{3,9}\s*\d{1,2},?\s*\d{2,4}|\d{1,2}[\/\-.]\d{1,2}[\/\-.]\d{2,4})/i)
+      if (dueDateMatch) dueDate = parseMaybeDate(dueDateMatch[1])
+    }
+    if (billDate==null){
+      const billDateMatch = bodyText.match(/Bill\s*Date\s*[:\-]?\s*([A-Za-z]{3,9}\s*\d{1,2},?\s*\d{2,4}|\d{1,2}[\/\-.]\d{1,2}[\/\-.]\d{2,4})/i)
+      if (billDateMatch) billDate = parseMaybeDate(billDateMatch[1])
+    }
+    if (!customerName){
+      const nameMatch = bodyText.match(/Customer\s*Name\s*[:\-]?\s*([A-Za-z][A-Za-z\s.]+)/i)
+      if (nameMatch) customerName = (nameMatch[1]||'').trim()
+    }
     const noDues = /no\s*dues|you\s*don'?t\s*have\s*any\s*dues/i.test(bodyText)
 
-    const amount = amountMatch ? Number((amountMatch[3]||'').replace(/,/g,'')) : 0
-    const dueDate = parseMaybeDate(dueDateMatch?.[1])
-    const billDate = parseMaybeDate(billDateMatch?.[1])
-    const customerName = (nameMatch?.[1]||'').trim() || null
-    const status = noDues ? 'NO_DUES' : (amount>0 ? 'DUE' : 'UNKNOWN')
+    const status = noDues ? 'NO_DUES' : ((amount||0)>0 ? 'DUE' : 'UNKNOWN')
 
     // Payment URL known pattern: use query or consistent base if available
     const payUrl = 'https://payments.billdesk.com/MercOnline/SPDCLController' // Landing; often session-bound deep links
 
-    return { serviceNumber, customerName, billDate, dueDate, amountDue: amount, status, payUrl, debug }
+    return { serviceNumber, customerName, billDate, dueDate, amountDue: amount||0, status, payUrl, debug }
   } finally {
     await context.close(); await browser.close()
   }

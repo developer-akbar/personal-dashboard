@@ -10,7 +10,9 @@ export const useElectricity = create((set,get)=> ({
     finally{ set({ loading:false }) }
   },
   async addService(serviceNumber, label){
-    await api.post('/electricity/services', { serviceNumber, label })
+    const { data } = await api.post('/electricity/services', { serviceNumber, label })
+    // Immediately refresh the newly added service for better UX
+    try{ await api.post(`/electricity/services/${data.id}/refresh`) }catch{}
     await get().fetchServices()
   },
   async updateService(id, payload){
