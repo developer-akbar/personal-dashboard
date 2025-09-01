@@ -12,6 +12,8 @@ export default function Electricity(){
   const [open,setOpen] = useState(false)
   const [editing,setEditing] = useState(null)
   const [health, setHealth] = useState({ ok:false, db:'unknown' })
+  const [selectedIds, setSelectedIds] = useState(new Set())
+  const [selectMode, setSelectMode] = useState(false)
 
   useEffect(()=>{ fetchServices() },[])
   useEffect(()=>{ (async()=>{ try{ const api=(await import('../api/client')).default; const { data } = await api.get('/health'); setHealth({ ok: !!data?.ok, db: data?.db||'unknown' }) }catch{} })() },[])
@@ -27,6 +29,15 @@ export default function Electricity(){
       noDuesCount: noDues.length,
     }
   },[services])
+
+  const selectedSummary = useMemo(()=>{
+    let total = 0; let count = 0
+    for (const id of selectedIds){
+      const s = services.find(x=> x.id===id)
+      if (s){ count++; total += Number(s.lastAmountDue||0) }
+    }
+    return { total, count }
+  }, [selectedIds, services])
 
   return (
     <div className="container">
@@ -53,9 +64,16 @@ export default function Electricity(){
         <div className="pill">Yet to be Paid: {summary.noDuesCount}</div>
       </section>
 
-      <section className="grid">
+      <section className={`grid ${selectMode? 'select-mode':''}`}>
         {services.map(s=> (
-          <ElectricityServiceCard key={s.id} item={s} onRefresh={async()=>{ await toast.promise(refreshOne(s.id), { loading:`Refreshing ${s.label||s.serviceNumber}…`, success:'Refreshed', error:'Refresh failed' }) }} onEdit={()=> { setEditing(s); setOpen(true) }} onDelete={()=> deleteService(s.id)} />
+          <div key={s.id} className="card-wrapper" onMouseEnter={()=> setSelectMode(true)} onMouseLeave={()=>{ if(selectedIds.size===0) setSelectMode(false) }} onTouchStart={()=> setSelectMode(true)}>
+            {selectMode && (
+              <input type="checkbox" className="checkbox" checked={selectedIds.has(s.id)} onChange={()=>{
+                const next=new Set(selectedIds); if(next.has(s.id)) next.delete(s.id); else next.add(s.id); setSelectedIds(next); if(next.size===0) setSelectMode(false)
+              }} style={{position:'absolute', margin:8}} />
+            )}
+            <ElectricityServiceCard item={s} onRefresh={async()=>{ await toast.promise(refreshOne(s.id), { loading:`Refreshing ${s.label||s.serviceNumber}…`, success:'Refreshed', error:'Refresh failed' }) }} onEdit={()=> { setEditing(s); setOpen(true) }} onDelete={()=> deleteService(s.id)} />
+          </div>
         ))}
       </section>
 
@@ -66,6 +84,13 @@ export default function Electricity(){
           setEditing(null)
         }catch(e){ toast.error(e.message) }
       }} />
+      {selectedIds.size>0 && (
+        <div className="panel" style={{display:'flex',gap:12,alignItems:'baseline',marginTop:8}}>
+          <span>Selected: <b>{selectedSummary.count}</b></span>
+          <span>Total: <b>₹ {Number(selectedSummary.total||0).toLocaleString('en-IN')}</b></span>
+          <button className="muted" onClick={()=>{ setSelectedIds(new Set()); setSelectMode(false) }}>Clear selection</button>
+        </div>
+      )}
     </div>
   )
 }

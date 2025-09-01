@@ -1,8 +1,12 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 
 export default function AddElectricityServiceModal({ open, onClose, onSubmit, initial }){
   const [serviceNumber, setServiceNumber] = useState(initial?.serviceNumber || '')
   const [label, setLabel] = useState(initial?.label || '')
+  useEffect(()=>{
+    setServiceNumber(initial?.serviceNumber || '')
+    setLabel(initial?.label || '')
+  }, [initial])
   if(!open) return null
   return (
     <div className="backdrop" style={{position:'fixed',inset:0,background:'rgba(0,0,0,.5)',display:'flex',alignItems:'center',justifyContent:'center',zIndex:1000}} onClick={onClose}>
