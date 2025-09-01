@@ -1,7 +1,7 @@
 import React from "react";
 import styles from "./AccountCard.module.css";
 import { Link } from "react-router-dom";
-import { FiRefreshCcw, FiEdit2, FiTrash2, FiStar } from "react-icons/fi";
+import { FiRefreshCcw, FiStar } from "react-icons/fi";
 
 export default function AccountCard({ account, onRefresh, onEdit, onDelete, onTogglePin, selected=false, onToggleSelect, onLongPressActivate, showCheckboxes=false }) {
   // simple long-press activation for mobile
@@ -55,9 +55,23 @@ export default function AccountCard({ account, onRefresh, onEdit, onDelete, onTo
             : "—"}
         </small>
         <div className={styles.actions}>
-          <button type="button" onClick={(e) => { e.stopPropagation(); onRefresh(account) }} className={styles.primary}><FiRefreshCcw/> Refresh</button>
-          <button type="button" onClick={(e) => { e.stopPropagation(); onEdit(account) }} className={styles.muted}><FiEdit2/> Edit</button>
-          <button type="button" onClick={(e) => { e.stopPropagation(); onDelete(account) }} className={styles.danger}><FiTrash2/> Delete</button>
+          <button type="button" onClick={(e) => { e.stopPropagation(); onRefresh(account) }} className={styles.muted} aria-label="Refresh"><FiRefreshCcw/></button>
+          <div style={{position:'relative'}}>
+            <div onClick={(e)=>{
+              e.stopPropagation();
+              const menu = e.currentTarget.nextSibling;
+              if(menu){
+                const showing = menu.style.display==='block'
+                menu.style.display = showing? 'none' : 'block'
+                const onDoc = (ev)=>{ if (menu && !menu.contains(ev.target) && ev.target !== e.currentTarget){ menu.style.display='none'; document.removeEventListener('click', onDoc) } }
+                if (!showing) document.addEventListener('click', onDoc)
+              }
+            }} style={{cursor:'pointer', padding:'4px 8px'}}>⋮</div>
+            <div className="panel" style={{position:'absolute',right:0,top:'120%',minWidth:160,zIndex:10,display:'none'}} onClick={(e)=> e.stopPropagation()}>
+              <a onClick={(e)=>{ e.stopPropagation(); onEdit(account) }} style={{display:'block',padding:'8px 12px',textDecoration:'none',cursor:'pointer'}}>Edit</a>
+              <a onClick={(e)=>{ e.stopPropagation(); onDelete(account) }} style={{display:'block',padding:'8px 12px',textDecoration:'none',cursor:'pointer'}}>Delete</a>
+            </div>
+          </div>
         </div>
       </div>
     </div>
