@@ -10,8 +10,9 @@ export default function AccountCard({ account, onRefresh, onEdit, onDelete, onTo
     pressTimer = setTimeout(()=>{ onLongPressActivate?.(); }, 500)
   }
   const onTouchEnd = ()=>{ if(pressTimer) clearTimeout(pressTimer) }
+  const accent = tagColor((account.label||account.id||account.email||'').toString())
   return (
-    <div className={styles.card} onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}>
+    <div className={styles.card} onTouchStart={onTouchStart} onTouchEnd={onTouchEnd} style={{ borderRight: `4px solid ${accent}` }}>
       <div className={styles.header}>
         <div className={styles.headerLeft}>
           {showCheckboxes && (
