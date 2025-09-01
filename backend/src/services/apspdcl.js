@@ -26,6 +26,7 @@ export async function fetchApspdclBill({ serviceNumber, interactive, storageStat
       })
       if (resp.ok){
         const json = await resp.json()
+        try{ console.log(`[APSPDCL] response: ${JSON.stringify(json)}`) }catch{}
         if (Array.isArray(json?.data) && json.data.length){
           // Map and pick latest by closingDate
           const parseD = (s)=>{ const p = Date.parse(s?.replace(/-/g,' ')); return Number.isNaN(p)? null : new Date(p) }
@@ -50,7 +51,7 @@ export async function fetchApspdclBill({ serviceNumber, interactive, storageStat
             lastThreeAmounts: lastThree,
             status,
             payUrl: 'https://payments.billdesk.com/MercOnline/SPDCLController',
-            debug: { steps: ['api:publicledgerhistory'], curl, snippet: JSON.stringify(norm.slice(0,3)) }
+            debug: { steps: ['api:publicledgerhistory'], curl, snippet: JSON.stringify(norm.slice(0,3)), raw: json }
           }
         }
       }
