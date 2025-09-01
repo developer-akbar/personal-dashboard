@@ -12,6 +12,7 @@ import balanceRoutes from "./routes/balances.js";
 import settingsRoutes from "./routes/settings.js";
 import rewardsRoutes from "./routes/rewards.js";
 import userRoutes from "./routes/users.js";
+import electricityRoutes from "./routes/electricity.js";
 import { errorHandler } from "./middleware/error.js";
 import mongoose from 'mongoose'
 
@@ -87,6 +88,7 @@ app.use("/balances", balanceRoutes);
 app.use("/settings", settingsRoutes);
 app.use("/rewards", rewardsRoutes);
 app.use("/users", userRoutes);
+app.use("/electricity", electricityRoutes);
 
 // API prefix mounts to match frontend baseURL ending with /api
 app.use("/api/auth", authRoutes);
@@ -95,6 +97,7 @@ app.use("/api/balances", balanceRoutes);
 app.use("/api/settings", settingsRoutes);
 app.use("/api/rewards", rewardsRoutes);
 app.use("/api/users", userRoutes);
+app.use("/api/electricity", electricityRoutes);
 
 app.use(errorHandler);
 

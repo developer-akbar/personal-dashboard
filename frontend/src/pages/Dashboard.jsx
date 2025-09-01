@@ -155,8 +155,9 @@ export default function Dashboard() {
   return (
     <div className={`container ${selectMode? 'select-mode' : ''}`}>
       <header className="topbar">
-        <h2>Amazon Wallet Monitor</h2>
+        <h2>Personal Dashboard</h2>
         <div className="spacer" />
+        <a className="muted" href="#/electricity" style={{textDecoration:'none',padding:'8px 12px',borderRadius:8}}>Electricity</a>
         <HeaderAvatar />
       </header>
       <div style={{display:'flex',alignItems:'baseline',gap:8,margin:'4px 0 8px'}}>
