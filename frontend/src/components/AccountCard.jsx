@@ -2,6 +2,7 @@ import React from "react";
 import styles from "./AccountCard.module.css";
 import { Link } from "react-router-dom";
 import { FiRefreshCcw, FiStar } from "react-icons/fi";
+import { FaStar } from "react-icons/fa";
 
 export default function AccountCard({ account, onRefresh, onEdit, onDelete, onTogglePin, selected=false, onToggleSelect, onLongPressActivate, showCheckboxes=false }) {
   // simple long-press activation for mobile
@@ -10,6 +11,16 @@ export default function AccountCard({ account, onRefresh, onEdit, onDelete, onTo
     pressTimer = setTimeout(()=>{ onLongPressActivate?.(); }, 500)
   }
   const onTouchEnd = ()=>{ if(pressTimer) clearTimeout(pressTimer) }
+  const onToggleMenu = (e)=>{
+    e.stopPropagation()
+    const menu = e.currentTarget.nextSibling
+    if (menu){
+      const showing = menu.style.display==='block'
+      menu.style.display = showing? 'none' : 'block'
+      const onDoc = (ev)=>{ if (menu && !menu.contains(ev.target) && ev.target !== e.currentTarget){ menu.style.display='none'; document.removeEventListener('click', onDoc) } }
+      if (!showing) document.addEventListener('click', onDoc)
+    }
+  }
   const accent = (()=>{
     const key = (account.label||account.id||account.email||'').toString()
     let h=0; for (let i=0;i<key.length;i++){ h = (h*31 + key.charCodeAt(i)) % 360 }
@@ -24,13 +35,20 @@ export default function AccountCard({ account, onRefresh, onEdit, onDelete, onTo
           )}
           <Link to={`/account/${account.id}`}>{account.label}</Link>
         </div>
-        <div className={styles.region}>
-          {account.region}
-          <button type="button" onClick={(e)=>{ e.stopPropagation(); onTogglePin?.(account) }} title={account.pinned? 'Unpin' : 'Pin'} style={{marginLeft:8, background:'transparent', border:0, color: account.pinned? '#fbbf24' : '#888', cursor:'pointer'}}>
-            <FiStar/>
+        <div className={styles.actions} style={{display:'inline-flex',gap:8,alignItems:'center'}}>
+          <button type="button" onClick={(e)=>{ e.stopPropagation(); onTogglePin?.(account) }} title={account.pinned? 'Unpin' : 'Pin'} style={{ background:'transparent', border:0, cursor:'pointer' }}>
+            {account.pinned ? <FaStar color="#fbbf24" /> : <FiStar style={{ color: '#888' }}/>} 
           </button>
+          <button type="button" onClick={(e) => { e.stopPropagation(); onRefresh(account) }} className={styles.muted} aria-label="Refresh"><FiRefreshCcw/></button>
+          <div style={{position:'relative'}}>
+            <div onClick={onToggleMenu} style={{cursor:'pointer', padding:'4px 8px'}}>⋮</div>
+            <div className="panel" style={{position:'absolute',right:0,top:'120%',minWidth:160,zIndex:10,display:'none'}} onClick={(e)=> e.stopPropagation()}>
+              <a onClick={(e)=>{ e.stopPropagation(); onEdit(account) }} style={{display:'block',padding:'8px 12px',textDecoration:'none',cursor:'pointer'}}>Edit</a>
+              <a onClick={(e)=>{ e.stopPropagation(); onDelete(account) }} style={{display:'block',padding:'8px 12px',textDecoration:'none',cursor:'pointer'}}>Delete</a>
+            </div>
+          </div>
           {account.lastError && (
-            <span title={account.lastError} style={{marginLeft:8, color:'#ef4444', fontSize:12}}>• Error</span>
+            <span title={account.lastError} style={{marginLeft:4, color:'#ef4444', fontSize:12}}>• Error</span>
           )}
         </div>
       </div>
@@ -59,25 +77,7 @@ export default function AccountCard({ account, onRefresh, onEdit, onDelete, onTo
             ? new Date(account.lastRefreshedAt).toLocaleString()
             : "—"}
         </small>
-        <div className={styles.actions}>
-          <button type="button" onClick={(e) => { e.stopPropagation(); onRefresh(account) }} className={styles.muted} aria-label="Refresh"><FiRefreshCcw/></button>
-          <div style={{position:'relative'}}>
-            <div onClick={(e)=>{
-              e.stopPropagation();
-              const menu = e.currentTarget.nextSibling;
-              if(menu){
-                const showing = menu.style.display==='block'
-                menu.style.display = showing? 'none' : 'block'
-                const onDoc = (ev)=>{ if (menu && !menu.contains(ev.target) && ev.target !== e.currentTarget){ menu.style.display='none'; document.removeEventListener('click', onDoc) } }
-                if (!showing) document.addEventListener('click', onDoc)
-              }
-            }} style={{cursor:'pointer', padding:'4px 8px'}}>⋮</div>
-            <div className="panel" style={{position:'absolute',right:0,top:'120%',minWidth:160,zIndex:10,display:'none'}} onClick={(e)=> e.stopPropagation()}>
-              <a onClick={(e)=>{ e.stopPropagation(); onEdit(account) }} style={{display:'block',padding:'8px 12px',textDecoration:'none',cursor:'pointer'}}>Edit</a>
-              <a onClick={(e)=>{ e.stopPropagation(); onDelete(account) }} style={{display:'block',padding:'8px 12px',textDecoration:'none',cursor:'pointer'}}>Delete</a>
-            </div>
-          </div>
-        </div>
+        <div/>
       </div>
     </div>
   );
