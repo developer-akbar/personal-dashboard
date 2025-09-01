@@ -9,6 +9,13 @@ const electricityServiceSchema = new mongoose.Schema(
     lastBillDate: { type: Date },
     lastDueDate: { type: Date },
     lastAmountDue: { type: Number },
+    lastBilledUnits: { type: Number },
+    lastThreeAmounts: { type: [
+      new mongoose.Schema({
+        closingDate: Date,
+        billAmount: Number,
+      }, { _id:false })
+    ], default: [] },
     lastStatus: { type: String, enum: ["DUE", "PAID", "NO_DUES", "UNKNOWN"], default: "UNKNOWN" },
     lastFetchedAt: { type: Date },
     lastError: { type: String },
