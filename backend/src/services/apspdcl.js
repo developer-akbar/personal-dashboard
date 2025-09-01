@@ -15,21 +15,34 @@ export async function fetchApspdclBill({ serviceNumber, interactive, storageStat
   page.setDefaultTimeout(90000)
   const debug = { steps: [], snippet: null }
   try{
-    // Direct API (ledger history) first: faster and avoids CAPTCHA
+    // Direct API (bill history) first: faster and avoids CAPTCHA
     try{
-      const curl = `curl -s -X POST 'https://apspdcl.in/ConsumerDashboard/public/publicledgerhistory' -H 'Content-Type: application/x-www-form-urlencoded' --data-urlencode 'uscno=${serviceNumber}'`
+      const curl = `curl -s -X POST 'https://apspdcl.in/ConsumerDashboard/public/publicbillhistory' -H 'Content-Type: application/x-www-form-urlencoded; charset=UTF-8' --data 'uscno=${serviceNumber}'`
       try{ console.log(`[APSPDCL] ${curl}`) }catch{}
-      const resp = await fetch('https://apspdcl.in/ConsumerDashboard/public/publicledgerhistory', {
+      const resp = await fetch('https://apspdcl.in/ConsumerDashboard/public/publicbillhistory', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: new URLSearchParams({ uscno: String(serviceNumber) }).toString(),
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8' },
+        body: `uscno=${encodeURIComponent(String(serviceNumber))}`,
       })
       if (resp.ok){
         const json = await resp.json()
         try{ console.log(`[APSPDCL] response: ${JSON.stringify(json)}`) }catch{}
         if (Array.isArray(json?.data) && json.data.length){
           // Map and pick latest by closingDate
-          const parseD = (s)=>{ const p = Date.parse(s?.replace(/-/g,' ')); return Number.isNaN(p)? null : new Date(p) }
+          const parseD = (s)=>{
+            if (!s) return null;
+            const parts = String(s).trim().split(/[-/]/);
+            if (parts.length===3){
+              const [dd, mon, yy] = parts;
+              const months = { JAN:0,FEB:1,MAR:2,APR:3,MAY:4,JUN:5,JUL:6,AUG:7,SEP:8,OCT:9,NOV:10,DEC:11 };
+              const m = months[(mon||'').toUpperCase()] ?? null;
+              const year = yy.length===2 ? 2000 + Number(yy) : Number(yy);
+              const day = Number(dd);
+              if (m!=null && !Number.isNaN(year) && !Number.isNaN(day)) return new Date(Date.UTC(year, m, day));
+            }
+            const p = Date.parse(String(s).replace(/-/g,' '));
+            return Number.isNaN(p)? null : new Date(p)
+          }
           const norm = json.data.map(row=> ({
             closingDate: parseD(row.closingDate),
             dueDate: parseD(row.duedate),
@@ -39,8 +52,10 @@ export async function fetchApspdclBill({ serviceNumber, interactive, storageStat
           norm.sort((a,b)=> (b.closingDate||0) - (a.closingDate||0))
           const latest = norm[0]
           const lastThree = norm.slice(0,3).map(x=> ({ closingDate: x.closingDate, billAmount: x.billAmount }))
+          const now = new Date()
+          const hasCurrentMonth = norm.some(x=> x.closingDate && x.closingDate.getUTCFullYear()===now.getFullYear() && x.closingDate.getUTCMonth()===now.getMonth())
           const amount = latest?.billAmount || 0
-          const status = amount>0 ? 'DUE' : 'NO_DUES'
+          const status = hasCurrentMonth ? (amount>0 ? 'DUE' : 'NO_DUES') : 'NO_DUES'
           return {
             serviceNumber,
             customerName: null, // not available from this endpoint
@@ -51,7 +66,7 @@ export async function fetchApspdclBill({ serviceNumber, interactive, storageStat
             lastThreeAmounts: lastThree,
             status,
             payUrl: 'https://payments.billdesk.com/MercOnline/SPDCLController',
-            debug: { steps: ['api:publicledgerhistory'], curl, snippet: JSON.stringify(norm.slice(0,3)), raw: json }
+            debug: { steps: ['api:publicbillhistory'], curl, snippet: JSON.stringify(norm.slice(0,3)), raw: json }
           }
         }
       }
