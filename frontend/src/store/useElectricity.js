@@ -10,14 +10,23 @@ export const useElectricity = create((set,get)=> ({
     finally{ set({ loading:false }) }
   },
   async addService(serviceNumber, label){
-    const { data } = await api.post('/electricity/services', { serviceNumber, label })
-    // Immediately refresh the newly added service for better UX
-    try{ await api.post(`/electricity/services/${data.id}/refresh`) }catch{}
-    await get().fetchServices()
+    try{
+      const { data } = await api.post('/electricity/services', { serviceNumber, label })
+      try{ await api.post(`/electricity/services/${data.id}/refresh`) }catch{}
+      await get().fetchServices()
+    }catch(e){
+      const msg = e?.response?.data?.error || e?.message || 'Failed to add service'
+      throw new Error(msg)
+    }
   },
   async updateService(id, payload){
-    await api.put(`/electricity/services/${id}`, payload)
-    await get().fetchServices()
+    try{
+      await api.put(`/electricity/services/${id}`, payload)
+      await get().fetchServices()
+    }catch(e){
+      const msg = e?.response?.data?.error || e?.message || 'Failed to update service'
+      throw new Error(msg)
+    }
   },
   async deleteService(id){
     await api.delete(`/electricity/services/${id}`)
