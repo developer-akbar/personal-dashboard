@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react'
+import React, { useEffect, useMemo, useRef, useState } from 'react'
 import { useElectricity } from '../store/useElectricity'
 import AddElectricityServiceModal from '../components/AddElectricityServiceModal'
 import GlobalTabs from '../components/GlobalTabs'
@@ -14,6 +14,7 @@ export default function Electricity(){
   const [health, setHealth] = useState({ ok:false, db:'unknown' })
   const [selectedIds, setSelectedIds] = useState(new Set())
   const [selectMode, setSelectMode] = useState(false)
+  const longPressRef = useRef(null)
 
   useEffect(()=>{ fetchServices() },[])
   useEffect(()=>{ (async()=>{ try{ const api=(await import('../api/client')).default; const { data } = await api.get('/health'); setHealth({ ok: !!data?.ok, db: data?.db||'unknown' }) }catch{} })() },[])
@@ -64,9 +65,17 @@ export default function Electricity(){
         <div className="pill">Yet to be Paid: {summary.noDuesCount}</div>
       </section>
 
+      {selectedIds.size>0 && (
+        <div className="panel" style={{display:'flex',gap:12,alignItems:'baseline',marginBottom:8}}>
+          <span>Selected: <b>{selectedSummary.count}</b></span>
+          <span>Total: <b>₹ {Number(selectedSummary.total||0).toLocaleString('en-IN')}</b></span>
+          <button className="muted" onClick={()=>{ setSelectedIds(new Set()); setSelectMode(false) }}>Clear selection</button>
+        </div>
+      )}
+
       <section className={`grid ${selectMode? 'select-mode':''}`}>
         {services.map(s=> (
-          <div key={s.id} className="card-wrapper" onMouseEnter={()=> setSelectMode(true)} onMouseLeave={()=>{ if(selectedIds.size===0) setSelectMode(false) }} onTouchStart={()=> setSelectMode(true)}>
+          <div key={s.id} className="card-wrapper" onMouseEnter={()=> setSelectMode(true)} onMouseLeave={()=>{ if(selectedIds.size===0) setSelectMode(false) }} onTouchStart={()=>{ if (longPressRef.current) clearTimeout(longPressRef.current); longPressRef.current = setTimeout(()=> setSelectMode(true), 500) }} onTouchEnd={()=>{ if (longPressRef.current) { clearTimeout(longPressRef.current); longPressRef.current=null } }}>
             {selectMode && (
               <input type="checkbox" className="checkbox" checked={selectedIds.has(s.id)} onChange={()=>{
                 const next=new Set(selectedIds); if(next.has(s.id)) next.delete(s.id); else next.add(s.id); setSelectedIds(next); if(next.size===0) setSelectMode(false)
@@ -84,13 +93,7 @@ export default function Electricity(){
           setEditing(null)
         }catch(e){ toast.error(e.message) }
       }} />
-      {selectedIds.size>0 && (
-        <div className="panel" style={{display:'flex',gap:12,alignItems:'baseline',marginTop:8}}>
-          <span>Selected: <b>{selectedSummary.count}</b></span>
-          <span>Total: <b>₹ {Number(selectedSummary.total||0).toLocaleString('en-IN')}</b></span>
-          <button className="muted" onClick={()=>{ setSelectedIds(new Set()); setSelectMode(false) }}>Clear selection</button>
-        </div>
-      )}
+      
     </div>
   )
 }
