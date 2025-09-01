@@ -9,8 +9,16 @@ export const useElectricity = create((set,get)=> ({
     try{ const { data } = await api.get('/electricity/services'); set({ services: data }) }
     finally{ set({ loading:false }) }
   },
-  async addService(serviceNumber){
-    await api.post('/electricity/services', { serviceNumber })
+  async addService(serviceNumber, label){
+    await api.post('/electricity/services', { serviceNumber, label })
+    await get().fetchServices()
+  },
+  async updateService(id, payload){
+    await api.put(`/electricity/services/${id}`, payload)
+    await get().fetchServices()
+  },
+  async deleteService(id){
+    await api.delete(`/electricity/services/${id}`)
     await get().fetchServices()
   },
   async refreshOne(id){

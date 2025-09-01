@@ -27,14 +27,34 @@ router.get('/services', async (req,res,next)=>{
 // Add service
 router.post('/services', async (req,res,next)=>{
   try{
-    const { serviceNumber } = req.body || {}
+    const { serviceNumber, label } = req.body || {}
     if(!serviceNumber) return res.status(400).json({ error: 'serviceNumber required' })
-    const created = await ElectricityService.create({ userId: req.user.id, serviceNumber: String(serviceNumber).trim() })
+    const created = await ElectricityService.create({ userId: req.user.id, serviceNumber: String(serviceNumber).trim(), label: (label||'').trim() || undefined })
     res.status(201).json({ id: created._id })
   }catch(e){
     if (e?.code === 11000) return res.status(409).json({ error: 'Service already exists' })
     next(e)
   }
+})
+
+// Update service (label/serviceNumber)
+router.put('/services/:id', async (req,res,next)=>{
+  try{
+    const { serviceNumber, label } = req.body || {}
+    const update = {}
+    if (serviceNumber) update.serviceNumber = String(serviceNumber).trim()
+    if (label !== undefined) update.label = (label||'').trim()
+    await ElectricityService.updateOne({ _id: req.params.id, userId: req.user.id }, update)
+    res.json({ ok: true })
+  }catch(e){ next(e) }
+})
+
+// Delete service
+router.delete('/services/:id', async (req,res,next)=>{
+  try{
+    await ElectricityService.deleteOne({ _id: req.params.id, userId: req.user.id })
+    res.json({ ok: true })
+  }catch(e){ next(e) }
 })
 
 // Refresh one

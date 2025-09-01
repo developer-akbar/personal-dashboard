@@ -4,8 +4,9 @@ import AddElectricityServiceModal from '../components/AddElectricityServiceModal
 import ElectricityServiceCard from '../components/ElectricityServiceCard'
 
 export default function Electricity(){
-  const { services, fetchServices, addService, refreshAll, refreshOne } = useElectricity()
+  const { services, fetchServices, addService, updateService, deleteService, refreshAll, refreshOne } = useElectricity()
   const [open,setOpen] = useState(false)
+  const [editing,setEditing] = useState(null)
 
   useEffect(()=>{ fetchServices() },[])
 
@@ -26,7 +27,8 @@ export default function Electricity(){
       <header className="topbar">
         <h2>Electricity</h2>
         <div className="spacer" />
-        <button className="muted" onClick={()=> setOpen(true)}>Add Service</button>
+        <a className="muted" href="#/dashboard" style={{textDecoration:'none',padding:'8px 12px',borderRadius:8}}>Amazon</a>
+        <button className="muted" onClick={()=> { setEditing(null); setOpen(true) }}>Add Service</button>
         <button className="primary" onClick={refreshAll}>Refresh All</button>
       </header>
 
@@ -39,11 +41,15 @@ export default function Electricity(){
 
       <section className="grid">
         {services.map(s=> (
-          <ElectricityServiceCard key={s.id} item={s} onRefresh={()=> refreshOne(s.id)} />
+          <ElectricityServiceCard key={s.id} item={s} onRefresh={()=> refreshOne(s.id)} onEdit={()=> { setEditing(s); setOpen(true) }} onDelete={()=> deleteService(s.id)} />
         ))}
       </section>
 
-      <AddElectricityServiceModal open={open} onClose={()=> setOpen(false)} onSubmit={addService} />
+      <AddElectricityServiceModal open={open} initial={editing} onClose={()=> { setOpen(false); setEditing(null) }} onSubmit={async (serviceNumber,label)=>{
+        if (editing) await updateService(editing.id, { serviceNumber, label })
+        else await addService(serviceNumber, label)
+        setEditing(null)
+      }} />
     </div>
   )
 }
