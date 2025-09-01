@@ -42,6 +42,9 @@ export default function ElectricityServiceCard({ item, onRefresh, onEdit, onDele
           <a className="primary" href="https://payments.billdesk.com/MercOnline/SPDCLController" target="_blank" rel="noreferrer" style={{textDecoration:'none',padding:'8px 12px',borderRadius:8}}>Pay Now</a>
         </div>
       )}
+      <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',fontSize:12,opacity:.8}}>
+        <span>Last refreshed: <b>{item.lastFetchedAt ? new Date(item.lastFetchedAt).toLocaleString() : '—'}</b></span>
+      </div>
     </article>
   )
 }
