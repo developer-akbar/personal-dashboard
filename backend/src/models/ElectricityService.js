@@ -3,6 +3,7 @@ import mongoose from "mongoose";
 const electricityServiceSchema = new mongoose.Schema(
   {
     userId: { type: mongoose.Schema.Types.ObjectId, ref: "User", index: true, required: true },
+    label: { type: String, trim: true },
     serviceNumber: { type: String, required: true, trim: true },
     customerName: { type: String },
     lastBillDate: { type: Date },
