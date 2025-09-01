@@ -162,14 +162,14 @@ export default function Dashboard() {
         <HeaderAvatar />
       </header>
       <GlobalTabs/>
+      <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',margin:'6px 0'}}>
+        <small style={{opacity:.8}}>Backend: <b style={{color: health.ok? '#10b981':'#ef4444'}}>{health.ok? 'up':'down'}</b> • DB: <b>{health.db}</b></small>
+        <a className="muted" href="https://github.com/developer-akbar/personal-dashboard/blob/main/SESSIONS.md" target="_blank" rel="noreferrer" title="Help: sessions and scraping" style={{textDecoration:'none',padding:'4px 8px',borderRadius:8}}>?</a>
+      </div>
       <div style={{display:'flex',alignItems:'baseline',gap:8,margin:'4px 0 8px'}}>
         <div style={{fontSize:14,opacity:.8}}>Accounts: {accounts.length}</div>
         <div style={{fontSize:14,opacity:.8,marginLeft:12}}>Total ({baseCurrency==='INR'?'₹':baseCurrency}):</div>
         <div style={{fontSize:22,fontWeight:700}}>{Number(baseTotal||0).toLocaleString('en-IN')}</div>
-      </div>
-      <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',margin:'6px 0'}}>
-        <small style={{opacity:.8}}>Backend: <b style={{color: health.ok? '#10b981':'#ef4444'}}>{health.ok? 'up':'down'}</b> • DB: <b>{health.db}</b></small>
-        <a className="muted" href="https://github.com/developer-akbar/personal-dashboard/blob/main/SESSIONS.md" target="_blank" rel="noreferrer" title="Help: sessions and scraping" style={{textDecoration:'none',padding:'4px 8px',borderRadius:8}}>?</a>
       </div>
 
       {jwtExp && (jwtExp - Date.now() < 5*60*1000) && (

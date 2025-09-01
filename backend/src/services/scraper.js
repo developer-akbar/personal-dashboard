@@ -455,7 +455,7 @@ function parseCurrencyAmount(text, region) {
   return { currency, amount };
 }
 
-function resolveChromiumHeadlessPath() {
+export function resolveChromiumHeadlessPath() {
   try {
     const cacheBase = path.join(process.cwd(), "node_modules", ".cache", "ms-playwright");
     if (!fs.existsSync(cacheBase)) return undefined;
