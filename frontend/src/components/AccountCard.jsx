@@ -10,9 +10,13 @@ export default function AccountCard({ account, onRefresh, onEdit, onDelete, onTo
     pressTimer = setTimeout(()=>{ onLongPressActivate?.(); }, 500)
   }
   const onTouchEnd = ()=>{ if(pressTimer) clearTimeout(pressTimer) }
-  const accent = tagColor((account.label||account.id||account.email||'').toString())
+  const accent = (()=>{
+    const key = (account.label||account.id||account.email||'').toString()
+    let h=0; for (let i=0;i<key.length;i++){ h = (h*31 + key.charCodeAt(i)) % 360 }
+    return `hsl(${h} 70% 35% / 1)`
+  })()
   return (
-    <div className={styles.card} onTouchStart={onTouchStart} onTouchEnd={onTouchEnd} style={{ borderRight: `4px solid ${accent}` }}>
+    <div className={styles.card} onTouchStart={onTouchStart} onTouchEnd={onTouchEnd} style={{ borderLeft: `4px solid ${accent}` }}>
       <div className={styles.header}>
         <div className={styles.headerLeft}>
           {showCheckboxes && (
