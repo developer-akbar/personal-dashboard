@@ -51,7 +51,8 @@ export async function fetchApspdclBill({ serviceNumber, interactive, storageStat
           })).filter(r=> r.closingDate)
           norm.sort((a,b)=> (b.closingDate||0) - (a.closingDate||0))
           const latest = norm[0]
-          const lastThree = norm.slice(0,3).map(x=> ({ closingDate: x.closingDate, billAmount: x.billAmount }))
+          // Exclude the latest (current) entry from the last-three list shown on card
+          const lastThree = norm.filter(x => x !== latest).slice(0,3).map(x=> ({ closingDate: x.closingDate, billAmount: x.billAmount }))
           const now = new Date()
           const hasCurrentMonth = norm.some(x=> x.closingDate && x.closingDate.getUTCFullYear()===now.getFullYear() && x.closingDate.getUTCMonth()===now.getMonth())
           const amount = latest?.billAmount || 0
