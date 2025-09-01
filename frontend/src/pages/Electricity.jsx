@@ -60,9 +60,11 @@ export default function Electricity(){
       </section>
 
       <AddElectricityServiceModal open={open} initial={editing} onClose={()=> { setOpen(false); setEditing(null) }} onSubmit={async (serviceNumber,label)=>{
-        if (editing) await updateService(editing.id, { serviceNumber, label })
-        else await addService(serviceNumber, label)
-        setEditing(null)
+        try{
+          if (editing) await updateService(editing.id, { serviceNumber, label })
+          else await addService(serviceNumber, label)
+          setEditing(null)
+        }catch(e){ toast.error(e.message) }
       }} />
     </div>
   )

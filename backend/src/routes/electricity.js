@@ -18,6 +18,8 @@ router.get('/services', async (req,res,next)=>{
       lastBillDate: s.lastBillDate,
       lastDueDate: s.lastDueDate,
       lastAmountDue: s.lastAmountDue,
+      lastBilledUnits: s.lastBilledUnits,
+      lastThreeAmounts: s.lastThreeAmounts,
       lastStatus: s.lastStatus,
       lastFetchedAt: s.lastFetchedAt,
       lastError: s.lastError,
@@ -30,6 +32,12 @@ router.post('/services', async (req,res,next)=>{
   try{
     const { serviceNumber, label } = req.body || {}
     if(!serviceNumber) return res.status(400).json({ error: 'serviceNumber required' })
+    const existsSvc = await ElectricityService.findOne({ userId: req.user.id, serviceNumber: String(serviceNumber).trim() })
+    if (existsSvc) return res.status(409).json({ error: 'Service number already exists' })
+    if (label){
+      const existsLabel = await ElectricityService.findOne({ userId: req.user.id, label: (label||'').trim() })
+      if (existsLabel) return res.status(409).json({ error: 'Label already exists' })
+    }
     const created = await ElectricityService.create({ userId: req.user.id, serviceNumber: String(serviceNumber).trim(), label: (label||'').trim() || undefined })
     res.status(201).json({ id: created._id })
   }catch(e){
@@ -43,8 +51,18 @@ router.put('/services/:id', async (req,res,next)=>{
   try{
     const { serviceNumber, label } = req.body || {}
     const update = {}
-    if (serviceNumber) update.serviceNumber = String(serviceNumber).trim()
-    if (label !== undefined) update.label = (label||'').trim()
+    if (serviceNumber){
+      const dupSvc = await ElectricityService.findOne({ userId: req.user.id, serviceNumber: String(serviceNumber).trim(), _id: { $ne: req.params.id } })
+      if (dupSvc) return res.status(409).json({ error: 'Service number already exists' })
+      update.serviceNumber = String(serviceNumber).trim()
+    }
+    if (label !== undefined){
+      if (label){
+        const dupLabel = await ElectricityService.findOne({ userId: req.user.id, label: (label||'').trim(), _id: { $ne: req.params.id } })
+        if (dupLabel) return res.status(409).json({ error: 'Label already exists' })
+      }
+      update.label = (label||'').trim()
+    }
     await ElectricityService.updateOne({ _id: req.params.id, userId: req.user.id }, update)
     res.json({ ok: true })
   }catch(e){ next(e) }
@@ -88,16 +106,25 @@ router.post('/services/refresh-all', async (req,res,next)=>{
     for(let i=0;i<list.length;i+=batchSize){
       const batch = list.slice(i,i+batchSize)
       const settled = await Promise.allSettled(batch.map(async svc=>{
-        const result = await fetchApspdclBill({ serviceNumber: svc.serviceNumber, interactive: false })
-        svc.customerName = result.customerName
-        svc.lastBillDate = result.billDate
-        svc.lastDueDate = result.dueDate
-        svc.lastAmountDue = result.amountDue
-        svc.lastStatus = result.status
-        svc.lastFetchedAt = new Date()
-        svc.lastError = null
-        await svc.save()
-        return { id: svc._id, ok: true }
+        try{
+          const result = await fetchApspdclBill({ serviceNumber: svc.serviceNumber, interactive: false })
+          svc.customerName = result.customerName
+          svc.lastBillDate = result.billDate
+          svc.lastDueDate = result.dueDate
+          svc.lastAmountDue = result.amountDue
+          svc.lastBilledUnits = result.billedUnits || 0
+          svc.lastThreeAmounts = Array.isArray(result.lastThreeAmounts)? result.lastThreeAmounts : []
+          svc.lastStatus = result.status
+          svc.lastFetchedAt = new Date()
+          svc.lastError = null
+          await svc.save()
+          return { id: svc._id, ok: true }
+        }catch(err){
+          svc.lastError = err?.message || 'Failed to fetch bill'
+          svc.lastFetchedAt = new Date()
+          await svc.save()
+          throw err
+        }
       }))
       results.push(...settled.map(x=> x.status==='fulfilled'? x.value : { error: x.reason?.message||String(x.reason) }))
     }
