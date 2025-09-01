@@ -3,14 +3,17 @@ import { useElectricity } from '../store/useElectricity'
 import AddElectricityServiceModal from '../components/AddElectricityServiceModal'
 import GlobalTabs from '../components/GlobalTabs'
 import GlobalDebug from '../components/GlobalDebug'
+import HeaderAvatar from '../components/HeaderAvatar'
 import ElectricityServiceCard from '../components/ElectricityServiceCard'
 
 export default function Electricity(){
   const { services, fetchServices, addService, updateService, deleteService, refreshAll, refreshOne } = useElectricity()
   const [open,setOpen] = useState(false)
   const [editing,setEditing] = useState(null)
+  const [health, setHealth] = useState({ ok:false, db:'unknown' })
 
   useEffect(()=>{ fetchServices() },[])
+  useEffect(()=>{ (async()=>{ try{ const api=(await import('../api/client')).default; const { data } = await api.get('/health'); setHealth({ ok: !!data?.ok, db: data?.db||'unknown' }) }catch{} })() },[])
 
   const summary = useMemo(()=>{
     const pending = services.filter(s=> s.lastStatus==='DUE' && (s.lastAmountDue||0)>0)
@@ -29,8 +32,13 @@ export default function Electricity(){
       <header className="topbar">
         <h2>Personal Dashboard</h2>
         <div className="spacer" />
+        <HeaderAvatar />
       </header>
       <GlobalTabs/>
+      <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',margin:'6px 0'}}>
+        <small style={{opacity:.8}}>Backend: <b style={{color: health.ok? '#10b981':'#ef4444'}}>{health.ok? 'up':'down'}</b> • DB: <b>{health.db}</b></small>
+        <a className="muted" href="https://github.com/developer-akbar/personal-dashboard/blob/main/SESSIONS.md" target="_blank" rel="noreferrer" title="Help: sessions and scraping" style={{textDecoration:'none',padding:'4px 8px',borderRadius:8}}>?</a>
+      </div>
       <div className="action-buttons" style={{display:'flex',gap:8,marginBottom:8}}>
         <button className="muted" onClick={()=> { setEditing(null); setOpen(true) }}>Add Service</button>
         <button className="primary" onClick={refreshAll}>Refresh All</button>
