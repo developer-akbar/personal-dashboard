@@ -1,6 +1,8 @@
 import React, { useEffect, useMemo, useState } from 'react'
 import { useElectricity } from '../store/useElectricity'
 import AddElectricityServiceModal from '../components/AddElectricityServiceModal'
+import GlobalTabs from '../components/GlobalTabs'
+import GlobalDebug from '../components/GlobalDebug'
 import ElectricityServiceCard from '../components/ElectricityServiceCard'
 
 export default function Electricity(){
@@ -25,12 +27,15 @@ export default function Electricity(){
   return (
     <div className="container">
       <header className="topbar">
-        <h2>Electricity</h2>
+        <h2>Personal Dashboard</h2>
         <div className="spacer" />
-        <a className="muted" href="#/dashboard" style={{textDecoration:'none',padding:'8px 12px',borderRadius:8}}>Amazon</a>
+      </header>
+      <GlobalTabs/>
+      <div className="action-buttons" style={{display:'flex',gap:8,marginBottom:8}}>
         <button className="muted" onClick={()=> { setEditing(null); setOpen(true) }}>Add Service</button>
         <button className="primary" onClick={refreshAll}>Refresh All</button>
-      </header>
+      </div>
+      <GlobalDebug/>
 
       <section className="totals">
         <div className="pill">Total Pending: ₹ {Number(summary.totalPending||0).toLocaleString('en-IN')}</div>
