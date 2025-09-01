@@ -17,6 +17,8 @@ export async function fetchApspdclBill({ serviceNumber, interactive, storageStat
   try{
     // Direct API (ledger history) first: faster and avoids CAPTCHA
     try{
+      const curl = `curl -s -X POST 'https://apspdcl.in/ConsumerDashboard/public/publicledgerhistory' -H 'Content-Type: application/x-www-form-urlencoded' --data-urlencode 'uscno=${serviceNumber}'`
+      try{ console.log(`[APSPDCL] ${curl}`) }catch{}
       const resp = await fetch('https://apspdcl.in/ConsumerDashboard/public/publicledgerhistory', {
         method: 'POST',
         headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
@@ -48,7 +50,7 @@ export async function fetchApspdclBill({ serviceNumber, interactive, storageStat
             lastThreeAmounts: lastThree,
             status,
             payUrl: 'https://payments.billdesk.com/MercOnline/SPDCLController',
-            debug: { steps: ['api:publicledgerhistory'], snippet: JSON.stringify(norm.slice(0,3)) }
+            debug: { steps: ['api:publicledgerhistory'], curl, snippet: JSON.stringify(norm.slice(0,3)) }
           }
         }
       }
