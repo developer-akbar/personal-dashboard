@@ -4,6 +4,7 @@ import AddElectricityServiceModal from '../components/AddElectricityServiceModal
 import GlobalTabs from '../components/GlobalTabs'
 import GlobalDebug from '../components/GlobalDebug'
 import HeaderAvatar from '../components/HeaderAvatar'
+import toast from 'react-hot-toast'
 import ElectricityServiceCard from '../components/ElectricityServiceCard'
 
 export default function Electricity(){
@@ -41,7 +42,7 @@ export default function Electricity(){
       </div>
       <div className="action-buttons" style={{display:'flex',gap:8,marginBottom:8}}>
         <button className="muted" onClick={()=> { setEditing(null); setOpen(true) }}>Add Service</button>
-        <button className="primary" onClick={refreshAll}>Refresh All</button>
+        <button className="primary" onClick={async()=>{ await toast.promise(refreshAll(), { loading:'Refreshing all services…', success:'All services refreshed', error:'Refresh failed' }) }}>Refresh All</button>
       </div>
       <GlobalDebug/>
 
@@ -54,7 +55,7 @@ export default function Electricity(){
 
       <section className="grid">
         {services.map(s=> (
-          <ElectricityServiceCard key={s.id} item={s} onRefresh={()=> refreshOne(s.id)} onEdit={()=> { setEditing(s); setOpen(true) }} onDelete={()=> deleteService(s.id)} />
+          <ElectricityServiceCard key={s.id} item={s} onRefresh={async()=>{ await toast.promise(refreshOne(s.id), { loading:`Refreshing ${s.label||s.serviceNumber}…`, success:'Refreshed', error:'Refresh failed' }) }} onEdit={()=> { setEditing(s); setOpen(true) }} onDelete={()=> deleteService(s.id)} />
         ))}
       </section>
 
