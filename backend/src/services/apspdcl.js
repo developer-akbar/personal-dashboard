@@ -29,6 +29,7 @@ export async function fetchApspdclBill({ serviceNumber, interactive, storageStat
     // Heuristic parse: look for bill details table or labels
     const bodyText = (await page.textContent('body'))?.replace(/\u00a0/g,' ').trim() || ''
     debug.snippet = bodyText.slice(0, 2000)
+    if (/captcha/i.test(bodyText)) { debug.steps.push('captcha required') }
     // Extract fields
     // Prefer DOM extraction from table rows if present
     let amount = null, dueDate=null, billDate=null, customerName=null
