@@ -15,6 +15,45 @@ export async function fetchApspdclBill({ serviceNumber, interactive, storageStat
   page.setDefaultTimeout(90000)
   const debug = { steps: [], snippet: null }
   try{
+    // Direct API (ledger history) first: faster and avoids CAPTCHA
+    try{
+      const resp = await fetch('https://apspdcl.in/ConsumerDashboard/public/publicledgerhistory', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: new URLSearchParams({ uscno: String(serviceNumber) }).toString(),
+      })
+      if (resp.ok){
+        const json = await resp.json()
+        if (Array.isArray(json?.data) && json.data.length){
+          // Map and pick latest by closingDate
+          const parseD = (s)=>{ const p = Date.parse(s?.replace(/-/g,' ')); return Number.isNaN(p)? null : new Date(p) }
+          const norm = json.data.map(row=> ({
+            closingDate: parseD(row.closingDate),
+            dueDate: parseD(row.duedate),
+            billedUnits: Number(row.billedUnits||0),
+            billAmount: Number(String(row.billAmount||'0').replace(/,/g,'')),
+          })).filter(r=> r.closingDate)
+          norm.sort((a,b)=> (b.closingDate||0) - (a.closingDate||0))
+          const latest = norm[0]
+          const lastThree = norm.slice(0,3).map(x=> ({ closingDate: x.closingDate, billAmount: x.billAmount }))
+          const amount = latest?.billAmount || 0
+          const status = amount>0 ? 'DUE' : 'NO_DUES'
+          return {
+            serviceNumber,
+            customerName: null, // not available from this endpoint
+            billDate: latest?.closingDate || null,
+            dueDate: latest?.dueDate || null,
+            amountDue: amount,
+            billedUnits: latest?.billedUnits || 0,
+            lastThreeAmounts: lastThree,
+            status,
+            payUrl: 'https://payments.billdesk.com/MercOnline/SPDCLController',
+            debug: { steps: ['api:publicledgerhistory'], snippet: JSON.stringify(norm.slice(0,3)) }
+          }
+        }
+      }
+    }catch{}
+
     await page.goto('https://payments.billdesk.com/MercOnline/SPDCLController', { waitUntil:'domcontentloaded' })
     debug.steps.push('open entry')
     // Try common field names; APSPDCL page may load an iframe or form
