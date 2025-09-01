@@ -51,13 +51,12 @@ export async function fetchApspdclBill({ serviceNumber, interactive, storageStat
           })).filter(r=> r.closingDate)
           norm.sort((a,b)=> (b.closingDate||0) - (a.closingDate||0))
           const latest = norm[0]
-          // Exclude entries that belong to the current calendar month
+          // Exclude entries that belong to the current calendar month (UTC)
           const now = new Date()
-          const lastThree = norm
-            .filter(x => !(x.closingDate && x.closingDate.getUTCFullYear()===now.getUTCFullYear() && x.closingDate.getUTCMonth()===now.getUTCMonth()))
-            .slice(0,3)
-            .map(x=> ({ closingDate: x.closingDate, billAmount: x.billAmount }))
-          const hasCurrentMonth = norm.some(x=> x.closingDate && x.closingDate.getUTCFullYear()===now.getFullYear() && x.closingDate.getUTCMonth()===now.getMonth())
+          const nowY = now.getUTCFullYear(), nowM = now.getUTCMonth()
+          const filtered = norm.filter(x => !(x.closingDate && x.closingDate.getUTCFullYear()===nowY && x.closingDate.getUTCMonth()===nowM))
+          const lastThree = filtered.slice(0,3).map(x=> ({ closingDate: x.closingDate, billAmount: x.billAmount }))
+          const hasCurrentMonth = norm.some(x=> x.closingDate && x.closingDate.getUTCFullYear()===nowY && x.closingDate.getUTCMonth()===nowM)
           const amount = latest?.billAmount || 0
           const status = hasCurrentMonth ? (amount>0 ? 'DUE' : 'NO_DUES') : 'NO_DUES'
           return {
@@ -70,7 +69,7 @@ export async function fetchApspdclBill({ serviceNumber, interactive, storageStat
             lastThreeAmounts: lastThree,
             status,
             payUrl: 'https://payments.billdesk.com/MercOnline/SPDCLController',
-            debug: { steps: ['api:publicbillhistory'], curl, snippet: JSON.stringify(norm.slice(0,3)), raw: json }
+            debug: { steps: ['api:publicbillhistory'], curl, monthsAll: norm.map(x=> x.closingDate && `${x.closingDate.getUTCFullYear()}-${x.closingDate.getUTCMonth()+1}`), nowMonth:`${nowY}-${nowM+1}`, filteredMonths: filtered.map(x=> `${x.closingDate.getUTCFullYear()}-${x.closingDate.getUTCMonth()+1}`), snippet: JSON.stringify(norm.slice(0,3)), raw: json }
           }
         }
       }
