@@ -35,7 +35,7 @@ export default function ElectricityServiceCard({ item, onRefresh, onEdit, onDele
         <div><span style={{opacity:.7}}>Customer</span> <b>{item.customerName||'—'}</b></div>
         <div><span style={{opacity:.7}}>Bill Date</span> <b>{item.lastBillDate? new Date(item.lastBillDate).toLocaleDateString(): '—'}</b></div>
         <div><span style={{opacity:.7}}>Due Date</span> <b>{item.lastDueDate? new Date(item.lastDueDate).toLocaleDateString(): '—'}</b></div>
-        <div><span style={{opacity:.7}}>Amount Due</span> <b>{item.lastAmountDue!=null? `₹ ${Number(item.lastAmountDue).toLocaleString('en-IN')}` : '—'}</b></div>
+        <div><span style={{opacity:.7}}>Amount Due</span> <b style={{fontSize:16, color:'var(--primary-bg)'}}>{item.lastAmountDue!=null? `₹ ${Number(item.lastAmountDue).toLocaleString('en-IN')}` : '—'}</b></div>
         <div><span style={{opacity:.7}}>Billed Units</span> <b>{item.lastBilledUnits!=null? Number(item.lastBilledUnits).toLocaleString('en-IN') : '—'}</b></div>
       </div>
       {Array.isArray(item.lastThreeAmounts) && item.lastThreeAmounts.length>0 && (
