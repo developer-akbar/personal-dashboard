@@ -12,6 +12,7 @@ router.get('/services', async (req,res,next)=>{
     const items = await ElectricityService.find({ userId: req.user.id }).sort({ createdAt: -1 })
     res.json(items.map(s=> ({
       id: s._id,
+      label: s.label,
       serviceNumber: s.serviceNumber,
       customerName: s.customerName,
       lastBillDate: s.lastBillDate,

@@ -11,13 +11,11 @@ export default function ElectricityServiceCard({ item, onRefresh, onEdit, onDele
         <div style={{display:'inline-flex',gap:8,alignItems:'center'}}>
           <button className="muted" onClick={onRefresh} aria-label="Refresh">⟳</button>
           <div style={{position:'relative'}}>
-            <details>
-              <summary style={{cursor:'pointer'}}>⋮</summary>
-              <div className="panel" style={{position:'absolute',right:0,top:'120%',minWidth:160,zIndex:10}}>
-                <button className="muted" onClick={onEdit} style={{width:'100%',textAlign:'left'}}>Edit</button>
-                <button className="danger" onClick={onDelete} style={{width:'100%',textAlign:'left'}}>Delete</button>
-              </div>
-            </details>
+            <div onClick={(e)=>{ e.stopPropagation(); const m=e.currentTarget.nextSibling; if(m) m.style.display = m.style.display==='block'? 'none':'block' }} style={{cursor:'pointer', padding:'4px 8px'}}>⋮</div>
+            <div className="panel" style={{position:'absolute',right:0,top:'120%',minWidth:160,zIndex:10,display:'none'}} onClick={(e)=> e.stopPropagation()}>
+              <a onClick={onEdit} style={{display:'block',padding:'8px 12px',textDecoration:'none',cursor:'pointer'}}>Edit</a>
+              <a onClick={onDelete} style={{display:'block',padding:'8px 12px',textDecoration:'none',cursor:'pointer',color:'var(--danger-text,#fff)'}}>Delete</a>
+            </div>
           </div>
         </div>
       </div>
