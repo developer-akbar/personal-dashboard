@@ -11,6 +11,7 @@ export default function Register(){
   const [name,setName]=useState('')
   const [email,setEmail]=useState('')
   const [password,setPassword]=useState('')
+  const [captcha,setCaptcha]=useState('')
 
   async function onSubmit(e){
     e.preventDefault()
@@ -19,7 +20,7 @@ export default function Register(){
     if(password.length < 6) return toast.error('Password must be at least 6 characters')
     const confirm = e.target?.confirm?.value
     if(confirm !== password) return toast.error('Passwords do not match')
-    await register({ name, email, password })
+    await register({ name, email, password, captchaToken: captcha })
     nav('/dashboard')
   }
 
@@ -32,6 +33,7 @@ export default function Register(){
           <label>Email<input value={email} onChange={e=>setEmail(e.target.value)} required type="email" placeholder="you@example.com"/></label>
           <label>Password<input value={password} onChange={e=>setPassword(e.target.value)} required type="password" placeholder="At least 6 characters"/></label>
           <label>Confirm Password<input name="confirm" required type="password" placeholder="Re-enter password"/></label>
+          <div className="cf-turnstile" data-sitekey={import.meta.env.VITE_TURNSTILE_SITE_KEY || ''} data-theme="auto" data-callback={(t)=> setCaptcha(t)}></div>
           <button disabled={loading} className="primary" type="submit">{loading? 'Creating...' : 'Create account'}</button>
         </form>
         <p style={{opacity:.8,marginTop:8}}>Have an account? <Link to="/login">Sign in</Link></p>

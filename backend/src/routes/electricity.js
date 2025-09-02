@@ -2,9 +2,19 @@ import { Router } from 'express'
 import { requireAuth } from '../middleware/auth.js'
 import ElectricityService from '../models/ElectricityService.js'
 import { fetchApspdclBill } from '../services/apspdcl.js'
+import rateLimit from 'express-rate-limit'
 
 const router = Router()
 router.use(requireAuth)
+
+const elecLimiter = rateLimit({
+  windowMs: 24*60*60*1000,
+  max: 10,
+  standardHeaders: true,
+  legacyHeaders: false,
+  keyGenerator: (req)=> req.user?.id || req.ip,
+  handler: (_req, res)=> res.status(429).json({ error: 'Rate limit exceeded (10/day). Please try tomorrow.' })
+})
 
 // List services
 router.get('/services', async (req,res,next)=>{
@@ -77,7 +87,7 @@ router.delete('/services/:id', async (req,res,next)=>{
 })
 
 // Refresh one
-router.post('/services/:id/refresh', async (req,res,next)=>{
+router.post('/services/:id/refresh', elecLimiter, async (req,res,next)=>{
   try{
     const svc = await ElectricityService.findOne({ _id: req.params.id, userId: req.user.id })
     if(!svc) return res.status(404).json({ error: 'Not found' })
@@ -98,7 +108,7 @@ router.post('/services/:id/refresh', async (req,res,next)=>{
 })
 
 // Refresh all
-router.post('/services/refresh-all', async (req,res,next)=>{
+router.post('/services/refresh-all', elecLimiter, async (req,res,next)=>{
   try{
     const { batchSize = 3 } = req.body || {}
     const list = await ElectricityService.find({ userId: req.user.id }).sort({ createdAt: -1 })

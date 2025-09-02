@@ -26,10 +26,10 @@ export const useAuth = create((set, get) => ({
       set({ loading: false })
     }
   },
-  async login(email, password) {
+  async login(email, password, captchaToken) {
     set({ loading: true })
     try {
-      const { data } = await api.post('/auth/login', { email, password })
+      const { data } = await api.post('/auth/login', { email, password, captchaToken })
       setAccessToken(data.accessToken)
       localStorage.setItem('user', JSON.stringify(data.user))
       localStorage.setItem('refreshToken', data.refreshToken)

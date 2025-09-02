@@ -10,6 +10,7 @@ export default function Login() {
   const { login, loading } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [captcha, setCaptcha] = useState("");
 
   async function onSubmit(e) {
     e.preventDefault();
@@ -17,7 +18,7 @@ export default function Login() {
     if (!emailOk) return toast.error("Enter a valid email");
     if (password.length < 6)
       return toast.error("Password must be at least 6 characters");
-    await login(email, password);
+    await login(email, password, captcha);
     nav("/dashboard");
   }
 
@@ -54,6 +55,7 @@ export default function Login() {
               placeholder="••••••••"
             />
           </div>
+          <div className="cf-turnstile" data-sitekey={import.meta.env.VITE_TURNSTILE_SITE_KEY || ''} data-theme="auto" data-callback={(t)=> setCaptcha(t)}></div>
           <button disabled={loading} className="primary" type="submit">
             {loading ? "Signing in..." : "Sign in"}
           </button>

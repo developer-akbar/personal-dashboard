@@ -4,10 +4,21 @@ import AmazonAccount from "../models/AmazonAccount.js";
 import Balance from "../models/Balance.js";
 import { decryptSecret } from "../utils/crypto.js";
 import { fetchAmazonPayBalance } from "../services/scraper.js";
+import rateLimit from 'express-rate-limit'
 
 const router = Router();
 
 router.use(requireAuth);
+
+// Per-user limiter: max 5 refresh calls per 24h per user (tunable)
+const refreshLimiter = rateLimit({
+  windowMs: 24*60*60*1000,
+  max: 5,
+  standardHeaders: true,
+  legacyHeaders: false,
+  keyGenerator: (req)=> req.user?.id || req.ip,
+  handler: (_req, res)=> res.status(429).json({ error: 'Rate limit exceeded (5/day). Please try tomorrow.' })
+})
 
 router.get("/history/:accountId", async (req, res, next) => {
   try {
@@ -20,7 +31,7 @@ router.get("/history/:accountId", async (req, res, next) => {
   }
 });
 
-router.post("/refresh/:accountId", async (req, res, next) => {
+router.post("/refresh/:accountId", refreshLimiter, async (req, res, next) => {
   try {
     const account = await AmazonAccount.findOne({ _id: req.params.accountId, userId: req.user.id });
     if (!account) return res.status(404).json({ error: "Account not found" });
@@ -55,7 +66,7 @@ router.post("/refresh/:accountId", async (req, res, next) => {
   }
 });
 
-router.post("/refresh-all", async (req, res, next) => {
+router.post("/refresh-all", refreshLimiter, async (req, res, next) => {
   try {
     const accounts = await AmazonAccount.find({ userId: req.user.id }).sort({ createdAt: 1 });
     const batchSize = Math.max(1, Math.min(5, Number(req.body?.batchSize) || 3));
