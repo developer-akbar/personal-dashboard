@@ -23,6 +23,10 @@ export const useElectricity = create((set,get)=> ({
   },
   async updateService(id, payload){
     try{
+      if (payload?.serviceNumber){
+        const sn = String(payload.serviceNumber||'').trim()
+        if (!/^\d{13}$/.test(sn)) throw new Error('Service Number must be exactly 13 digits')
+      }
       await api.put(`/electricity/services/${id}`, payload)
       await get().fetchServices()
     }catch(e){

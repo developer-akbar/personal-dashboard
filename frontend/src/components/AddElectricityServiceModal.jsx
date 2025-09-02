@@ -7,7 +7,7 @@ export default function AddElectricityServiceModal({ open, onClose, onSubmit, in
   useEffect(()=>{
     setServiceNumber(initial?.serviceNumber || '')
     setLabel(initial?.label || '')
-  }, [initial])
+  }, [initial, open])
   if(!open) return null
   return (
     <div className="backdrop" style={{position:'fixed',inset:0,background:'rgba(0,0,0,.5)',display:'flex',alignItems:'center',justifyContent:'center',zIndex:1000}} onClick={onClose}>

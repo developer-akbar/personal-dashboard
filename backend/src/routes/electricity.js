@@ -55,6 +55,9 @@ router.post('/services', async (req,res,next)=>{
     // Validate with APSPDCL before saving
     try{
       const test = await fetchApspdclBill({ serviceNumber: sn, interactive: false })
+      if (test?.debug?.raw?.status === 'error'){
+        return res.status(400).json({ error: 'Invalid Service Number' })
+      }
       if (!test || (test.debug && test.debug.error)){
         return res.status(502).json({ error: 'APSPDCL validation failed. Try again later.' })
       }
