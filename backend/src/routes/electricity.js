@@ -111,7 +111,7 @@ router.post('/services/:id/refresh', elecLimiter, async (req,res,next)=>{
     svc.lastThreeAmounts = Array.isArray(result.lastThreeAmounts)? result.lastThreeAmounts : []
     svc.lastStatus = result.status
     svc.lastFetchedAt = new Date()
-    svc.nextAllowedAt = new Date(Date.now() + cooldownMs)
+    svc.nextAllowedAt = new Date(Date.now() + cooldownMs) // only on success
     svc.lastError = null
     await svc.save()
     res.json({ id: svc._id, ...result })
@@ -141,13 +141,14 @@ router.post('/services/refresh-all', elecLimiter, async (req,res,next)=>{
           svc.lastThreeAmounts = Array.isArray(result.lastThreeAmounts)? result.lastThreeAmounts : []
           svc.lastStatus = result.status
           svc.lastFetchedAt = new Date()
-          svc.nextAllowedAt = new Date(Date.now() + Number(process.env.REFRESH_COOLDOWN_MS || 5*60*1000))
+          svc.nextAllowedAt = new Date(Date.now() + Number(process.env.REFRESH_COOLDOWN_MS || 5*60*1000)) // only on success
           svc.lastError = null
           await svc.save()
           return { id: svc._id, ok: true }
         }catch(err){
           svc.lastError = err?.message || 'Failed to fetch bill'
           svc.lastFetchedAt = new Date()
+          try{ svc.refreshInProgress = false; await svc.save() }catch{}
           await svc.save()
           throw err
         }

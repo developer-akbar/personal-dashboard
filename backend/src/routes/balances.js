@@ -57,7 +57,9 @@ router.post("/refresh/:accountId", refreshLimiter, async (req, res, next) => {
     account.lastBalance = amount;
     account.lastCurrency = currency;
     account.lastRefreshedAt = new Date();
+    // cooldown only on success
     account.nextAllowedAt = new Date(Date.now()+cooldownMs)
+    account.refreshInProgress = false
     if (storageState) account.storageState = storageState;
     await account.save();
 
@@ -69,7 +71,7 @@ router.post("/refresh/:accountId", refreshLimiter, async (req, res, next) => {
       if (account) {
         account.lastError = e?.message || 'Refresh failed';
         account.lastErrorAt = new Date();
-        account.refreshInProgress = false
+        account.refreshInProgress = false // ensure unlocked on failure
         await account.save();
       }
     } catch {}
@@ -86,25 +88,31 @@ router.post("/refresh-all", refreshLimiter, async (req, res, next) => {
     for (let i = 0; i < accounts.length; i += batchSize) {
       const chunk = accounts.slice(i, i + batchSize);
       const settled = await Promise.allSettled(chunk.map(async (account, idx) => {
-        if (account.refreshInProgress) return { skipped:true, accountId: account._id, reason:'in-progress' }
-        if (account.nextAllowedAt && account.nextAllowedAt > new Date()) return { skipped:true, accountId: account._id, reason:'cooldown' }
-        account.refreshInProgress = true; await account.save()
-        const password = decryptSecret(account.encryptedPassword);
-        const { amount, currency, storageState } = await fetchAmazonPayBalance({
-          region: account.region,
-          email: account.email,
-          password,
-          interactive: process.env.NODE_ENV !== 'production',
-          storageState: account.storageState,
-        });
-        account.lastBalance = amount;
-        account.lastCurrency = currency;
-        account.lastRefreshedAt = new Date();
-        account.nextAllowedAt = new Date(Date.now()+cooldownMs)
-        if (storageState) account.storageState = storageState;
-        await account.save();
-        const snap = await Balance.create({ accountId: account._id, amount, currency });
-        return { accountId: account._id, amount, currency, index: i + idx + 1, total: accounts.length, timestamp: snap.createdAt };
+        try{
+          if (account.refreshInProgress) return { skipped:true, accountId: account._id, reason:'in-progress' }
+          if (account.nextAllowedAt && account.nextAllowedAt > new Date()) return { skipped:true, accountId: account._id, reason:'cooldown' }
+          account.refreshInProgress = true; await account.save()
+          const password = decryptSecret(account.encryptedPassword);
+          const { amount, currency, storageState } = await fetchAmazonPayBalance({
+            region: account.region,
+            email: account.email,
+            password,
+            interactive: process.env.NODE_ENV !== 'production',
+            storageState: account.storageState,
+          });
+          account.lastBalance = amount;
+          account.lastCurrency = currency;
+          account.lastRefreshedAt = new Date();
+          account.nextAllowedAt = new Date(Date.now()+cooldownMs) // only on success
+          account.refreshInProgress = false
+          if (storageState) account.storageState = storageState;
+          await account.save();
+          const snap = await Balance.create({ accountId: account._id, amount, currency });
+          return { accountId: account._id, amount, currency, index: i + idx + 1, total: accounts.length, timestamp: snap.createdAt };
+        }catch(err){
+          try{ account.refreshInProgress = false; await account.save() }catch{}
+          throw err
+        }
       }));
       for (const r of settled) {
         if (r.status === 'fulfilled') results.push(r.value);
