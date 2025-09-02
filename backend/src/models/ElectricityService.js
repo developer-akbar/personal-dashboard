@@ -29,7 +29,11 @@ const electricityServiceSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-electricityServiceSchema.index({ userId: 1, serviceNumber: 1 }, { unique: true });
+// Unique per user for active (non-deleted) services
+electricityServiceSchema.index(
+  { userId: 1, serviceNumber: 1 },
+  { unique: true, partialFilterExpression: { isDeleted: { $ne: true } } }
+);
 
 export default mongoose.model("ElectricityService", electricityServiceSchema);
 
