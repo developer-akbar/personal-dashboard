@@ -208,7 +208,7 @@ export default function Dashboard() {
         >
           <FiRefreshCcw /> Refresh All
         </button>
-        <button className="muted" onClick={async ()=>{
+        <button className="muted" style={{display:'none'}} onClick={async ()=>{
           // Export current view to CSV
           const rows = [['Label','Email','Region','Balance','Currency','Last Refreshed']]
           for(const a of sortedFiltered){ rows.push([a.label, a.email, a.region, String(a.lastBalance||0), a.lastCurrency||'', a.lastRefreshedAt? new Date(a.lastRefreshedAt).toISOString(): '' ]) }
@@ -218,7 +218,7 @@ export default function Dashboard() {
           const a = document.createElement('a'); a.href=url; a.download='accounts.csv'; a.click(); URL.revokeObjectURL(url)
         }}>Export View CSV</button>
         <button className="muted" onClick={()=> setShowAmazonInfo(true)}>How to use</button>
-        <button className="muted" onClick={async ()=>{
+        <button className="muted" style={{display:'none'}} onClick={async ()=>{
           const api=(await import('../api/client')).default; const { data } = await api.get('/accounts')
           const rows = [["Label","Email","Region","Balance","Currency","Last Refreshed","Pinned","Tags"]]
           for(const a of data){ rows.push([a.label, a.email, a.region, String(a.lastBalance||0), a.lastCurrency||'', a.lastRefreshedAt? new Date(a.lastRefreshedAt).toISOString(): '', a.pinned? 'yes':'no', (a.tags||[]).join('|') ]) }

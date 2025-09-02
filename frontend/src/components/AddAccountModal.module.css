@@ -1,6 +1,6 @@
 .backdrop{position:fixed;inset:0;background:rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center;z-index:1000}
 .modal{background:var(--panel-bg);border:1px solid var(--panel-border);border-radius:12px;padding:16px;min-width:320px}
-.form{display:flex;flex-direction:column;gap:10px}
+.form{display:flex;flex-direction:column;gap:10px;padding:0 12px}
 label{display:flex;flex-direction:column;gap:6px;font-size:12px}
 input,select{background:var(--input-bg);border:1px solid var(--input-border);border-radius:8px;padding:8px;color:var(--input-text)}
 .row{display:flex;justify-content:flex-end;gap:8px;margin-top:8px}
