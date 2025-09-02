@@ -1,5 +1,5 @@
 import React from "react";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Toaster } from "react-hot-toast";
 import toast from "react-hot-toast";
 import { Link, useNavigate } from "react-router-dom";
@@ -11,6 +11,27 @@ export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [captcha, setCaptcha] = useState("");
+  const widgetRef = useRef(null)
+
+  useEffect(()=>{
+    const siteKey = import.meta.env.VITE_TURNSTILE_SITE_KEY
+    if (!siteKey) return
+    function render(){
+      if (window.turnstile && widgetRef.current && !widgetRef.current._rendered){
+        window.turnstile.render(widgetRef.current, {
+          sitekey: siteKey,
+          theme: 'auto',
+          callback: (t)=> setCaptcha(t),
+          'error-callback': ()=> { setCaptcha(''); toast.error('Captcha failed, retry') },
+          'expired-callback': ()=> { setCaptcha(''); toast('Captcha expired', { icon: '⚠️' }) }
+        })
+        widgetRef.current._rendered = true
+      } else {
+        setTimeout(render, 300)
+      }
+    }
+    render()
+  },[])
 
   async function onSubmit(e) {
     e.preventDefault();
@@ -19,6 +40,7 @@ export default function Login() {
     if (password.length < 6)
       return toast.error("Password must be at least 6 characters");
     try {
+      if ((import.meta.env.VITE_TURNSTILE_SITE_KEY) && !captcha){ toast.error('Complete captcha'); return }
       await login(email, password, captcha);
       nav("/dashboard");
     } catch (e) {
@@ -59,7 +81,7 @@ export default function Login() {
               placeholder="••••••••"
             />
           </div>
-          <div className="cf-turnstile" data-sitekey={import.meta.env.VITE_TURNSTILE_SITE_KEY || ''} data-theme="auto" data-callback={(t)=> setCaptcha(t)}></div>
+          <div ref={widgetRef} className="cf-turnstile"></div>
           {!import.meta.env.VITE_TURNSTILE_SITE_KEY && (
             <small style={{opacity:.7}}>Captcha disabled (no site key configured)</small>
           )}
