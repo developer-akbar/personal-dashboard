@@ -87,16 +87,19 @@ export default function Electricity(){
       </section>
 
       <AddElectricityServiceModal open={open} initial={editing} onClose={()=> { setOpen(false); setEditing(null) }} onSubmit={async (serviceNumber,label)=>{
+        const promise = editing ? updateService(editing.id, { serviceNumber, label }) : addService(serviceNumber, label)
         try{
-          if (editing) {
-            await updateService(editing.id, { serviceNumber, label })
-            toast.success('Service updated')
-          } else {
-            await addService(serviceNumber, label)
-            toast.success('Service added')
-          }
+          await toast.promise(
+            promise,
+            {
+              loading: editing ? 'Updating service…' : 'Adding service…',
+              success: editing ? 'Service updated' : 'Service added',
+              error: (e)=> e?.response?.data?.error || e?.message || 'Failed to save service',
+            },
+            { success: { duration: 2000 }, error: { duration: 2000 } }
+          )
           setEditing(null)
-        }catch(e){ toast.error(e.message, { duration: 2000 }) }
+        }catch(_){}
       }} />
       
     </div>
