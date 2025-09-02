@@ -27,8 +27,9 @@ async function validateApspdclServiceNumber(sn){
     })
     if (!resp.ok) return { ok:false, reason:'gateway' }
     const json = await resp.json()
+    if (Array.isArray(json?.data) && json.data.length > 0) return { ok:true }
     if (json?.status === 'error') return { ok:false, reason:'invalid' }
-    return { ok:true }
+    return { ok:false, reason:'gateway' }
   }catch{
     return { ok:false, reason:'gateway' }
   }
