@@ -35,8 +35,15 @@ router.get("/history/:accountId", async (req, res, next) => {
 
 router.post("/refresh/:accountId", refreshLimiter, async (req, res, next) => {
   try {
+    const cooldownMs = Number(process.env.REFRESH_COOLDOWN_MS || 5*60*1000)
     const account = await AmazonAccount.findOne({ _id: req.params.accountId, userId: req.user.id });
     if (!account) return res.status(404).json({ error: "Account not found" });
+    if (account.refreshInProgress) return res.status(409).json({ error: 'Already refreshing' })
+    if (account.nextAllowedAt && account.nextAllowedAt > new Date()){
+      const wait = Math.ceil((account.nextAllowedAt - new Date())/1000)
+      return res.status(429).json({ error: `Please wait ${wait}s` })
+    }
+    account.refreshInProgress = true; await account.save()
 
     const password = decryptSecret(account.encryptedPassword);
     const { amount, currency, storageState, debug } = await fetchAmazonPayBalance({
@@ -50,6 +57,7 @@ router.post("/refresh/:accountId", refreshLimiter, async (req, res, next) => {
     account.lastBalance = amount;
     account.lastCurrency = currency;
     account.lastRefreshedAt = new Date();
+    account.nextAllowedAt = new Date(Date.now()+cooldownMs)
     if (storageState) account.storageState = storageState;
     await account.save();
 
@@ -61,6 +69,7 @@ router.post("/refresh/:accountId", refreshLimiter, async (req, res, next) => {
       if (account) {
         account.lastError = e?.message || 'Refresh failed';
         account.lastErrorAt = new Date();
+        account.refreshInProgress = false
         await account.save();
       }
     } catch {}
@@ -70,12 +79,16 @@ router.post("/refresh/:accountId", refreshLimiter, async (req, res, next) => {
 
 router.post("/refresh-all", refreshLimiter, async (req, res, next) => {
   try {
+    const cooldownMs = Number(process.env.REFRESH_COOLDOWN_MS || 5*60*1000)
     const accounts = await AmazonAccount.find({ userId: req.user.id }).sort({ createdAt: 1 });
     const batchSize = Math.max(1, Math.min(5, Number(req.body?.batchSize) || 3));
     const results = [];
     for (let i = 0; i < accounts.length; i += batchSize) {
       const chunk = accounts.slice(i, i + batchSize);
       const settled = await Promise.allSettled(chunk.map(async (account, idx) => {
+        if (account.refreshInProgress) return { skipped:true, accountId: account._id, reason:'in-progress' }
+        if (account.nextAllowedAt && account.nextAllowedAt > new Date()) return { skipped:true, accountId: account._id, reason:'cooldown' }
+        account.refreshInProgress = true; await account.save()
         const password = decryptSecret(account.encryptedPassword);
         const { amount, currency, storageState } = await fetchAmazonPayBalance({
           region: account.region,
@@ -87,6 +100,7 @@ router.post("/refresh-all", refreshLimiter, async (req, res, next) => {
         account.lastBalance = amount;
         account.lastCurrency = currency;
         account.lastRefreshedAt = new Date();
+        account.nextAllowedAt = new Date(Date.now()+cooldownMs)
         if (storageState) account.storageState = storageState;
         await account.save();
         const snap = await Balance.create({ accountId: account._id, amount, currency });

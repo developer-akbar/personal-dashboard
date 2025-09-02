@@ -10,6 +10,9 @@ const amazonAccountSchema = new mongoose.Schema(
     lastBalance: { type: Number, default: 0 },
     lastCurrency: { type: String, default: "USD" },
     lastRefreshedAt: { type: Date },
+    // Cooldown and locking
+    refreshInProgress: { type: Boolean, default: false },
+    nextAllowedAt: { type: Date },
     // Persisted cookies/localStorage to reduce repeated logins and bypass 2FA prompts
     storageState: { type: mongoose.Schema.Types.Mixed },
     order: { type: Number, default: 0 },

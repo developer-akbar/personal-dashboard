@@ -91,8 +91,16 @@ router.delete('/services/:id', async (req,res,next)=>{
 // Refresh one
 router.post('/services/:id/refresh', elecLimiter, async (req,res,next)=>{
   try{
+    const cooldownMs = Number(process.env.REFRESH_COOLDOWN_MS || 5*60*1000)
     const svc = await ElectricityService.findOne({ _id: req.params.id, userId: req.user.id })
     if(!svc) return res.status(404).json({ error: 'Not found' })
+    if (svc.refreshInProgress) return res.status(409).json({ error: 'Already refreshing' })
+    if (svc.nextAllowedAt && svc.nextAllowedAt > new Date()){
+      const wait = Math.ceil((svc.nextAllowedAt - new Date())/1000)
+      return res.status(429).json({ error: `Please wait ${wait}s` })
+    }
+    svc.refreshInProgress = true
+    await svc.save()
     const { serviceNumber } = svc
     const result = await fetchApspdclBill({ serviceNumber, interactive: false })
     svc.customerName = result.customerName
@@ -103,6 +111,7 @@ router.post('/services/:id/refresh', elecLimiter, async (req,res,next)=>{
     svc.lastThreeAmounts = Array.isArray(result.lastThreeAmounts)? result.lastThreeAmounts : []
     svc.lastStatus = result.status
     svc.lastFetchedAt = new Date()
+    svc.nextAllowedAt = new Date(Date.now() + cooldownMs)
     svc.lastError = null
     await svc.save()
     res.json({ id: svc._id, ...result })
@@ -119,6 +128,10 @@ router.post('/services/refresh-all', elecLimiter, async (req,res,next)=>{
       const batch = list.slice(i,i+batchSize)
       const settled = await Promise.allSettled(batch.map(async svc=>{
         try{
+          if (svc.refreshInProgress) return { id: svc._id, skipped: true, reason: 'in-progress' }
+          if (svc.nextAllowedAt && svc.nextAllowedAt > new Date()) return { id: svc._id, skipped: true, reason: 'cooldown' }
+          svc.refreshInProgress = true
+          await svc.save()
           const result = await fetchApspdclBill({ serviceNumber: svc.serviceNumber, interactive: false })
           svc.customerName = result.customerName
           svc.lastBillDate = result.billDate
@@ -128,6 +141,7 @@ router.post('/services/refresh-all', elecLimiter, async (req,res,next)=>{
           svc.lastThreeAmounts = Array.isArray(result.lastThreeAmounts)? result.lastThreeAmounts : []
           svc.lastStatus = result.status
           svc.lastFetchedAt = new Date()
+          svc.nextAllowedAt = new Date(Date.now() + Number(process.env.REFRESH_COOLDOWN_MS || 5*60*1000))
           svc.lastError = null
           await svc.save()
           return { id: svc._id, ok: true }

@@ -19,6 +19,9 @@ const electricityServiceSchema = new mongoose.Schema(
     lastStatus: { type: String, enum: ["DUE", "PAID", "NO_DUES", "UNKNOWN"], default: "UNKNOWN" },
     lastFetchedAt: { type: Date },
     lastError: { type: String },
+    // Cooldown and locking
+    refreshInProgress: { type: Boolean, default: false },
+    nextAllowedAt: { type: Date },
   },
   { timestamps: true }
 );
