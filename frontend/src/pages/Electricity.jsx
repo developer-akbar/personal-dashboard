@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useRef, useState } from 'react'
 import { useElectricity } from '../store/useElectricity'
 import AddElectricityServiceModal from '../components/AddElectricityServiceModal'
 import GlobalTabs from '../components/GlobalTabs'
-import GlobalDebug from '../components/GlobalDebug'
+// import GlobalDebug from '../components/GlobalDebug'
 import HeaderAvatar from '../components/HeaderAvatar'
 import toast from 'react-hot-toast'
 import ElectricityServiceCard from '../components/ElectricityServiceCard'
@@ -57,13 +57,15 @@ export default function Electricity(){
       <GlobalTabs/>
       <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',margin:'6px 0'}}>
         <small style={{opacity:.8}}>Backend: <b style={{color: health.ok? '#10b981':'#ef4444'}}>{health.ok? 'up':'down'}</b> • DB: <b>{health.db}</b></small>
-        <a className="muted" href="https://github.com/developer-akbar/personal-dashboard/blob/main/SESSIONS.md" target="_blank" rel="noreferrer" title="Help: sessions and scraping" style={{textDecoration:'none',padding:'4px 8px',borderRadius:8}}>?</a>
+        <button className="muted" onClick={()=> setShowInfo(true)} aria-label="How to use" title="How to use" style={{display:'inline-flex',alignItems:'center',gap:6}}>
+          <span>How to use</span>
+        </button>
       </div>
       <div className="action-buttons" style={{display:'flex',gap:8,marginBottom:8}}>
-        <button className="muted" onClick={()=> { setEditing(null); setOpen(true) }}>Add Service</button>
-        <button className="primary" onClick={async()=>{ await toast.promise(refreshAll(), { loading:'Refreshing all services…', success:'All services refreshed', error:(e)=> e?.response?.data?.error || 'Refresh failed' }, { success: { duration: 2000 }, error: { duration: 2000 }, loading: { duration: 2000 } }) }}>Refresh All</button>
+        <button className="muted" onClick={()=> { setEditing(null); setOpen(true) }} style={{display:'inline-flex',alignItems:'center',gap:6}}>➕ Add Service</button>
+        <button className="primary" onClick={async()=>{ await toast.promise(refreshAll(), { loading:'Refreshing all services…', success:'All services refreshed', error:(e)=> e?.response?.data?.error || 'Refresh failed' }, { success: { duration: 2000 }, error: { duration: 2000 }, loading: { duration: 2000 } }) }} style={{display:'inline-flex',alignItems:'center',gap:6}}>⟳ Refresh All</button>
       </div>
-      <GlobalDebug/>
+      {/* <GlobalDebug/> */}
 
       <section className="totals">
         <div className="pill">Total Pending: ₹ {Number(summary.totalPending||0).toLocaleString('en-IN')}</div>
