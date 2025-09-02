@@ -35,6 +35,11 @@ router.post("/", async (req, res, next) => {
     if (!label || !email || !password || !region) {
       return res.status(400).json({ error: "label, email, password, region required" });
     }
+    // Uniqueness per user: label and email
+    const dupLabel = await AmazonAccount.findOne({ userId: req.user.id, label: label.trim(), isDeleted: { $ne: true } })
+    if (dupLabel) return res.status(409).json({ error: 'Label already exists. Choose a unique label.' })
+    const dupEmail = await AmazonAccount.findOne({ userId: req.user.id, email: email.trim(), isDeleted: { $ne: true } })
+    if (dupEmail) return res.status(409).json({ error: 'This Amazon email is already added.' })
     const encryptedPassword = encryptSecret(password);
     const account = await AmazonAccount.create({
       userId: req.user.id,
@@ -56,8 +61,16 @@ router.put("/:id", async (req, res, next) => {
   try {
     const { label, email, password, region, pinned, tags } = req.body || {};
     const update = {};
-    if (label) update.label = label;
-    if (email) update.email = email;
+    if (label) {
+      const exists = await AmazonAccount.findOne({ userId: req.user.id, label: label.trim(), _id: { $ne: req.params.id }, isDeleted: { $ne: true } })
+      if (exists) return res.status(409).json({ error: 'Label already exists. Choose a unique label.' })
+      update.label = label
+    }
+    if (email) {
+      const exists = await AmazonAccount.findOne({ userId: req.user.id, email: email.trim(), _id: { $ne: req.params.id }, isDeleted: { $ne: true } })
+      if (exists) return res.status(409).json({ error: 'This Amazon email is already added.' })
+      update.email = email
+    }
     if (region) update.region = region;
     if (typeof pinned === 'boolean') update.pinned = pinned;
     if (Array.isArray(tags)) update.tags = tags;

@@ -9,6 +9,7 @@ export default function AddAccountModal({ open, onClose, onSubmit, initial }) {
   const [email,setEmail]=useState(initial?.email||'')
   const [password,setPassword]=useState('')
   const [region,setRegion]=useState(initial?.region||REGIONS[0])
+  const [submitting,setSubmitting]=useState(false)
 
   // Reset fields when opening for a different account
   useEffect(()=>{
@@ -28,14 +29,14 @@ export default function AddAccountModal({ open, onClose, onSubmit, initial }) {
             <strong>Your main step:</strong> generate a one-time session (storageState) on your computer using the seed script, then upload/use it here. This avoids repeated logins.
           </div>
         )}
-        <form onSubmit={(e)=>{e.preventDefault();onSubmit({label,email,password,region})}} className={styles.form}>
+        <form onSubmit={async (e)=>{e.preventDefault(); if(submitting) return; setSubmitting(true); try{ await onSubmit({label,email,password,region}) } finally{ setSubmitting(false) } }} className={styles.form}>
           <label>Label<input value={label} onChange={e=>setLabel(e.target.value)} required /></label>
           <label>Email<input value={email} onChange={e=>setEmail(e.target.value)} required type="email" /></label>
           <label>Password<input value={password} onChange={e=>setPassword(e.target.value)} type="password" placeholder={initial? '(leave blank to keep unchanged)': ''} required={!initial} /></label>
           <label>Region<select value={region} onChange={e=>setRegion(e.target.value)}>{REGIONS.map(r=> <option key={r} value={r}>{r}</option>)}</select></label>
           <div className={styles.row}>
-            <button type="button" onClick={onClose} className={styles.muted}>Cancel</button>
-            <button type="submit" className={styles.primary}>{initial? 'Save' : 'Add'}</button>
+            <button type="button" onClick={onClose} className={styles.muted} disabled={submitting}>Cancel</button>
+            <button type="submit" className={styles.primary} disabled={submitting}>{initial? 'Save' : 'Add'}</button>
           </div>
         </form>
       </div>
