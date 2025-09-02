@@ -22,6 +22,8 @@ export const useAuth = create((set, get) => ({
       localStorage.setItem('refreshToken', data.refreshToken)
       set({ user: data.user, accessToken: data.accessToken, refreshToken: data.refreshToken })
       return true
+    } catch (e) {
+      throw e
     } finally {
       set({ loading: false })
     }
@@ -35,6 +37,8 @@ export const useAuth = create((set, get) => ({
       localStorage.setItem('refreshToken', data.refreshToken)
       set({ user: data.user, accessToken: data.accessToken, refreshToken: data.refreshToken })
       return true
+    } catch (e) {
+      throw e
     } finally {
       set({ loading: false })
     }

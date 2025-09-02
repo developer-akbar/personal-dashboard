@@ -18,8 +18,12 @@ export default function Login() {
     if (!emailOk) return toast.error("Enter a valid email");
     if (password.length < 6)
       return toast.error("Password must be at least 6 characters");
-    await login(email, password, captcha);
-    nav("/dashboard");
+    try {
+      await login(email, password, captcha);
+      nav("/dashboard");
+    } catch (e) {
+      toast.error(e?.response?.data?.error || e?.message || 'Login failed')
+    }
   }
 
   return (
@@ -56,6 +60,9 @@ export default function Login() {
             />
           </div>
           <div className="cf-turnstile" data-sitekey={import.meta.env.VITE_TURNSTILE_SITE_KEY || ''} data-theme="auto" data-callback={(t)=> setCaptcha(t)}></div>
+          {!import.meta.env.VITE_TURNSTILE_SITE_KEY && (
+            <small style={{opacity:.7}}>Captcha disabled (no site key configured)</small>
+          )}
           <button disabled={loading} className="primary" type="submit">
             {loading ? "Signing in..." : "Sign in"}
           </button>

@@ -20,8 +20,12 @@ export default function Register(){
     if(password.length < 6) return toast.error('Password must be at least 6 characters')
     const confirm = e.target?.confirm?.value
     if(confirm !== password) return toast.error('Passwords do not match')
-    await register({ name, email, password, captchaToken: captcha })
-    nav('/dashboard')
+    try{
+      await register({ name, email, password, captchaToken: captcha })
+      nav('/dashboard')
+    }catch(e){
+      toast.error(e?.response?.data?.error || e?.message || 'Registration failed')
+    }
   }
 
   return (
@@ -34,6 +38,9 @@ export default function Register(){
           <label>Password<input value={password} onChange={e=>setPassword(e.target.value)} required type="password" placeholder="At least 6 characters"/></label>
           <label>Confirm Password<input name="confirm" required type="password" placeholder="Re-enter password"/></label>
           <div className="cf-turnstile" data-sitekey={import.meta.env.VITE_TURNSTILE_SITE_KEY || ''} data-theme="auto" data-callback={(t)=> setCaptcha(t)}></div>
+          {!import.meta.env.VITE_TURNSTILE_SITE_KEY && (
+            <small style={{opacity:.7}}>Captcha disabled (no site key configured)</small>
+          )}
           <button disabled={loading} className="primary" type="submit">{loading? 'Creating...' : 'Create account'}</button>
         </form>
         <p style={{opacity:.8,marginTop:8}}>Have an account? <Link to="/login">Sign in</Link></p>
