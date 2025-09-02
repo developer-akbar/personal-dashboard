@@ -18,6 +18,7 @@ body {
   --muted-bg: #222;
   --muted-text: #ddd;
   --primary-bg: #4f46e5;
+  --primary-text: #fff;
   --danger-bg: #ef4444;
   --pill-bg: #111;
   --pill-border: #242424;
@@ -39,6 +40,7 @@ body {
   --muted-bg: #eef2ff;
   --muted-text: #111;
   --primary-bg: #4338ca;
+  --primary-text: #fff;
   --danger-bg: #dc2626;
   --pill-bg: #f3f4f6;
   --pill-border: #e5e7eb;
@@ -109,7 +111,7 @@ body {
 }
 .primary {
   background: var(--primary-bg);
-  color: #fff;
+  color: var(--primary-text);
 }
 .muted {
   background: var(--muted-bg);
@@ -129,7 +131,7 @@ body {
   align-items: center;
   gap: 6px;
 }
-.tab-link.primary { color: #fff; }
+.tab-link.primary { color: var(--primary-text); }
 .tab-link.muted { color: var(--text); }
 
 button {
