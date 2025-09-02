@@ -197,14 +197,16 @@ export default function Dashboard() {
             setOpen(true);
             setShowAmazonInfo(true)
           }}
+          disabled={refreshing}
         >
           <FiPlus /> Add account
         </button>
         <button
           className="primary"
           onClick={async () => {
-            await toast.promise((async()=>{ await refreshAll(accounts); await fetchAccounts() })(), { loading: 'Refreshing all accounts…', success: 'All accounts refreshed', error: 'Failed to refresh all' })
+            await toast.promise((async()=>{ await refreshAll(accounts); await fetchAccounts() })(), { loading: 'Queued…', success: 'Done', error: (e)=> e?.response?.status===429? '429 - wait and retry' : 'Failed' })
           }}
+          disabled={refreshing}
         >
           <FiRefreshCcw /> Refresh All
         </button>

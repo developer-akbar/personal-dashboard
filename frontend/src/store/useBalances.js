@@ -4,8 +4,10 @@ import api from '../api/client'
 export const useBalances = create((set, get) => ({
   refreshing: false,
   progress: { current: 0, total: 0, message: '' },
+  lockUntil: 0,
+  setLock(ms){ set({ lockUntil: Date.now() + ms }) },
   async refreshOne(accountId) {
-    set({ refreshing: true, progress: { current: 0, total: 1, message: 'Refreshing 1 of 1' } })
+    set({ refreshing: true, progress: { current: 0, total: 1, message: 'Refreshing…' } })
     try {
       const { data } = await api.post(`/balances/refresh/${accountId}`)
       return data
@@ -14,7 +16,7 @@ export const useBalances = create((set, get) => ({
     }
   },
   async refreshAll(accounts) {
-    set({ refreshing: true, progress: { current: 0, total: accounts.length, message: '' } })
+    set({ refreshing: true, progress: { current: 0, total: accounts.length, message: 'Queued…' } })
     try {
       const { data } = await api.post('/balances/refresh-all')
       return data
