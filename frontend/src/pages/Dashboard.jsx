@@ -3,7 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import { FiPlus, FiRefreshCcw, FiFilter } from "react-icons/fi";
 import HeaderAvatar from "../components/HeaderAvatar";
 import GlobalTabs from "../components/GlobalTabs";
-import GlobalDebug from "../components/GlobalDebug";
+// import GlobalDebug from "../components/GlobalDebug";
 import toast from 'react-hot-toast'
 // DnD removed per request to ensure buttons work reliably
 import { useAccounts } from "../store/useAccounts";
@@ -167,7 +167,9 @@ export default function Dashboard() {
       <GlobalTabs/>
       <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',margin:'6px 0'}}>
         <small style={{opacity:.8}}>Backend: <b style={{color: health.ok? '#10b981':'#ef4444'}}>{health.ok? 'up':'down'}</b> • DB: <b>{health.db}</b></small>
-        <a className="muted" href="https://github.com/developer-akbar/personal-dashboard/blob/main/SESSIONS.md" target="_blank" rel="noreferrer" title="Help: sessions and scraping" style={{textDecoration:'none',padding:'4px 8px',borderRadius:8}}>?</a>
+        <button className="muted" onClick={()=> setShowAmazonInfo(true)} aria-label="How to use" title="How to use" style={{display:'inline-flex',alignItems:'center',gap:6}}>
+          <span>How to use</span>
+        </button>
       </div>
       <div style={{display:'flex',alignItems:'baseline',gap:8,margin:'4px 0 8px'}}>
         <div style={{fontSize:14,opacity:.8}}>Accounts: {accounts.length}</div>
@@ -254,7 +256,7 @@ export default function Dashboard() {
         </section>
       )}
 
-      <GlobalDebug/>
+      {/* <GlobalDebug/> */}
 
       <div style={{display:'grid', gridTemplateColumns:'1fr auto', gap:8, margin:'8px 0'}}>
         <input placeholder="Search accounts..." aria-label="Search accounts" value={query} onChange={(e)=> setQuery(e.target.value)} />
