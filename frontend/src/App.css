@@ -113,6 +113,12 @@ body {
   background: var(--primary-bg);
   color: var(--primary-text);
 }
+.primary:link,
+.primary:visited,
+.primary:hover,
+.primary:active {
+  color: var(--primary-text);
+}
 .muted {
   background: var(--muted-bg);
   color: var(--muted-text);
