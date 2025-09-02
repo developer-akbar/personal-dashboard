@@ -57,9 +57,7 @@ export default function Electricity(){
       <GlobalTabs/>
       <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',margin:'6px 0'}}>
         <small style={{opacity:.8}}>Backend: <b style={{color: health.ok? '#10b981':'#ef4444'}}>{health.ok? 'up':'down'}</b> • DB: <b>{health.db}</b></small>
-        <button className="muted" onClick={()=> setShowInfo(true)} aria-label="How to use" title="How to use" style={{display:'inline-flex',alignItems:'center',gap:6}}>
-          <span>How to use</span>
-        </button>
+        <span />
       </div>
       <div className="action-buttons" style={{display:'flex',gap:8,marginBottom:8}}>
         <button className="muted" onClick={()=> { setEditing(null); setOpen(true) }} style={{display:'inline-flex',alignItems:'center',gap:6}}>➕ Add Service</button>
