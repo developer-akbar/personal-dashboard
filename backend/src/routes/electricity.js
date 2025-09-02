@@ -7,12 +7,14 @@ import rateLimit from 'express-rate-limit'
 const router = Router()
 router.use(requireAuth)
 
+const ADMIN_EMAILS = (process.env.ADMIN_EMAILS || '').split(',').map(s=> s.trim().toLowerCase()).filter(Boolean)
 const elecLimiter = rateLimit({
   windowMs: 24*60*60*1000,
   max: 10,
   standardHeaders: true,
   legacyHeaders: false,
   keyGenerator: (req)=> req.user?.id || req.ip,
+  skip: (req)=> ADMIN_EMAILS.includes((req.user?.email||'').toLowerCase()),
   handler: (_req, res)=> res.status(429).json({ error: 'Rate limit exceeded (10/day). Please try tomorrow.' })
 })
 
