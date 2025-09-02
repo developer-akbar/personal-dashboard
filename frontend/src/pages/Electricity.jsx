@@ -8,6 +8,7 @@ import toast from 'react-hot-toast'
 import { FiPlus, FiRefreshCcw, FiLoader } from 'react-icons/fi'
 import ElectricityServiceCard from '../components/ElectricityServiceCard'
 import InfoModal from '../components/InfoModal'
+import ConfirmDialog from '../components/ConfirmDialog'
 
 export default function Electricity(){
   const { services, fetchServices, addService, updateService, deleteService, refreshAll, refreshOne } = useElectricity()
@@ -18,6 +19,7 @@ export default function Electricity(){
   const [selectMode, setSelectMode] = useState(false)
   const longPressRef = useRef(null)
   const [showInfo, setShowInfo] = useState(false)
+  const [confirm, setConfirm] = useState({ open:false, id:null })
 
   useEffect(()=>{
     (async()=>{
@@ -93,14 +95,14 @@ export default function Electricity(){
                 const next=new Set(selectedIds); if(next.has(s.id)) next.delete(s.id); else next.add(s.id); setSelectedIds(next); if(next.size===0) setSelectMode(false)
               }} style={{position:'absolute', margin:8}} />
             )}
-            <ElectricityServiceCard item={s} onRefresh={async()=>{ await toast.promise(refreshOne(s.id), { loading:`Refreshing ${s.label||s.serviceNumber}…`, success:'Refreshed', error:(e)=> e?.response?.data?.error || 'Refresh failed' }, { success: { duration: 2000 }, error: { duration: 2000 }, loading: { duration: 2000 } }) }} onEdit={()=> { setEditing(s); setOpen(true) }} onDelete={async()=>{ try{ await deleteService(s.id); toast.success('Service deleted', { duration: 2000 }) }catch(e){ toast.error(e?.response?.data?.error || e.message, { duration: 2000 }) } }} />
+            <ElectricityServiceCard item={s} onRefresh={async()=>{ await toast.promise(refreshOne(s.id), { loading:`Refreshing ${s.label||s.serviceNumber}…`, success:'Refreshed', error:(e)=> e?.response?.data?.error || 'Refresh failed' }, { success: { duration: 2000 }, error: { duration: 2000 }, loading: { duration: 2000 } }) }} onEdit={()=> { setEditing(s); setOpen(true) }} onDelete={()=> setConfirm({ open:true, id:s.id })} />
           </div>
         ))}
       </section>
 
       <AddElectricityServiceModal open={open} initial={editing} onClose={()=> { setOpen(false); setEditing(null) }} onSubmit={async (serviceNumber,label)=>{
-        const promise = editing ? updateService(editing.id, { serviceNumber, label }) : addService(serviceNumber, label)
         try{
+          const promise = editing ? updateService(editing.id, { serviceNumber, label }) : addService(serviceNumber, label)
           await toast.promise(
             promise,
             {
@@ -111,10 +113,12 @@ export default function Electricity(){
             { success: { duration: 2000 }, error: { duration: 2000 } }
           )
           setEditing(null)
-        }catch(_){}
+          setOpen(false)
+        }catch(e){ /* keep modal open to allow corrections */ }
       }} />
       
       <InfoModal open={showInfo} onClose={()=> setShowInfo(false)} />
+      <ConfirmDialog open={confirm.open} title="Delete service?" message="This will soft-delete the service. You can restore it later." onCancel={()=> setConfirm({ open:false, id:null })} onConfirm={async()=>{ try{ await deleteService(confirm.id); toast.success('Service deleted', { duration: 2000 }) }catch(e){ toast.error(e?.response?.data?.error || e.message, { duration: 2000 }) } finally { setConfirm({ open:false, id:null }) } }} />
     </div>
   )
 }
