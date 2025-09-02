@@ -120,6 +120,18 @@ body {
   color: #fff;
 }
 
+/* Tab links should inherit button colors and be readable in both themes */
+.tab-link {
+  text-decoration: none;
+  padding: 8px 12px;
+  border-radius: 8px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+.tab-link.primary { color: #fff; }
+.tab-link.muted { color: var(--text); }
+
 button {
   border-radius: 10px;
 }

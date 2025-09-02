@@ -54,7 +54,7 @@ export default function ElectricityServiceCard({ item, onRefresh, onEdit, onDele
       )}
       {(item.lastStatus==='DUE' && item.lastAmountDue>0) && (
         <div style={{display:'flex',justifyContent:'flex-end'}}>
-          <a className="primary" href="https://payments.billdesk.com/MercOnline/SPDCLController" target="_blank" rel="noreferrer" style={{textDecoration:'none',padding:'8px 12px',borderRadius:8,color:'#fff'}}>Pay Now</a>
+          <a className="primary" href="https://payments.billdesk.com/MercOnline/SPDCLController" target="_blank" rel="noreferrer" style={{textDecoration:'none',padding:'8px 12px',borderRadius:8}}>Pay Now</a>
         </div>
       )}
       <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',fontSize:12,opacity:.8}}>
