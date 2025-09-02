@@ -27,7 +27,7 @@ api.interceptors.response.use(
     if(err?.response?.status === 401){
       try{ toast.error('Session expired. Please sign in again.') }catch{}
       try{ localStorage.removeItem('accessToken'); localStorage.removeItem('refreshToken'); localStorage.removeItem('user') }catch{}
-      try{ window.location.hash = '#/login' }catch{}
+      try{ window.location.hash = '#/' }catch{}
     }
     try{ localStorage.setItem('lastApiMeta', JSON.stringify({ url: err?.config?.url, status: err?.response?.status || 0, error: err?.message, at: Date.now() })) }catch{}
     return Promise.reject(err)
