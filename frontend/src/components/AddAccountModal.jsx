@@ -25,7 +25,7 @@ export default function AddAccountModal({ open, onClose, onSubmit, initial }) {
         <h3>{initial? 'Edit account' : 'Add Amazon account'}</h3>
         {!initial && (
           <div className={styles.notice} style={{margin:'8px 0', padding:'8px 12px', border:'1px solid var(--pill-border)', borderRadius:8, background:'var(--pill-bg)'}}>
-            <strong>Heads up:</strong> fetching balances requires signing into Amazon in a controlled browser and may ask for OTP/CAPTCHA. Complete it once; a secure session is stored to avoid repeated logins. See “How to use” for steps.
+            <strong>Your main step:</strong> generate a one-time session (storageState) on your computer using the seed script, then upload/use it here. This avoids repeated logins.
           </div>
         )}
         <form onSubmit={(e)=>{e.preventDefault();onSubmit({label,email,password,region})}} className={styles.form}>
