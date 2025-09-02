@@ -5,6 +5,7 @@ import GlobalTabs from '../components/GlobalTabs'
 // import GlobalDebug from '../components/GlobalDebug'
 import HeaderAvatar from '../components/HeaderAvatar'
 import toast from 'react-hot-toast'
+import { FiPlus, FiRefreshCcw, FiLoader } from 'react-icons/fi'
 import ElectricityServiceCard from '../components/ElectricityServiceCard'
 import InfoModal from '../components/InfoModal'
 
@@ -60,8 +61,12 @@ export default function Electricity(){
         <span />
       </div>
       <div className="action-buttons" style={{display:'flex',gap:8,marginBottom:8}}>
-        <button className="muted" onClick={()=> { setEditing(null); setOpen(true) }} style={{display:'inline-flex',alignItems:'center',gap:6}} disabled={false}>➕ Add Service</button>
-        <button className="primary" onClick={async()=>{ await toast.promise(refreshAll(), { loading:'Queued…', success:'Done', error:(e)=> e?.response?.status===429? '429 - wait and retry' : 'Failed' }) }} style={{display:'inline-flex',alignItems:'center',gap:6}} disabled={services.some(s=> s.loading)}>⟳ Refresh All</button>
+        <button className="muted" onClick={()=> { setEditing(null); setOpen(true) }} style={{display:'inline-flex',alignItems:'center',gap:6}}>
+          <FiPlus/> Add Service
+        </button>
+        <button className="primary" onClick={async()=>{ await toast.promise(refreshAll(), { loading:'Queued…', success:'Done', error:(e)=> e?.response?.status===429? '429 - wait and retry' : 'Failed' }, { success:{ duration:2000 }, error:{ duration:2000 } }) }} style={{display:'inline-flex',alignItems:'center',gap:6}} disabled={false}>
+          <FiRefreshCcw className={services.some(s=> s.loading)? 'spin':''}/> Refresh All
+        </button>
       </div>
       {/* <GlobalDebug/> */}
 

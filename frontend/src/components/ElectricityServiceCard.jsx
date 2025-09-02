@@ -1,4 +1,5 @@
 import React from 'react'
+import { FiRefreshCcw, FiMoreVertical } from 'react-icons/fi'
 
 export default function ElectricityServiceCard({ item, onRefresh, onEdit, onDelete }){
   const onToggleMenu = (e)=>{
@@ -25,9 +26,9 @@ export default function ElectricityServiceCard({ item, onRefresh, onEdit, onDele
           </small>
         </div>
         <div style={{display:'inline-flex',gap:8,alignItems:'center'}}>
-          <button className="muted" onClick={onRefresh} aria-label="Refresh">⟳</button>
+          <button className="muted" onClick={onRefresh} aria-label="Refresh"><FiRefreshCcw/></button>
           <div style={{position:'relative'}}>
-            <div onClick={onToggleMenu} style={{cursor:'pointer', padding:'4px 8px'}}>⋮</div>
+            <div onClick={onToggleMenu} style={{cursor:'pointer', padding:'4px 8px'}}><FiMoreVertical/></div>
             <div className="panel" style={{position:'absolute',right:0,top:'120%',minWidth:160,zIndex:10,display:'none'}} onClick={(e)=> e.stopPropagation()}>
               <a onClick={onEdit} style={{display:'block',padding:'8px 12px',textDecoration:'none',cursor:'pointer'}}>Edit</a>
               <a onClick={onDelete} style={{display:'block',padding:'8px 12px',textDecoration:'none',cursor:'pointer'}}>Delete</a>

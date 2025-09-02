@@ -208,7 +208,7 @@ export default function Dashboard() {
           }}
           disabled={refreshing}
         >
-          <FiRefreshCcw /> Refresh All
+          <FiRefreshCcw className={refreshing? 'spin':''}/> Refresh All
         </button>
         <button className="muted" style={{display:'none'}} onClick={async ()=>{
           // Export current view to CSV
