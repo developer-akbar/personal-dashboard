@@ -21,7 +21,7 @@ const elecLimiter = rateLimit({
 // List services
 router.get('/services', async (req,res,next)=>{
   try{
-    const items = await ElectricityService.find({ userId: req.user.id }).sort({ createdAt: -1 })
+    const items = await ElectricityService.find({ userId: req.user.id, isDeleted: { $ne: true } }).sort({ createdAt: -1 })
     res.json(items.map(s=> ({
       id: s._id,
       label: s.label,
@@ -44,13 +44,24 @@ router.post('/services', async (req,res,next)=>{
   try{
     const { serviceNumber, label } = req.body || {}
     if(!serviceNumber) return res.status(400).json({ error: 'serviceNumber required' })
-    const existsSvc = await ElectricityService.findOne({ userId: req.user.id, serviceNumber: String(serviceNumber).trim() })
+    const sn = String(serviceNumber).trim()
+    if (!/^\d{13}$/.test(sn)) return res.status(400).json({ error: 'Service Number must be 13 digits' })
+    const existsSvc = await ElectricityService.findOne({ userId: req.user.id, serviceNumber: sn, isDeleted: { $ne: true } })
     if (existsSvc) return res.status(409).json({ error: 'Service number already exists' })
     if (label){
-      const existsLabel = await ElectricityService.findOne({ userId: req.user.id, label: (label||'').trim() })
+      const existsLabel = await ElectricityService.findOne({ userId: req.user.id, label: (label||'').trim(), isDeleted: { $ne: true } })
       if (existsLabel) return res.status(409).json({ error: 'Label already exists' })
     }
-    const created = await ElectricityService.create({ userId: req.user.id, serviceNumber: String(serviceNumber).trim(), label: (label||'').trim() || undefined })
+    // Validate with APSPDCL before saving
+    try{
+      const test = await fetchApspdclBill({ serviceNumber: sn, interactive: false })
+      if (!test || (test.debug && test.debug.error)){
+        return res.status(502).json({ error: 'APSPDCL validation failed. Try again later.' })
+      }
+    }catch(err){
+      return res.status(502).json({ error: 'APSPDCL validation failed. Try again later.' })
+    }
+    const created = await ElectricityService.create({ userId: req.user.id, serviceNumber: sn, label: (label||'').trim() || undefined })
     res.status(201).json({ id: created._id })
   }catch(e){
     if (e?.code === 11000) return res.status(409).json({ error: 'Service already exists' })
@@ -83,7 +94,14 @@ router.put('/services/:id', async (req,res,next)=>{
 // Delete service
 router.delete('/services/:id', async (req,res,next)=>{
   try{
-    await ElectricityService.deleteOne({ _id: req.params.id, userId: req.user.id })
+    await ElectricityService.updateOne({ _id: req.params.id, userId: req.user.id }, { isDeleted: true, deletedAt: new Date() })
+    res.json({ ok: true })
+  }catch(e){ next(e) }
+})
+// Restore
+router.post('/services/restore/:id', async (req,res,next)=>{
+  try{
+    await ElectricityService.updateOne({ _id: req.params.id, userId: req.user.id }, { isDeleted: false, deletedAt: null })
     res.json({ ok: true })
   }catch(e){ next(e) }
 })

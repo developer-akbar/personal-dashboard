@@ -11,8 +11,10 @@ export const useElectricity = create((set,get)=> ({
   },
   async addService(serviceNumber, label){
     try{
+      const sn = String(serviceNumber||'').trim()
+      if (!/^\d{13}$/.test(sn)) throw new Error('Service Number must be exactly 13 digits')
       const { data } = await api.post('/electricity/services', { serviceNumber, label })
-      try{ await api.post(`/electricity/services/${data.id}/refresh`) }catch{}
+      try{ await api.post(`/electricity/services/${data.id}/refresh`) }catch(e){ /* ignore background refresh error here */ }
       await get().fetchServices()
     }catch(e){
       const msg = e?.response?.data?.error || e?.message || 'Failed to add service'

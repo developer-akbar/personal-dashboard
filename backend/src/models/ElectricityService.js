@@ -22,6 +22,9 @@ const electricityServiceSchema = new mongoose.Schema(
     // Cooldown and locking
     refreshInProgress: { type: Boolean, default: false },
     nextAllowedAt: { type: Date },
+    // Soft delete
+    isDeleted: { type: Boolean, default: false, index: true },
+    deletedAt: { type: Date },
   },
   { timestamps: true }
 );
