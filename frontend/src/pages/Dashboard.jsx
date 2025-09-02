@@ -375,14 +375,15 @@ export default function Dashboard() {
         primaryActionLabel="View guide"
         onPrimaryAction={()=>{ window.open('https://github.com/developer-akbar/personal-dashboard/blob/main/SESSIONS.md', '_blank', 'noopener,noreferrer') }}
       >
-        <p>To fetch latest balances, the app signs into your Amazon account and opens Amazon Pay. This requires a one-time setup to allow scraping to work:</p>
+        <p>We fetch your balance by opening Amazon Pay in a browser session.</p>
+        <p style={{marginBottom:6}}><b>Your main step:</b> generate a storageState (session) file once on your computer and provide it to the app (see guide).</p>
         <ul style={{marginTop:0}}>
-          <li>Login once manually in the scraping browser when prompted and complete OTP/CAPTCHA.</li>
-          <li>We store only an encrypted password and a session storage state to avoid repeated logins.</li>
-          <li>No data is shared externally; scraping happens only for your account and displays your balances.</li>
-          <li>If Amazon asks for verification again, upload a fresh session state or re-login when prompted.</li>
+          <li>Install Node + Chromium/Playwright locally and run the seed script from the guide to login to Amazon.</li>
+          <li>This stores a session (storageState) locally; upload/use it so scraping won’t ask you to login every time.</li>
+          <li>We keep only encrypted credentials and session. No sharing outside your account.</li>
+          <li>If Amazon re-prompts (OTP/CAPTCHA), just refresh the session by re-running the seed step.</li>
         </ul>
-        <p>Tip: Keep region set to amazon.in, and ensure 2FA is accessible when scraping runs. See the guide for full steps.</p>
+        <p style={{marginTop:6}}>Why manual? Login requires OTP/CAPTCHA and your device context. Automating this entirely on the server is unreliable and risky.</p>
       </InfoModal>
       <RefreshProgress refreshing={refreshing} progress={progress} />
       <ConfirmDialog
