@@ -355,19 +355,23 @@ export default function Dashboard() {
           setEditing(null);
         }}
         onSubmit={async (payload) => {
-          if (editing) {
-            const { label, email, password, region } = payload;
-            const update = { label, email, region };
-            if (password) update.password = password;
-            await (await import("../store/useAccounts")).useAccounts
-              .getState()
-              .updateAccount(editing.id, update);
-          } else {
-            await addAccount(payload);
+          try{
+            if (editing) {
+              const { label, email, password, region } = payload;
+              const update = { label, email, region };
+              if (password) update.password = password;
+              await (await import("../store/useAccounts")).useAccounts
+                .getState()
+                .updateAccount(editing.id, update);
+            } else {
+              await addAccount(payload);
+            }
+            await fetchAccounts();
+            setOpen(false);
+            setEditing(null);
+          }catch(e){
+            toast.error(e?.response?.data?.error || e?.message || 'Failed to save account')
           }
-          await fetchAccounts();
-          setOpen(false);
-          setEditing(null);
         }}
       />
       <InfoModal
