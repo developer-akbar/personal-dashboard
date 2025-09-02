@@ -133,7 +133,16 @@ router.post('/services/:id/refresh', elecLimiter, async (req,res,next)=>{
     const cooldownMs = Number(process.env.REFRESH_COOLDOWN_MS || 5*60*1000)
     const svc = await ElectricityService.findOne({ _id: req.params.id, userId: req.user.id })
     if(!svc) return res.status(404).json({ error: 'Not found' })
-    if (svc.refreshInProgress) return res.status(409).json({ error: 'Already refreshing' })
+    if (svc.refreshInProgress){
+      const staleMs = Number(process.env.REFRESH_LOCK_STALE_MS || 2*60*1000)
+      const updatedAt = svc.updatedAt ? new Date(svc.updatedAt).getTime() : 0
+      if (!updatedAt || (Date.now() - updatedAt) > staleMs){
+        svc.refreshInProgress = false
+        await svc.save()
+      } else {
+        return res.status(409).json({ error: 'Already refreshing' })
+      }
+    }
     if (svc.nextAllowedAt && svc.nextAllowedAt > new Date()){
       const wait = Math.ceil((svc.nextAllowedAt - new Date())/1000)
       return res.status(429).json({ error: `Please wait ${wait}s` })
@@ -152,9 +161,16 @@ router.post('/services/:id/refresh', elecLimiter, async (req,res,next)=>{
     svc.lastFetchedAt = new Date()
     svc.nextAllowedAt = new Date(Date.now() + cooldownMs) // only on success
     svc.lastError = null
+    svc.refreshInProgress = false
     await svc.save()
     res.json({ id: svc._id, ...result })
-  }catch(e){ next(e) }
+  }catch(e){
+    try{
+      const svc = await ElectricityService.findOne({ _id: req.params.id, userId: req.user.id })
+      if (svc){ svc.refreshInProgress = false; await svc.save() }
+    }catch{}
+    next(e)
+  }
 })
 
 // Refresh all
@@ -167,7 +183,15 @@ router.post('/services/refresh-all', elecLimiter, async (req,res,next)=>{
       const batch = list.slice(i,i+batchSize)
       const settled = await Promise.allSettled(batch.map(async svc=>{
         try{
-          if (svc.refreshInProgress) return { id: svc._id, skipped: true, reason: 'in-progress' }
+          if (svc.refreshInProgress){
+            const staleMs = Number(process.env.REFRESH_LOCK_STALE_MS || 2*60*1000)
+            const updatedAt = svc.updatedAt ? new Date(svc.updatedAt).getTime() : 0
+            if (!updatedAt || (Date.now() - updatedAt) <= staleMs){
+              return { id: svc._id, skipped: true, reason: 'in-progress' }
+            }
+            svc.refreshInProgress = false
+            await svc.save()
+          }
           if (svc.nextAllowedAt && svc.nextAllowedAt > new Date()) return { id: svc._id, skipped: true, reason: 'cooldown' }
           svc.refreshInProgress = true
           await svc.save()
@@ -182,6 +206,7 @@ router.post('/services/refresh-all', elecLimiter, async (req,res,next)=>{
           svc.lastFetchedAt = new Date()
           svc.nextAllowedAt = new Date(Date.now() + Number(process.env.REFRESH_COOLDOWN_MS || 5*60*1000)) // only on success
           svc.lastError = null
+          svc.refreshInProgress = false
           await svc.save()
           return { id: svc._id, ok: true }
         }catch(err){
