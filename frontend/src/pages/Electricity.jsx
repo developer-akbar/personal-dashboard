@@ -54,7 +54,7 @@ export default function Electricity(){
       </div>
       <div className="action-buttons" style={{display:'flex',gap:8,marginBottom:8}}>
         <button className="muted" onClick={()=> { setEditing(null); setOpen(true) }}>Add Service</button>
-        <button className="primary" onClick={async()=>{ await toast.promise(refreshAll(), { loading:'Refreshing all services…', success:'All services refreshed', error:'Refresh failed' }) }}>Refresh All</button>
+        <button className="primary" onClick={async()=>{ await toast.promise(refreshAll(), { loading:'Refreshing all services…', success:'All services refreshed', error:(e)=> e?.response?.data?.error || 'Refresh failed' }, { success: { duration: 2000 }, error: { duration: 2000 }, loading: { duration: 2000 } }) }}>Refresh All</button>
       </div>
       <GlobalDebug/>
 
@@ -81,17 +81,22 @@ export default function Electricity(){
                 const next=new Set(selectedIds); if(next.has(s.id)) next.delete(s.id); else next.add(s.id); setSelectedIds(next); if(next.size===0) setSelectMode(false)
               }} style={{position:'absolute', margin:8}} />
             )}
-            <ElectricityServiceCard item={s} onRefresh={async()=>{ await toast.promise(refreshOne(s.id), { loading:`Refreshing ${s.label||s.serviceNumber}…`, success:'Refreshed', error:'Refresh failed' }) }} onEdit={()=> { setEditing(s); setOpen(true) }} onDelete={()=> deleteService(s.id)} />
+            <ElectricityServiceCard item={s} onRefresh={async()=>{ await toast.promise(refreshOne(s.id), { loading:`Refreshing ${s.label||s.serviceNumber}…`, success:'Refreshed', error:(e)=> e?.response?.data?.error || 'Refresh failed' }, { success: { duration: 2000 }, error: { duration: 2000 }, loading: { duration: 2000 } }) }} onEdit={()=> { setEditing(s); setOpen(true) }} onDelete={async()=>{ try{ await deleteService(s.id); toast.success('Service deleted', { duration: 2000 }) }catch(e){ toast.error(e?.response?.data?.error || e.message, { duration: 2000 }) } }} />
           </div>
         ))}
       </section>
 
       <AddElectricityServiceModal open={open} initial={editing} onClose={()=> { setOpen(false); setEditing(null) }} onSubmit={async (serviceNumber,label)=>{
         try{
-          if (editing) await updateService(editing.id, { serviceNumber, label })
-          else await addService(serviceNumber, label)
+          if (editing) {
+            await updateService(editing.id, { serviceNumber, label })
+            toast.success('Service updated')
+          } else {
+            await addService(serviceNumber, label)
+            toast.success('Service added')
+          }
           setEditing(null)
-        }catch(e){ toast.error(e.message) }
+        }catch(e){ toast.error(e.message, { duration: 2000 }) }
       }} />
       
     </div>

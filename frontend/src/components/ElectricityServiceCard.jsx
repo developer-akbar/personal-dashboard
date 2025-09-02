@@ -18,7 +18,11 @@ export default function ElectricityServiceCard({ item, onRefresh, onEdit, onDele
       <div style={{display:'flex',justifyContent:'space-between',alignItems:'center'}}>
         <div style={{display:'flex',flexDirection:'column'}}>
           <strong>{item.label || '—'}</strong>
-          <small style={{opacity:.8}}>Service: {item.serviceNumber}</small>
+          <small style={{opacity:.8}}>Service: {String(item.serviceNumber||'')}
+            {String(item.serviceNumber||'').length>=4 && (
+              <b style={{marginLeft:4,fontSize:'13px'}}>••••{String(item.serviceNumber).slice(-4)}</b>
+            )}
+          </small>
         </div>
         <div style={{display:'inline-flex',gap:8,alignItems:'center'}}>
           <button className="muted" onClick={onRefresh} aria-label="Refresh">⟳</button>
@@ -43,7 +47,7 @@ export default function ElectricityServiceCard({ item, onRefresh, onEdit, onDele
           <span style={{opacity:.7}}>Last 3 bills:</span>{' '}
           {item.lastThreeAmounts.map((x,i)=> (
             <span key={i} style={{marginRight:8}}>
-              {x.closingDate? new Date(x.closingDate).toLocaleDateString(): '—'}: ₹ {Number(x.billAmount||0).toLocaleString('en-IN')}
+              {x.closingDate? new Date(x.closingDate).toLocaleDateString(): '—'}: <b>₹ {Number(x.billAmount||0).toLocaleString('en-IN')}</b>
             </span>
           ))}
         </div>
