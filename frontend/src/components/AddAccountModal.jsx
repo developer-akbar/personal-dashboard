@@ -23,6 +23,11 @@ export default function AddAccountModal({ open, onClose, onSubmit, initial }) {
     <div className={styles.backdrop}>
       <div className={styles.modal}>
         <h3>{initial? 'Edit account' : 'Add Amazon account'}</h3>
+        {!initial && (
+          <div className={styles.notice} style={{margin:'8px 0', padding:'8px 12px', border:'1px solid var(--pill-border)', borderRadius:8, background:'var(--pill-bg)'}}>
+            <strong>Heads up:</strong> fetching balances requires signing into Amazon in a controlled browser and may ask for OTP/CAPTCHA. Complete it once; a secure session is stored to avoid repeated logins. See “How to use” for steps.
+          </div>
+        )}
         <form onSubmit={(e)=>{e.preventDefault();onSubmit({label,email,password,region})}} className={styles.form}>
           <label>Label<input value={label} onChange={e=>setLabel(e.target.value)} required /></label>
           <label>Email<input value={email} onChange={e=>setEmail(e.target.value)} required type="email" /></label>
