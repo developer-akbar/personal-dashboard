@@ -18,6 +18,22 @@ const elecLimiter = rateLimit({
   handler: (_req, res)=> res.status(429).json({ error: 'Rate limit exceeded (10/day). Please try tomorrow.' })
 })
 
+async function validateApspdclServiceNumber(sn){
+  try{
+    const resp = await fetch('https://apspdcl.in/ConsumerDashboard/public/publicbillhistory', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8' },
+      body: new URLSearchParams({ uscno: sn }).toString(),
+    })
+    if (!resp.ok) return { ok:false, reason:'gateway' }
+    const json = await resp.json()
+    if (json?.status === 'error') return { ok:false, reason:'invalid' }
+    return { ok:true }
+  }catch{
+    return { ok:false, reason:'gateway' }
+  }
+}
+
 // List services
 router.get('/services', async (req,res,next)=>{
   try{
@@ -53,15 +69,9 @@ router.post('/services', async (req,res,next)=>{
       if (existsLabel) return res.status(409).json({ error: 'Label already exists' })
     }
     // Validate with APSPDCL before saving
-    try{
-      const test = await fetchApspdclBill({ serviceNumber: sn, interactive: false })
-      if (test?.debug?.raw?.status === 'error'){
-        return res.status(400).json({ error: 'Invalid Service Number' })
-      }
-      if (!test || (test.debug && test.debug.error)){
-        return res.status(502).json({ error: 'APSPDCL validation failed. Try again later.' })
-      }
-    }catch(err){
+    const val = await validateApspdclServiceNumber(sn)
+    if (!val.ok){
+      if (val.reason==='invalid') return res.status(400).json({ error: 'Invalid Service Number' })
       return res.status(502).json({ error: 'APSPDCL validation failed. Try again later.' })
     }
     const created = await ElectricityService.create({ userId: req.user.id, serviceNumber: sn, label: (label||'').trim() || undefined })
@@ -78,13 +88,20 @@ router.put('/services/:id', async (req,res,next)=>{
     const { serviceNumber, label } = req.body || {}
     const update = {}
     if (serviceNumber){
-      const dupSvc = await ElectricityService.findOne({ userId: req.user.id, serviceNumber: String(serviceNumber).trim(), _id: { $ne: req.params.id } })
+      const sn = String(serviceNumber).trim()
+      if (!/^\d{13}$/.test(sn)) return res.status(400).json({ error: 'Service Number must be 13 digits' })
+      const dupSvc = await ElectricityService.findOne({ userId: req.user.id, serviceNumber: sn, _id: { $ne: req.params.id }, isDeleted: { $ne: true } })
       if (dupSvc) return res.status(409).json({ error: 'Service number already exists' })
-      update.serviceNumber = String(serviceNumber).trim()
+      const val = await validateApspdclServiceNumber(sn)
+      if (!val.ok){
+        if (val.reason==='invalid') return res.status(400).json({ error: 'Invalid Service Number' })
+        return res.status(502).json({ error: 'APSPDCL validation failed. Try again later.' })
+      }
+      update.serviceNumber = sn
     }
     if (label !== undefined){
       if (label){
-        const dupLabel = await ElectricityService.findOne({ userId: req.user.id, label: (label||'').trim(), _id: { $ne: req.params.id } })
+        const dupLabel = await ElectricityService.findOne({ userId: req.user.id, label: (label||'').trim(), _id: { $ne: req.params.id }, isDeleted: { $ne: true } })
         if (dupLabel) return res.status(409).json({ error: 'Label already exists' })
       }
       update.label = (label||'').trim()
