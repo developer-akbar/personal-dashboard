@@ -6,6 +6,7 @@ import GlobalDebug from '../components/GlobalDebug'
 import HeaderAvatar from '../components/HeaderAvatar'
 import toast from 'react-hot-toast'
 import ElectricityServiceCard from '../components/ElectricityServiceCard'
+import InfoModal from '../components/InfoModal'
 
 export default function Electricity(){
   const { services, fetchServices, addService, updateService, deleteService, refreshAll, refreshOne } = useElectricity()
@@ -15,8 +16,14 @@ export default function Electricity(){
   const [selectedIds, setSelectedIds] = useState(new Set())
   const [selectMode, setSelectMode] = useState(false)
   const longPressRef = useRef(null)
+  const [showInfo, setShowInfo] = useState(false)
 
-  useEffect(()=>{ fetchServices() },[])
+  useEffect(()=>{
+    (async()=>{
+      const p = fetchServices()
+      await toast.promise(p, { loading: 'Loading services…', success: 'Loaded', error: 'Failed to load' }, { success: { duration: 1500 }, error: { duration: 2000 } })
+    })()
+  },[])
   useEffect(()=>{ (async()=>{ try{ const api=(await import('../api/client')).default; const { data } = await api.get('/health'); setHealth({ ok: !!data?.ok, db: data?.db||'unknown' }) }catch{} })() },[])
 
   const summary = useMemo(()=>{
@@ -102,6 +109,7 @@ export default function Electricity(){
         }catch(_){}
       }} />
       
+      <InfoModal open={showInfo} onClose={()=> setShowInfo(false)} />
     </div>
   )
 }

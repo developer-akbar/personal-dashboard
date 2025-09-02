@@ -16,6 +16,7 @@ import AddAccountModal from "../components/AddAccountModal";
 import RefreshProgress from "../components/RefreshProgress";
 import Loader from "../components/Loader";
 import ConfirmDialog from "../components/ConfirmDialog";
+import InfoModal from "../components/InfoModal";
 
 export default function Dashboard() {
   const { accounts, fetchAccounts, addAccount, deleteAccount } = useAccounts();
@@ -33,6 +34,7 @@ export default function Dashboard() {
   const [selectMode, setSelectMode] = useState(false);
   const [showFilters, setShowFilters] = useState(false);
   const [tab, setTab] = useState('balance');
+  const [showAmazonInfo, setShowAmazonInfo] = useState(false)
   const { byAccount, fetchForAccount, refreshAll: refreshAllRewards } = useRewards();
   const [health, setHealth] = useState({ ok:false, db:'unknown' })
   const [debugOpen, setDebugOpen] = useState(localStorage.getItem('debugPanel')==='1')
@@ -193,6 +195,7 @@ export default function Dashboard() {
           onClick={() => {
             setEditing(null);
             setOpen(true);
+            setShowAmazonInfo(true)
           }}
         >
           <FiPlus /> Add account
@@ -214,6 +217,7 @@ export default function Dashboard() {
           const url = URL.createObjectURL(blob)
           const a = document.createElement('a'); a.href=url; a.download='accounts.csv'; a.click(); URL.revokeObjectURL(url)
         }}>Export View CSV</button>
+        <button className="muted" onClick={()=> setShowAmazonInfo(true)}>How to use</button>
         <button className="muted" onClick={async ()=>{
           const api=(await import('../api/client')).default; const { data } = await api.get('/accounts')
           const rows = [["Label","Email","Region","Balance","Currency","Last Refreshed","Pinned","Tags"]]
@@ -364,6 +368,22 @@ export default function Dashboard() {
           setEditing(null);
         }}
       />
+      <InfoModal
+        open={showAmazonInfo}
+        title="How to use Amazon account balances"
+        onClose={()=> setShowAmazonInfo(false)}
+        primaryActionLabel="View guide"
+        onPrimaryAction={()=>{ window.open('https://github.com/developer-akbar/personal-dashboard/blob/main/SESSIONS.md', '_blank', 'noopener,noreferrer') }}
+      >
+        <p>To fetch latest balances, the app signs into your Amazon account and opens Amazon Pay. This requires a one-time setup to allow scraping to work:</p>
+        <ul style={{marginTop:0}}>
+          <li>Login once manually in the scraping browser when prompted and complete OTP/CAPTCHA.</li>
+          <li>We store only an encrypted password and a session storage state to avoid repeated logins.</li>
+          <li>No data is shared externally; scraping happens only for your account and displays your balances.</li>
+          <li>If Amazon asks for verification again, upload a fresh session state or re-login when prompted.</li>
+        </ul>
+        <p>Tip: Keep region set to amazon.in, and ensure 2FA is accessible when scraping runs. See the guide for full steps.</p>
+      </InfoModal>
       <RefreshProgress refreshing={refreshing} progress={progress} />
       <ConfirmDialog
         open={confirm.open}
