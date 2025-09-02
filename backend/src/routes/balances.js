@@ -38,10 +38,13 @@ router.post("/refresh/:accountId", refreshLimiter, async (req, res, next) => {
     const cooldownMs = Number(process.env.REFRESH_COOLDOWN_MS || 5*60*1000)
     const account = await AmazonAccount.findOne({ _id: req.params.accountId, userId: req.user.id });
     if (!account) return res.status(404).json({ error: "Account not found" });
-    if (account.refreshInProgress) return res.status(409).json({ error: 'Already refreshing' })
-    if (account.nextAllowedAt && account.nextAllowedAt > new Date()){
-      const wait = Math.ceil((account.nextAllowedAt - new Date())/1000)
-      return res.status(429).json({ error: `Please wait ${wait}s` })
+    const isAdmin = ADMIN_EMAILS.includes((req.user?.email||'').toLowerCase())
+    if (!isAdmin){
+      if (account.refreshInProgress) return res.status(409).json({ error: 'Already refreshing' })
+      if (account.nextAllowedAt && account.nextAllowedAt > new Date()){
+        const wait = Math.ceil((account.nextAllowedAt - new Date())/1000)
+        return res.status(429).json({ error: `Please wait ${wait}s` })
+      }
     }
     account.refreshInProgress = true; await account.save()
 
@@ -58,7 +61,7 @@ router.post("/refresh/:accountId", refreshLimiter, async (req, res, next) => {
     account.lastCurrency = currency;
     account.lastRefreshedAt = new Date();
     // cooldown only on success
-    account.nextAllowedAt = new Date(Date.now()+cooldownMs)
+    if (!isAdmin) account.nextAllowedAt = new Date(Date.now()+cooldownMs)
     account.refreshInProgress = false
     if (storageState) account.storageState = storageState;
     await account.save();
@@ -89,8 +92,11 @@ router.post("/refresh-all", refreshLimiter, async (req, res, next) => {
       const chunk = accounts.slice(i, i + batchSize);
       const settled = await Promise.allSettled(chunk.map(async (account, idx) => {
         try{
-          if (account.refreshInProgress) return { skipped:true, accountId: account._id, reason:'in-progress' }
-          if (account.nextAllowedAt && account.nextAllowedAt > new Date()) return { skipped:true, accountId: account._id, reason:'cooldown' }
+          const isAdmin = ADMIN_EMAILS.includes((req.user?.email||'').toLowerCase())
+          if (!isAdmin){
+            if (account.refreshInProgress) return { skipped:true, accountId: account._id, reason:'in-progress' }
+            if (account.nextAllowedAt && account.nextAllowedAt > new Date()) return { skipped:true, accountId: account._id, reason:'cooldown' }
+          }
           account.refreshInProgress = true; await account.save()
           const password = decryptSecret(account.encryptedPassword);
           const { amount, currency, storageState } = await fetchAmazonPayBalance({
@@ -103,7 +109,7 @@ router.post("/refresh-all", refreshLimiter, async (req, res, next) => {
           account.lastBalance = amount;
           account.lastCurrency = currency;
           account.lastRefreshedAt = new Date();
-          account.nextAllowedAt = new Date(Date.now()+cooldownMs) // only on success
+          if (!isAdmin) account.nextAllowedAt = new Date(Date.now()+cooldownMs) // only on success
           account.refreshInProgress = false
           if (storageState) account.storageState = storageState;
           await account.save();
