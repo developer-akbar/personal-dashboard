@@ -29,6 +29,10 @@ body {
   --profile-menu-bg: #0b0b0b;
   --avatar-bg: #2a2a2a;
   --avatar-border: #444;
+  /* Flash colors (dark) */
+  --flash-glow: rgba(56, 189, 248, 0.9);
+  --flash-ring: rgba(56, 189, 248, 0.45);
+  --flash-tint: rgba(56, 189, 248, 0.16);
 }
 :root[data-theme="light"] {
   --bg: #f9fafb;
@@ -51,6 +55,10 @@ body {
   --profile-menu-bg: #ffffff;
   --avatar-bg: #e5e7eb;
   --avatar-border: #94a3b8;
+  /* Flash colors (light) */
+  --flash-glow: rgba(79, 70, 229, 0.8);
+  --flash-ring: rgba(79, 70, 229, 0.45);
+  --flash-tint: rgba(79, 70, 229, 0.14);
 }
 #root {
   max-width: 1100px;
@@ -300,14 +308,14 @@ select {
 .flash { animation: flashPulse 1.4s ease-out 1; }
 @keyframes flashPulse {
   0% {
-    box-shadow: 0 0 0 0 rgba(79,70,229,0.7), 0 0 0 2px rgba(79,70,229,0.35) inset;
-    background-image: linear-gradient(0deg, rgba(79,70,229,0.10), rgba(79,70,229,0.10));
+    box-shadow: 0 0 0 0 var(--flash-glow), 0 0 0 2px var(--flash-ring) inset;
+    background-image: linear-gradient(0deg, var(--flash-tint), var(--flash-tint));
   }
   50% {
-    box-shadow: 0 0 0 10px rgba(79,70,229,0.18), 0 0 0 3px rgba(79,70,229,0.35) inset;
+    box-shadow: 0 0 0 10px var(--flash-tint), 0 0 0 3px var(--flash-ring) inset;
   }
   100% {
-    box-shadow: 0 0 0 0 rgba(79,70,229,0), 0 0 0 0 rgba(79,70,229,0) inset;
+    box-shadow: 0 0 0 0 rgba(0,0,0,0), 0 0 0 0 rgba(0,0,0,0) inset;
     background-image: none;
   }
 }
