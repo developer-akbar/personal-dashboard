@@ -183,7 +183,9 @@ export default function Electricity(){
         </div>
       )}
 
-      {activeTab==='active' && (services.length === 0 ? (
+      {activeTab==='active' && (loading ? (
+        <Loader text="Loading services…" />
+      ) : services.length === 0 ? (
         <div className="panel" style={{textAlign:'center'}}>
           <p style={{margin:'6px 0'}}>No services added yet.</p>
           <button className="primary" onClick={()=> { setEditing(null); setOpen(true); }}>Add your first service</button>

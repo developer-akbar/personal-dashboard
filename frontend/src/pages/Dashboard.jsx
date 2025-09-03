@@ -21,7 +21,7 @@ import ConfirmDialog from "../components/ConfirmDialog";
 import InfoModal from "../components/InfoModal";
 
 export default function Dashboard() {
-  const { accounts, fetchAccounts, addAccount, deleteAccount } = useAccounts();
+  const { accounts, fetchAccounts, addAccount, deleteAccount, loading: accountsLoading } = useAccounts();
   const { refreshing, progress, refreshOne, refreshAll } = useBalances();
   const { baseCurrency, exchangeRates, fetchSettings } = useSettings();
   const [open, setOpen] = useState(false);
@@ -305,7 +305,9 @@ export default function Dashboard() {
       </div>
       )}
 
-      {tab==='balance' && (!accounts.length ? (
+      {tab==='balance' && (accountsLoading ? (
+        <Loader text="Loading accounts…" />
+      ) : !accounts.length ? (
         <div className="panel" style={{textAlign:'center'}}>
           <p style={{margin:'6px 0'}}>No Amazon accounts yet.</p>
           <button className="primary" onClick={()=>{ setEditing(null); setShowAmazonInfo(true) }}>Add your first account</button>
