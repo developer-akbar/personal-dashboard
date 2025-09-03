@@ -18,7 +18,16 @@ export default function AddElectricityServiceModal({ open, onClose, onSubmit, in
             <input value={label} onChange={e=> setLabel(e.target.value)} placeholder="e.g., Home Meter" />
           </label>
           <label>Service Number
-            <input value={serviceNumber} onChange={e=> setServiceNumber(e.target.value)} placeholder="e.g., 1234567890123" required />
+            <input
+              type="text"
+              inputMode="numeric"
+              pattern="[0-9]*"
+              maxLength={13}
+              value={serviceNumber}
+              onChange={e=> setServiceNumber(String(e.target.value||'').replace(/\D/g,''))}
+              placeholder="e.g., 1234567890123"
+              required
+            />
           </label>
           <div style={{display:'flex',gap:8,justifyContent:'flex-end'}}>
             <button type="button" className="muted" onClick={onClose} disabled={submitting}>Cancel</button>
