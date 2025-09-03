@@ -41,7 +41,7 @@ export default function Dashboard() {
   const [health, setHealth] = useState({ ok:false, db:'unknown' })
   const [debugOpen, setDebugOpen] = useState(localStorage.getItem('debugPanel')==='1')
   const [jwtExp, setJwtExp] = useState(null)
-  const [showAmazonPanel, setShowAmazonPanel] = useState(true)
+  // moved the logo info panel to Home page
   // DnD sensors removed
 
   useEffect(() => {
@@ -178,22 +178,7 @@ export default function Dashboard() {
         <div style={{fontSize:22,fontWeight:700}}>{Number(baseTotal||0).toLocaleString('en-IN')}</div>
       </div>
 
-      {showAmazonPanel && (
-        <div className="panel" style={{display:'flex', gap:12, alignItems:'flex-start'}}>
-          <img src="https://upload.wikimedia.org/wikipedia/commons/a/a9/Amazon_logo.svg" alt="Amazon" style={{height:28, marginTop:2}}/>
-          <div style={{flex:1}}>
-            <div style={{display:'flex', justifyContent:'space-between', alignItems:'center'}}>
-              <strong>Amazon Accounts Overview</strong>
-              <button className="muted" onClick={()=> setShowAmazonPanel(false)} aria-label="Hide info">×</button>
-            </div>
-            <ul style={{margin:'6px 0 0 16px'}}>
-              <li>Refresh balances (single or all) and view reward offers.</li>
-              <li>Use tags, sort and filters to focus on what matters.</li>
-              <li>Set base currency and see combined totals.</li>
-            </ul>
-          </div>
-        </div>
-      )}
+      {/* Info panel moved to Home */}
 
       {jwtExp && (jwtExp - Date.now() < 5*60*1000) && (
         <div className="panel" style={{display:'flex',justifyContent:'space-between',alignItems:'center'}}>

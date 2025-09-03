@@ -28,7 +28,7 @@ export default function Electricity(){
   const [showFilters, setShowFilters] = useState(false)
   const [activeTab, setActiveTab] = useState('active') // active | trash
   const [highlightId, setHighlightId] = useState(null)
-  const [showElecPanel, setShowElecPanel] = useState(true)
+  // moved info panel to Home page
 
   useEffect(()=>{
     (async()=>{
@@ -118,22 +118,7 @@ export default function Electricity(){
         </button>
       </div>
 
-      {showElecPanel && (
-        <div className="panel" style={{display:'flex', gap:12, alignItems:'flex-start'}}>
-          <img src="https://www.apspdcl.in/images/logo1.png" alt="APSPDCL" style={{height:30, background:'#fff', borderRadius:6, padding:2}}/>
-          <div style={{flex:1}}>
-            <div style={{display:'flex', justifyContent:'space-between', alignItems:'center'}}>
-              <strong>APSPDCL Overview</strong>
-              <button className="muted" onClick={()=> setShowElecPanel(false)} aria-label="Hide info">×</button>
-            </div>
-            <ul style={{margin:'6px 0 0 16px'}}>
-              <li>Add your 13‑digit Service Number; app validates with APSPDCL.</li>
-              <li>Refresh to fetch due, dates, billed units and last 3 bills.</li>
-              <li>Use Trash to restore or permanently delete services.</li>
-            </ul>
-          </div>
-        </div>
-      )}
+      {/* Info panel moved to Home */}
       <div className="panel" role="tablist" aria-label="Services view" style={{display:'inline-flex',gap:6,padding:6,marginBottom:8}}>
         <button className={activeTab==='active'? 'primary':'muted'} role="tab" aria-selected={activeTab==='active'} onClick={()=> { setActiveTab('active'); setQuery('') }}>Active</button>
         <button className={activeTab==='trash'? 'primary':'muted'} role="tab" aria-selected={activeTab==='trash'} onClick={()=> { setActiveTab('trash'); setQuery('') }}>Trash ({trashed.length})</button>
