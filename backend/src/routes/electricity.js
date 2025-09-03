@@ -7,14 +7,14 @@ import rateLimit from 'express-rate-limit'
 const router = Router()
 router.use(requireAuth)
 
-const ADMIN_EMAILS = (process.env.ADMIN_EMAILS || '').split(',').map(s=> s.trim().toLowerCase()).filter(Boolean)
+const ADMIN_USERS = (process.env.ADMIN_USERS || '').split(',').map(s=> s.trim().toLowerCase()).filter(Boolean)
 const elecLimiter = rateLimit({
   windowMs: 24*60*60*1000,
   max: 10,
   standardHeaders: true,
   legacyHeaders: false,
   keyGenerator: (req)=> req.user?.id || req.ip,
-  skip: (req)=> ADMIN_EMAILS.includes((req.user?.email||'').toLowerCase()),
+  skip: (req)=> ADMIN_USERS.includes((req.user?.email||'').toLowerCase()),
   handler: (_req, res)=> res.status(429).json({ error: 'Rate limit exceeded (10/day). Please try tomorrow.' })
 })
 
@@ -79,10 +79,11 @@ router.post('/services', async (req,res,next)=>{
     const sn = String(serviceNumber).trim()
     if (!/^\d{13}$/.test(sn)) return res.status(400).json({ error: 'Service Number must be 13 digits' })
     const SUBSCRIBED_USERS = (process.env.SUBSCRIBED_USERS || '').split(',').map(s=> s.trim().toLowerCase()).filter(Boolean)
-    const isPrivileged = ADMIN_EMAILS.includes((req.user?.email||'').toLowerCase()) || SUBSCRIBED_USERS.includes((req.user?.email||'').toLowerCase())
+    const isPrivileged = ADMIN_USERS.includes((req.user?.email||'').toLowerCase()) || SUBSCRIBED_USERS.includes((req.user?.email||'').toLowerCase())
     if (!isPrivileged){
+      const maxFree = Number(process.env.ALLOWED_FREE_USER_CARDS_COUNT || 5)
       const activeCount = await ElectricityService.countDocuments({ userId: req.user.id, isDeleted: { $ne: true } })
-      if (activeCount >= 5) return res.status(403).json({ error: 'Non subscriber user can only have upto 5 accounts' })
+      if (activeCount >= maxFree) return res.status(403).json({ error: 'Non subscriber user can only have upto 5 accounts' })
     }
     const existsSvc = await ElectricityService.findOne({ userId: req.user.id, serviceNumber: sn, isDeleted: { $ne: true } })
     if (existsSvc) return res.status(409).json({ error: 'Service number already exists' })

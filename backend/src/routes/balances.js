@@ -11,14 +11,14 @@ const router = Router();
 router.use(requireAuth);
 
 // Per-user limiter: max 5 refresh calls per 24h per user (tunable)
-const ADMIN_EMAILS = (process.env.ADMIN_EMAILS || '').split(',').map(s=> s.trim().toLowerCase()).filter(Boolean)
+const ADMIN_USERS = (process.env.ADMIN_USERS || '').split(',').map(s=> s.trim().toLowerCase()).filter(Boolean)
 const refreshLimiter = rateLimit({
   windowMs: 24*60*60*1000,
   max: 5,
   standardHeaders: true,
   legacyHeaders: false,
   keyGenerator: (req)=> req.user?.id || req.ip,
-  skip: (req)=> ADMIN_EMAILS.includes((req.user?.email||'').toLowerCase()),
+  skip: (req)=> ADMIN_USERS.includes((req.user?.email||'').toLowerCase()),
   handler: (_req, res)=> res.status(429).json({ error: 'Rate limit exceeded (5/day). Please try tomorrow.' })
 })
 
