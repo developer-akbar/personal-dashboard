@@ -390,6 +390,8 @@ export default function Dashboard() {
         title="How to use Amazon account balances"
         onClose={()=> setShowAmazonInfo(false)}
         closeLabel="Cancel"
+        secondaryActionLabel="Proceed"
+        onSecondaryAction={()=>{ setShowAmazonInfo(false); setOpen(true) }}
         primaryActionLabel="View guide"
         onPrimaryAction={()=>{ window.open('https://github.com/developer-akbar/personal-dashboard/blob/main/SESSIONS.md', '_blank', 'noopener,noreferrer') }}
       >
