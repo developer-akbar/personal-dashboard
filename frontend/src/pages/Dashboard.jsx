@@ -195,7 +195,7 @@ export default function Dashboard() {
           <button
             className="primary"
             onClick={async () => {
-              await toast.promise((async()=>{ await refreshAll(accounts); await fetchAccounts() })(), { loading: 'Queued…', success: 'Done', error: (e)=> e?.response?.status===429? '429 - wait and retry' : 'Failed' })
+              await toast.promise((async()=>{ await refreshAll(accounts); await fetchAccounts() })(), { loading: 'Queued…', success: 'Done', error: (e)=> e?.response?.data?.error || 'Failed' })
             }}
             disabled={refreshing}
           >

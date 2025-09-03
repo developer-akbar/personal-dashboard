@@ -124,7 +124,7 @@ export default function Electricity(){
           <span className="pill" title="Daily refresh limit for non-subscribers" style={{opacity:.85}}>Limit: {usePlan.getState().electricityRefreshPerDay}/day</span>
         ) } return null })()}
         {services.length >= 2 && (
-        <button className="primary" onClick={async()=>{ await toast.promise(refreshAll(), { loading:'Queued…', success:'Done', error:(e)=> e?.response?.status===429? '429 - wait and retry' : 'Failed' }, { success:{ duration:2000 }, error:{ duration:2000 } }) }} style={{display:'inline-flex',alignItems:'center',gap:6}} disabled={false}>
+        <button className="primary" onClick={async()=>{ await toast.promise(refreshAll(), { loading:'Queued…', success:'Done', error:(e)=> e?.response?.data?.error || 'Failed' }, { success:{ duration:2000 }, error:{ duration:2000 } }) }} style={{display:'inline-flex',alignItems:'center',gap:6}} disabled={false}>
           <FiRefreshCcw className={services.some(s=> s.loading)? 'spin':''}/> Refresh All
         </button>
         )}
