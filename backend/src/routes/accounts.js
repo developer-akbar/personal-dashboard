@@ -2,6 +2,7 @@ import { Router } from "express";
 import { requireAuth } from "../middleware/auth.js";
 import AmazonAccount from "../models/AmazonAccount.js";
 import { encryptSecret, maskEmail } from "../utils/crypto.js";
+import { getAdminUsers, getSubscribedUsers, getFreeLimit } from '../config/limits.js'
 
 const router = Router();
 
@@ -35,11 +36,11 @@ router.post("/", async (req, res, next) => {
     if (!label || !email || !password || !region) {
       return res.status(400).json({ error: "label, email, password, region required" });
     }
-    const ADMIN_USERS = (process.env.ADMIN_USERS || '').split(',').map(s=> s.trim().toLowerCase()).filter(Boolean)
-    const SUBSCRIBED_USERS = (process.env.SUBSCRIBED_USERS || '').split(',').map(s=> s.trim().toLowerCase()).filter(Boolean)
+    const ADMIN_USERS = getAdminUsers()
+    const SUBSCRIBED_USERS = getSubscribedUsers()
     const isPrivileged = ADMIN_USERS.includes((req.user?.email||'').toLowerCase()) || SUBSCRIBED_USERS.includes((req.user?.email||'').toLowerCase())
     if (!isPrivileged){
-      const maxFree = Number(process.env.ALLOWED_FREE_USER_CARDS_COUNT || 3)
+      const maxFree = getFreeLimit()
       const activeCount = await AmazonAccount.countDocuments({ userId: req.user.id, isDeleted: { $ne: true } })
       if (activeCount >= maxFree) return res.status(403).json({ error: `Non subscriber user can only have upto ${maxFree} accounts` })
     }

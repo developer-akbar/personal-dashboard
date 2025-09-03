@@ -3,13 +3,13 @@ import { requireAuth } from '../middleware/auth.js'
 import ElectricityService from '../models/ElectricityService.js'
 import { fetchApspdclBill } from '../services/apspdcl.js'
 import rateLimit from 'express-rate-limit'
-import { istDayKey, getAdminUsers } from '../config/limits.js'
+import { istDayKey, getAdminUsers, getElectricityRefreshCap, getSubscribedUsers, getFreeLimit } from '../config/limits.js'
 
 const router = Router()
 router.use(requireAuth)
 
 const ADMIN_USERS = getAdminUsers()
-const ELECTRICITY_REFRESH_RATE_LIMIT_PER_DAY = Number(process.env.ELECTRICITY_REFRESH_RATE_LIMIT_PER_DAY || 5)
+const ELECTRICITY_REFRESH_RATE_LIMIT_PER_DAY = getElectricityRefreshCap()
 const elecLimiter = rateLimit({
   windowMs: 24*60*60*1000,
   max: ELECTRICITY_REFRESH_RATE_LIMIT_PER_DAY,
@@ -17,7 +17,7 @@ const elecLimiter = rateLimit({
   legacyHeaders: false,
   keyGenerator: (req)=> `${req.user?.id || req.ip}:${istDayKey()}`,
   skip: (req)=> ADMIN_USERS.includes((req.user?.email||'').toLowerCase()),
-  handler: (_req, res)=> res.status(429).json({ error: `Rate limit exceeded (${ELECTRICITY_REFRESH_RATE_LIMIT_PER_DAY}/day). Please try tomorrow.` })
+  handler: (_req, res)=> res.status(429).json({ error: `Rate limit exceeded (ELECTRICITY_REFRESH_RATE_LIMIT_PER_DAY/day) for Non-Subscriber users. Please try tomorrow.` })
 })
 
 async function validateApspdclServiceNumber(sn){
@@ -80,10 +80,10 @@ router.post('/services', async (req,res,next)=>{
     if(!serviceNumber) return res.status(400).json({ error: 'serviceNumber required' })
     const sn = String(serviceNumber).trim()
     if (!/^\d{13}$/.test(sn)) return res.status(400).json({ error: 'Service Number must be 13 digits' })
-    const SUBSCRIBED_USERS = (process.env.SUBSCRIBED_USERS || '').split(',').map(s=> s.trim().toLowerCase()).filter(Boolean)
+    const SUBSCRIBED_USERS = getSubscribedUsers()
     const isPrivileged = ADMIN_USERS.includes((req.user?.email||'').toLowerCase()) || SUBSCRIBED_USERS.includes((req.user?.email||'').toLowerCase())
     if (!isPrivileged){
-      const maxFree = Number(process.env.ALLOWED_FREE_USER_CARDS_COUNT || 3)
+      const maxFree = getFreeLimit()
       const activeCount = await ElectricityService.countDocuments({ userId: req.user.id, isDeleted: { $ne: true } })
       if (activeCount >= maxFree) return res.status(403).json({ error: `Non subscriber user can only have upto ${maxFree} accounts` })
     }
@@ -182,7 +182,7 @@ router.post('/services/:id/refresh', elecLimiter, async (req,res,next)=>{
     const cooldownMs = Number(process.env.REFRESH_COOLDOWN_MS || 5*60*1000)
     const svc = await ElectricityService.findOne({ _id: req.params.id, userId: req.user.id })
     if(!svc) return res.status(404).json({ error: 'Not found' })
-    const isAdmin = ADMIN_EMAILS.includes((req.user?.email||'').toLowerCase())
+    const isAdmin = ADMIN_USERS.includes((req.user?.email||'').toLowerCase())
     if (!isAdmin && svc.refreshInProgress){
       const staleMs = Number(process.env.REFRESH_LOCK_STALE_MS || 2*60*1000)
       const updatedAt = svc.updatedAt ? new Date(svc.updatedAt).getTime() : 0
@@ -228,7 +228,7 @@ router.post('/services/refresh-all', elecLimiter, async (req,res,next)=>{
   try{
     const { batchSize = 3 } = req.body || {}
     const list = await ElectricityService.find({ userId: req.user.id }).sort({ createdAt: -1 })
-    const isAdmin = ADMIN_EMAILS.includes((req.user?.email||'').toLowerCase())
+    const isAdmin = ADMIN_USERS.includes((req.user?.email||'').toLowerCase())
     const results = []
     for(let i=0;i<list.length;i+=batchSize){
       const batch = list.slice(i,i+batchSize)

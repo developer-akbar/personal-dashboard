@@ -21,7 +21,7 @@ const refreshLimiter = rateLimit({
   legacyHeaders: false,
   keyGenerator: (req)=> `${req.user?.id || req.ip}:${istDayKey()}`,
   skip: (req)=> ADMIN_USERS.includes((req.user?.email||'').toLowerCase()),
-  handler: (_req, res)=> res.status(429).json({ error: `Rate limit exceeded (AMAZON_REFRESH_RATE_LIMIT_PER_DAY/day). Please try tomorrow.` })
+  handler: (_req, res)=> res.status(429).json({ error: `Rate limit exceeded (AMAZON_REFRESH_RATE_LIMIT_PER_DAY/day) for Non-Subscriber users. Please try tomorrow.` })
 })
 
 router.get("/history/:accountId", async (req, res, next) => {
@@ -40,7 +40,7 @@ router.post("/refresh/:accountId", refreshLimiter, async (req, res, next) => {
     const cooldownMs = Number(process.env.REFRESH_COOLDOWN_MS || 5*60*1000)
     const account = await AmazonAccount.findOne({ _id: req.params.accountId, userId: req.user.id });
     if (!account) return res.status(404).json({ error: "Account not found" });
-    const isAdmin = ADMIN_EMAILS.includes((req.user?.email||'').toLowerCase())
+    const isAdmin = ADMIN_USERS.includes((req.user?.email||'').toLowerCase())
     if (!isAdmin){
       if (account.refreshInProgress) return res.status(409).json({ error: 'Already refreshing' })
       if (account.nextAllowedAt && account.nextAllowedAt > new Date()){
@@ -94,7 +94,7 @@ router.post("/refresh-all", refreshLimiter, async (req, res, next) => {
       const chunk = accounts.slice(i, i + batchSize);
       const settled = await Promise.allSettled(chunk.map(async (account, idx) => {
         try{
-          const isAdmin = ADMIN_EMAILS.includes((req.user?.email||'').toLowerCase())
+          const isAdmin = ADMIN_USERS.includes((req.user?.email||'').toLowerCase())
           if (!isAdmin){
             if (account.refreshInProgress) return { skipped:true, accountId: account._id, reason:'in-progress' }
             if (account.nextAllowedAt && account.nextAllowedAt > new Date()) return { skipped:true, accountId: account._id, reason:'cooldown' }

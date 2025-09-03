@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import { FiPlus, FiRefreshCcw, FiFilter, FiHelpCircle } from "react-icons/fi";
 import api from '../api/client'
 import HeaderAvatar from "../components/HeaderAvatar";
+import { usePlan } from "../store/usePlan";
 import AppFooter from "../components/AppFooter";
 import GlobalTabs from "../components/GlobalTabs";
 // import GlobalDebug from "../components/GlobalDebug";
@@ -47,6 +48,7 @@ export default function Dashboard() {
   useEffect(() => {
     fetchAccounts();
     fetchSettings();
+    try{ usePlan.getState().fetch() }catch{}
     ;(async()=>{ try{ const { data } = await api.get('/health'); setHealth({ ok: !!data?.ok, db: data?.db||'unknown' }) }catch{} })()
     // Keyboard shortcuts
     function onKey(e){
@@ -175,7 +177,7 @@ export default function Dashboard() {
         <small style={{opacity:.8}}>Backend: <b style={{color: health.ok? '#10b981':'#ef4444'}}>{health.ok? 'up':'down'}</b> • DB: <b>{health.db}</b></small>
         <span />
       </div>
-      <div className="action-buttons" style={{display:'inline-flex', gap:8, padding:'8px 4px', alignItems:'center', justifyContent:'flex-start'}}>
+      <div className="action-buttons" style={{display:'inline-flex', gap:8, padding:'8px 4px', alignItems:'center', justifyContent:'flex-start', flexWrap:'wrap'}}>
         <button
           className="muted"
           onClick={() => {
@@ -186,6 +188,9 @@ export default function Dashboard() {
         >
           <FiPlus /> Add account
         </button>
+        {(() => { const plan = usePlan.getState(); if (!plan.isAdmin && !plan.isSubscribed) { return (
+          <span className="pill" title="Daily refresh limit for non-subscribers" style={{opacity:.85}}>Limit: {usePlan.getState().amazonRefreshPerDay}/day</span>
+        ) } return null })()}
         {accounts.length >= 2 && (
           <button
             className="primary"

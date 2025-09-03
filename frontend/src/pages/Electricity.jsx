@@ -12,6 +12,7 @@ import ElectricityServiceCard from '../components/ElectricityServiceCard'
 import InfoModal from '../components/InfoModal'
 import ConfirmDialog from '../components/ConfirmDialog'
 import api from '../api/client'
+import { usePlan } from '../store/usePlan'
 
 export default function Electricity(){
   const { services, trashed, fetchServices, fetchTrashed, addService, updateService, deleteService, deleteServicePermanent, restoreService, refreshAll, refreshOne, loading } = useElectricity()
@@ -39,6 +40,7 @@ export default function Electricity(){
   },[])
   useEffect(()=>{ (async()=>{ try{ const { data } = await api.get('/health'); setHealth({ ok: !!data?.ok, db: data?.db||'unknown' }) }catch{} })() },[])
   useEffect(()=>{ fetchTrashed() },[])
+  useEffect(()=>{ try{ usePlan.getState().fetch() }catch{} },[])
 
   // After services load/update, if we have a highlight target, scroll into view
   useEffect(()=>{
@@ -114,10 +116,13 @@ export default function Electricity(){
         <small style={{opacity:.8}}>Backend: <b style={{color: health.ok? '#10b981':'#ef4444'}}>{health.ok? 'up':'down'}</b> • DB: <b>{health.db}</b></small>
         <span />
       </div>
-      <div className="action-buttons" style={{display:'flex',gap:10,marginBottom:10, padding:'6px 2px'}}>
+      <div className="action-buttons" style={{display:'flex',gap:10,marginBottom:10, padding:'6px 2px', flexWrap:'wrap'}}>
         <button className="muted" onClick={()=> { setEditing(null); setOpen(true); }} style={{display:'inline-flex',alignItems:'center',gap:6}}>
           <FiPlus/> Add Service
         </button>
+        {(() => { const plan = usePlan.getState(); if (!plan.isAdmin && !plan.isSubscribed) { return (
+          <span className="pill" title="Daily refresh limit for non-subscribers" style={{opacity:.85}}>Limit: {usePlan.getState().electricityRefreshPerDay}/day</span>
+        ) } return null })()}
         {services.length >= 2 && (
         <button className="primary" onClick={async()=>{ await toast.promise(refreshAll(), { loading:'Queued…', success:'Done', error:(e)=> e?.response?.status===429? '429 - wait and retry' : 'Failed' }, { success:{ duration:2000 }, error:{ duration:2000 } }) }} style={{display:'inline-flex',alignItems:'center',gap:6}} disabled={false}>
           <FiRefreshCcw className={services.some(s=> s.loading)? 'spin':''}/> Refresh All
