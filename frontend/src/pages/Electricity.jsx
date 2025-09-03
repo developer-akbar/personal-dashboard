@@ -25,6 +25,7 @@ export default function Electricity(){
   const [sortBy, setSortBy] = useState('amount') // amount | label | refreshed
   const [filterStatus, setFilterStatus] = useState('') // '', DUE, PAID, NO_DUES
   const [showFilters, setShowFilters] = useState(false)
+  const [activeTab, setActiveTab] = useState('active') // active | trash
 
   useEffect(()=>{
     (async()=>{
@@ -81,7 +82,6 @@ export default function Electricity(){
     return list
   }, [filtered, sortBy])
 
-  const [activeTab, setActiveTab] = useState('active') // active | trash
 
   return (
     <div className="container">
