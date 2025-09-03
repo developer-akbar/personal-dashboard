@@ -36,7 +36,7 @@ export default function Account(){
   return (
     <div className="container">
       <header className="topbar">
-        <button className="muted" onClick={()=> window.location.hash = '#/dashboard'}>←</button>
+        <button className="muted" onClick={()=>{ try{ if (window.history.length > 1) window.history.back(); else window.location.hash = '#/' }catch{ window.location.hash = '#/' } }}>←</button>
         <h3>Account</h3>
       </header>
 
