@@ -26,6 +26,7 @@ export default function Electricity(){
   const [filterStatus, setFilterStatus] = useState('') // '', DUE, PAID, NO_DUES
   const [showFilters, setShowFilters] = useState(false)
   const [activeTab, setActiveTab] = useState('active') // active | trash
+  const [highlightId, setHighlightId] = useState(null)
 
   useEffect(()=>{
     (async()=>{
@@ -115,6 +116,9 @@ export default function Electricity(){
         <div className="pill">Pending Bills: {summary.pendingCount}</div>
         <div className="pill">Paid Bills: {summary.paidCount}</div>
         <div className="pill">Yet to be Paid: {summary.noDuesCount}</div>
+        {query && (
+          <div className="pill">Search Total: ₹ {Number(sortedFiltered.reduce((sum,s)=> sum + Number(s.lastAmountDue||0), 0)).toLocaleString('en-IN')}</div>
+        )}
       </section>
       )}
 
@@ -161,7 +165,7 @@ export default function Electricity(){
       {activeTab==='active' && (
       <section className={`grid ${selectMode? 'select-mode':''}`}>
         {sortedFiltered.map(s=> (
-          <div key={s.id} className="card-wrapper" onMouseEnter={()=> setSelectMode(true)} onMouseLeave={()=>{ if(selectedIds.size===0) setSelectMode(false) }} onTouchStart={()=>{ if (longPressRef.current) clearTimeout(longPressRef.current); longPressRef.current = setTimeout(()=> setSelectMode(true), 500) }} onTouchEnd={()=>{ if (longPressRef.current) { clearTimeout(longPressRef.current); longPressRef.current=null } }}>
+          <div key={s.id} id={`svc-${s.id}`} className={`card-wrapper ${highlightId===s.id? 'flash':''}`} onMouseEnter={()=> setSelectMode(true)} onMouseLeave={()=>{ if(selectedIds.size===0) setSelectMode(false) }} onTouchStart={()=>{ if (longPressRef.current) clearTimeout(longPressRef.current); longPressRef.current = setTimeout(()=> setSelectMode(true), 500) }} onTouchEnd={()=>{ if (longPressRef.current) { clearTimeout(longPressRef.current); longPressRef.current=null } }}>
             {selectMode && (
               <input type="checkbox" className="checkbox" checked={selectedIds.has(s.id)} onChange={()=>{
                 const next=new Set(selectedIds); if(next.has(s.id)) next.delete(s.id); else next.add(s.id); setSelectedIds(next); if(next.size===0) setSelectMode(false)
@@ -204,6 +208,16 @@ export default function Electricity(){
           )
           setEditing(null)
           setOpen(false)
+          // If created, highlight and scroll into view
+          if (!editing && typeof promise === 'string'){
+            const id = promise
+            setHighlightId(id)
+            setTimeout(()=> setHighlightId(null), 2000)
+            setTimeout(()=>{
+              const el = document.getElementById(`svc-${id}`)
+              if (el) el.scrollIntoView({ behavior:'smooth', block:'center' })
+            }, 100)
+          }
         }catch(e){
           if (e?.canRestore && e?.restoreId){
             toast((t)=> (

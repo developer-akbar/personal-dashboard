@@ -295,3 +295,13 @@ select {
   padding: 0;
 }
 .clear-btn:hover { opacity: 1; }
+
+/* Flash highlight for newly added items */
+.flash {
+  animation: flash-bg 1.6s ease-out 1;
+}
+@keyframes flash-bg {
+  0% { box-shadow: 0 0 0 0 rgba(79,70,229,0.8); }
+  50% { box-shadow: 0 0 0 6px rgba(79,70,229,0.25); }
+  100% { box-shadow: 0 0 0 0 rgba(79,70,229,0); }
+}

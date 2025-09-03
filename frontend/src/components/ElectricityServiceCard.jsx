@@ -1,4 +1,5 @@
 import React from 'react'
+import toast from 'react-hot-toast'
 import { FiRefreshCcw, FiMoreVertical } from 'react-icons/fi'
 
 export default function ElectricityServiceCard({ item, onRefresh, onEdit, onDelete }){
@@ -55,7 +56,7 @@ export default function ElectricityServiceCard({ item, onRefresh, onEdit, onDele
       )}
       {(item.lastStatus==='DUE' && item.lastAmountDue>0) && (
         <div style={{display:'flex',justifyContent:'flex-end'}}>
-          <a className="primary" href="https://payments.billdesk.com/MercOnline/SPDCLController" target="_blank" rel="noreferrer" style={{textDecoration:'none',padding:'8px 12px',borderRadius:8}}>Pay Now</a>
+          <a className="primary" href="https://payments.billdesk.com/MercOnline/SPDCLController" target="_blank" rel="noreferrer" style={{textDecoration:'none',padding:'8px 12px',borderRadius:8}} onClick={async(e)=>{ try{ await navigator.clipboard.writeText(String(item.serviceNumber||'')); toast.success('Service Number copied') }catch{} }}>Pay Now</a>
         </div>
       )}
       <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',fontSize:12,opacity:.8}}>

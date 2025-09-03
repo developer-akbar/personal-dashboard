@@ -19,8 +19,14 @@ export const useElectricity = create((set,get)=> ({
       const sn = String(serviceNumber||'').trim()
       if (!/^\d{13}$/.test(sn)) throw new Error('Service Number must be exactly 13 digits')
       const { data } = await api.post('/electricity/services', { serviceNumber: sn, label })
-      // Do not auto-refresh immediately to avoid 409 Already refreshing if user clicks refresh
-      await get().fetchServices()
+      const createdId = data?.id
+      if (createdId){
+        // Auto-refresh the newly added service so user sees current bill details
+        await get().refreshOne(createdId)
+      } else {
+        await get().fetchServices()
+      }
+      return createdId
     }catch(e){
       const msg = e?.response?.data?.error || e?.message || 'Failed to add service'
       e.message = msg
