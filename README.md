@@ -4,14 +4,41 @@ See Amazon Pay balances and APSPDCL electricity bills in one place.
 
 ### Features
 
-- Secure auth (bcrypt + JWT; 12h access)
-- Add multiple Amazon accounts; credentials encrypted at rest (AES‑256‑GCM)
-- Region support: `amazon.in` only (others disabled)
-- Playwright scraping with manual Captcha/2FA handling and storageState session
-- Refresh one/all; history snapshots; totals and base-currency conversion
-- Rewards tab: grouped Amazon rewards with structured fields
-- Electricity (APSPDCL): services CRUD, bill refresh (API-based), due amount, billed units, last 3 bills
-- Debug/health info, session countdown, dark/light theme, mobile-friendly
+- Authentication & Security
+  - Secure auth (bcrypt + JWT; 12h access), refresh endpoint
+  - AES‑256‑GCM for encrypted Amazon credentials and session storageState
+  - Cloudflare Turnstile CAPTCHA (opt-in via env), strict CSP, CORS
+
+- Amazon Dashboard
+  - Add/manage multiple Amazon accounts (amazon.in only)
+  - One-click Refresh (single/all) with robust locking, cooldowns, admin bypass
+  - Balance history snapshots; totals per currency and base-currency conversion
+  - Rewards tab: fetch and display grouped rewards with details
+  - Status badges, error tooltips, pin/star, tags, sort/filter/search
+  - CSV export (buttons hidden by default), keyboard shortcuts (a/r)
+
+- Electricity Dashboard (APSPDCL)
+  - Services CRUD with validation (13 digits and APSPDCL pre-check)
+  - One-click Refresh (single/all) with locking, cooldowns, admin bypass
+  - Auto-refresh after adding a valid service
+  - Trash: soft delete, restore, and permanent delete
+  - Duplicate-in-Trash guidance: toast to navigate/restore
+  - Search, sort (Amount desc/Label A–Z/Last refreshed), and status filters (Active tab)
+  - “Search Total (₹)” pill for filtered results
+  - Pay Now: copies Service Number first (toast), then opens APSPDCL
+  - Last 3 bills (excludes current month), billed units, due highlight
+  - Selection checkboxes with Selected Total
+
+- UX, Theming, and Accessibility
+  - Homepage, light/dark/system theme with persisted preference
+  - Improved card visuals; consistent buttons/icons; loading toasts persist until API resolves
+  - Flash + scroll to newly added service
+  - Time‑ago labels next to Last refreshed
+  - Mobile-friendly: numeric keypad for Service Number input; no spinners
+
+- Observability & Health
+  - Footer health indicator (backend up, DB status)
+  - Debug panel (toggleable) and helpful toast flows
 
 ### Tech Stack
 
