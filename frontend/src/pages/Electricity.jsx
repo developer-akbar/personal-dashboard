@@ -9,6 +9,7 @@ import { FiPlus, FiRefreshCcw, FiLoader } from 'react-icons/fi'
 import ElectricityServiceCard from '../components/ElectricityServiceCard'
 import InfoModal from '../components/InfoModal'
 import ConfirmDialog from '../components/ConfirmDialog'
+import api from '../api/client'
 
 export default function Electricity(){
   const { services, trashed, fetchServices, fetchTrashed, addService, updateService, deleteService, deleteServicePermanent, restoreService, refreshAll, refreshOne } = useElectricity()
@@ -31,7 +32,7 @@ export default function Electricity(){
       await toast.promise(p, { loading: 'Loading services…', success: 'Loaded', error: 'Failed to load' }, { success: { duration: 1500 }, error: { duration: 2000 } })
     })()
   },[])
-  useEffect(()=>{ (async()=>{ try{ const api=(await import('../api/client')).default; const { data } = await api.get('/health'); setHealth({ ok: !!data?.ok, db: data?.db||'unknown' }) }catch{} })() },[])
+  useEffect(()=>{ (async()=>{ try{ const { data } = await api.get('/health'); setHealth({ ok: !!data?.ok, db: data?.db||'unknown' }) }catch{} })() },[])
   useEffect(()=>{ fetchTrashed() },[])
 
   const summary = useMemo(()=>{

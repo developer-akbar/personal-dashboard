@@ -1,6 +1,7 @@
 import React from "react";
 import { useEffect, useMemo, useState } from "react";
 import { FiPlus, FiRefreshCcw, FiFilter, FiHelpCircle } from "react-icons/fi";
+import api from '../api/client'
 import HeaderAvatar from "../components/HeaderAvatar";
 import GlobalTabs from "../components/GlobalTabs";
 // import GlobalDebug from "../components/GlobalDebug";
@@ -44,7 +45,7 @@ export default function Dashboard() {
   useEffect(() => {
     fetchAccounts();
     fetchSettings();
-    ;(async()=>{ try{ const api=(await import('../api/client')).default; const { data } = await api.get('/health'); setHealth({ ok: !!data?.ok, db: data?.db||'unknown' }) }catch{} })()
+    ;(async()=>{ try{ const { data } = await api.get('/health'); setHealth({ ok: !!data?.ok, db: data?.db||'unknown' }) }catch{} })()
     // Keyboard shortcuts
     function onKey(e){
       if (e.target && (e.target.tagName==='INPUT' || e.target.tagName==='TEXTAREA')) return;
@@ -221,7 +222,7 @@ export default function Dashboard() {
         }}>Export View CSV</button>
         <button className="muted" onClick={()=> setShowAmazonInfo(true)} style={{display:'inline-flex',alignItems:'center',gap:6}}><FiHelpCircle/> How to use</button>
         <button className="muted" style={{display:'none'}} onClick={async ()=>{
-          const api=(await import('../api/client')).default; const { data } = await api.get('/accounts')
+          const { data } = await api.get('/accounts')
           const rows = [["Label","Email","Region","Balance","Currency","Last Refreshed","Pinned","Tags"]]
           for(const a of data){ rows.push([a.label, a.email, a.region, String(a.lastBalance||0), a.lastCurrency||'', a.lastRefreshedAt? new Date(a.lastRefreshedAt).toISOString(): '', a.pinned? 'yes':'no', (a.tags||[]).join('|') ]) }
           const csv = rows.map(r=> r.map(c=>`"${String(c).replace(/"/g,'""')}"`).join(',')).join('\n')
@@ -320,7 +321,7 @@ export default function Dashboard() {
                 setOpen(true);
               }}
               onDelete={async () => { setConfirm({ open:true, id:a.id }) }}
-              onTogglePin={async ()=>{ const api=(await import('../api/client')).default; await api.put(`/accounts/${a.id}`, { pinned: !a.pinned }); await fetchAccounts() }}
+              onTogglePin={async ()=>{ await api.put(`/accounts/${a.id}`, { pinned: !a.pinned }); await fetchAccounts() }}
               onToggleSelect={(acc,checked)=>{ setSelectedIds(prev=>{ const next=new Set(prev); if(checked){ next.add(acc.id); setSelectMode(true) } else { next.delete(acc.id); if(next.size===0) setSelectMode(false) } return next }) }}
             />
           ))}
