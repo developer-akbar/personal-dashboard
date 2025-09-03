@@ -6,6 +6,7 @@ import AppFooter from '../components/AppFooter'
 // import GlobalDebug from '../components/GlobalDebug'
 import HeaderAvatar from '../components/HeaderAvatar'
 import toast from 'react-hot-toast'
+import Loader from '../components/Loader'
 import { FiPlus, FiRefreshCcw, FiLoader } from 'react-icons/fi'
 import ElectricityServiceCard from '../components/ElectricityServiceCard'
 import InfoModal from '../components/InfoModal'
@@ -13,7 +14,7 @@ import ConfirmDialog from '../components/ConfirmDialog'
 import api from '../api/client'
 
 export default function Electricity(){
-  const { services, trashed, fetchServices, fetchTrashed, addService, updateService, deleteService, deleteServicePermanent, restoreService, refreshAll, refreshOne } = useElectricity()
+  const { services, trashed, fetchServices, fetchTrashed, addService, updateService, deleteService, deleteServicePermanent, restoreService, refreshAll, refreshOne, loading } = useElectricity()
   const [open,setOpen] = useState(false)
   const [editing,setEditing] = useState(null)
   const [health, setHealth] = useState({ ok:false, db:'unknown' })
