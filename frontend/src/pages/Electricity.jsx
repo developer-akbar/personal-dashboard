@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useRef, useState } from 'react'
 import { useElectricity } from '../store/useElectricity'
 import AddElectricityServiceModal from '../components/AddElectricityServiceModal'
 import GlobalTabs from '../components/GlobalTabs'
+import AppFooter from '../components/AppFooter'
 // import GlobalDebug from '../components/GlobalDebug'
 import HeaderAvatar from '../components/HeaderAvatar'
 import toast from 'react-hot-toast'
@@ -107,7 +108,7 @@ export default function Electricity(){
         <small style={{opacity:.8}}>Backend: <b style={{color: health.ok? '#10b981':'#ef4444'}}>{health.ok? 'up':'down'}</b> • DB: <b>{health.db}</b></small>
         <span />
       </div>
-      <div className="action-buttons" style={{display:'flex',gap:8,marginBottom:8}}>
+      <div className="action-buttons" style={{display:'flex',gap:10,marginBottom:10, padding:'6px 2px'}}>
         <button className="muted" onClick={()=> { setEditing(null); setOpen(true); }} style={{display:'inline-flex',alignItems:'center',gap:6}}>
           <FiPlus/> Add Service
         </button>
@@ -249,8 +250,20 @@ export default function Electricity(){
         }
       }} />
       
-      <InfoModal open={showInfo} onClose={()=> setShowInfo(false)} />
+      <InfoModal open={showInfo} onClose={()=> setShowInfo(false)} title="APSPDCL Electricity">
+        <div style={{display:'flex', gap:12, alignItems:'center', marginBottom:8}}>
+          <img src="https://www.apspdcl.in/images/logo1.png" alt="APSPDCL" style={{height:30, background:'#fff', borderRadius:6, padding:2}}/>
+          <strong>APSPDCL</strong>
+        </div>
+        <p>Track APSPDCL bill details, status, and pay dues quickly.</p>
+        <ul>
+          <li>Services validated (13-digit format and APSPDCL check).</li>
+          <li>Refresh locks/cooldowns prevent abuse; admins bypass limits.</li>
+          <li>Trash and Restore help manage services safely.</li>
+        </ul>
+      </InfoModal>
       <ConfirmDialog open={confirm.open} title="Delete service?" message="Choose soft delete (move to Trash) or delete permanently." onCancel={()=> setConfirm({ open:false, id:null })} onConfirm={async()=>{ try{ await deleteService(confirm.id); toast.success('Moved to Trash', { duration: 2000 }) }catch(e){ toast.error(e?.response?.data?.error || e.message, { duration: 2000 }) } finally { setConfirm({ open:false, id:null }) } }} onConfirmHard={async()=>{ try{ await deleteServicePermanent(confirm.id); toast.success('Permanently deleted', { duration: 2000 }) }catch(e){ toast.error(e?.response?.data?.error || e.message, { duration: 2000 }) } finally { setConfirm({ open:false, id:null }) } }} hardLabel="Delete permanently" />
+      <AppFooter/>
     </div>
   )
 }

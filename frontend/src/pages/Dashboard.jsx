@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import { FiPlus, FiRefreshCcw, FiFilter, FiHelpCircle } from "react-icons/fi";
 import api from '../api/client'
 import HeaderAvatar from "../components/HeaderAvatar";
+import AppFooter from "../components/AppFooter";
 import GlobalTabs from "../components/GlobalTabs";
 // import GlobalDebug from "../components/GlobalDebug";
 import toast from 'react-hot-toast'
@@ -185,12 +186,12 @@ export default function Dashboard() {
           }}>Refresh session</button>
         </div>
       )}
-      <div className="panel" role="tablist" aria-label="View switch" style={{display:'inline-flex',gap:6, padding:6}}>
+      <div className="panel" role="tablist" aria-label="View switch" style={{display:'inline-flex',gap:10, padding:10, marginTop:4, marginBottom:4}}>
         <button className={tab==='balance'? 'primary':'muted'} role="tab" aria-selected={tab==='balance'} onClick={()=> setTab('balance')}>Balance</button>
         <button className={tab==='rewards'? 'primary':'muted'} role="tab" aria-selected={tab==='rewards'} onClick={()=> setTab('rewards')}>Rewards</button>
       </div>
 
-      <div className="action-buttons" style={{position:'sticky', top:0, zIndex:10, display:'flex', gap:8, paddingBottom:8, background:'var(--toolbar-bg, transparent)', backdropFilter:'saturate(180%) blur(8px)'}}>
+      <div className="action-buttons" style={{position:'sticky', top:0, zIndex:10, display:'flex', gap:10, padding:'8px 4px', background:'var(--toolbar-bg, transparent)', backdropFilter:'saturate(180%) blur(8px)'}}>
         <button
           className="muted"
           onClick={() => {
@@ -387,6 +388,10 @@ export default function Dashboard() {
         primaryActionLabel="View guide"
         onPrimaryAction={()=>{ window.open('https://github.com/developer-akbar/personal-dashboard/blob/main/SESSIONS.md', '_blank', 'noopener,noreferrer') }}
       >
+        <div style={{display:'flex', gap:12, alignItems:'center', marginBottom:8}}>
+          <img src="https://upload.wikimedia.org/wikipedia/commons/a/a9/Amazon_logo.svg" alt="Amazon" style={{height:26}}/>
+          <strong>Amazon Pay Balance</strong>
+        </div>
         <p>We fetch your balance by opening Amazon Pay in a browser session.</p>
         <p style={{marginBottom:6}}><b>Your main step:</b> generate a storageState (session) file once on your computer and provide it to the app (see guide).</p>
         <ul style={{marginTop:0}}>
@@ -405,6 +410,7 @@ export default function Dashboard() {
         onCancel={()=> setConfirm({ open:false, id:null })}
         onConfirm={async ()=>{ await deleteAccount(confirm.id); await fetchAccounts(); setConfirm({ open:false, id:null }) }}
       />
+      <AppFooter/>
     </div>
   );
 }
