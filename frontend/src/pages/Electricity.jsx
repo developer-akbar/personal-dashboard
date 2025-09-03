@@ -57,15 +57,16 @@ export default function Electricity(){
 
   const filtered = useMemo(()=>{
     const q = query.trim().toLowerCase()
+    if (activeTab==='trash'){
+      let list = trashed
+      if (q){ list = list.filter(s=> (s.label||'').toLowerCase().includes(q) || String(s.serviceNumber||'').toLowerCase().includes(q)) }
+      return list
+    }
     let list = services
-    if (q){
-      list = list.filter(s=> (s.label||'').toLowerCase().includes(q) || String(s.serviceNumber||'').toLowerCase().includes(q))
-    }
-    if (filterStatus){
-      list = list.filter(s=> (s.lastStatus||'') === filterStatus)
-    }
+    if (q){ list = list.filter(s=> (s.label||'').toLowerCase().includes(q) || String(s.serviceNumber||'').toLowerCase().includes(q)) }
+    if (filterStatus){ list = list.filter(s=> (s.lastStatus||'') === filterStatus) }
     return list
-  }, [services, query, filterStatus])
+  }, [services, trashed, query, filterStatus, activeTab])
 
   const sortedFiltered = useMemo(()=>{
     const list = [...filtered]
@@ -107,12 +108,14 @@ export default function Electricity(){
       </div>
       {/* <GlobalDebug/> */}
 
+      {activeTab==='active' && (
       <section className="totals">
         <div className="pill">Total Pending: ₹ {Number(summary.totalPending||0).toLocaleString('en-IN')}</div>
         <div className="pill">Pending Bills: {summary.pendingCount}</div>
         <div className="pill">Paid Bills: {summary.paidCount}</div>
         <div className="pill">Yet to be Paid: {summary.noDuesCount}</div>
       </section>
+      )}
 
       {selectedIds.size>0 && (
         <div className="panel" style={{display:'flex',gap:12,alignItems:'baseline',marginBottom:8}}>
@@ -124,9 +127,9 @@ export default function Electricity(){
 
       <div style={{display:'grid', gridTemplateColumns:'1fr auto', gap:8, margin:'8px 0'}}>
         <div style={{position:'relative'}}>
-          <input placeholder="Search services..." aria-label="Search services" value={query} onChange={(e)=> setQuery(e.target.value)} style={{width:'100%',paddingRight:36}} />
+          <input placeholder={activeTab==='trash'? 'Search trash...' : 'Search services...'} aria-label="Search services" value={query} onChange={(e)=> setQuery(e.target.value)} style={{width:'100%',paddingRight:36}} />
           {query && (
-            <button aria-label="Clear search" onClick={()=> setQuery('')} style={{position:'absolute',right:6,top:'50%',transform:'translateY(-50%)',cursor:'pointer',opacity:.9,background:'var(--panel-bg)',border:'2px solid var(--panel-border)',borderRadius:'9999px',width:24,height:24,display:'grid',placeItems:'center',lineHeight:1}}>×</button>
+            <button aria-label="Clear search" onClick={()=> setQuery('')} className="clear-btn">×</button>
           )}
         </div>
         <button className="muted" onClick={()=> setShowFilters(v=>!v)} aria-expanded={showFilters} aria-controls="elec-filters" title={showFilters? 'Hide filters' : 'Show filters'}>
@@ -169,15 +172,15 @@ export default function Electricity(){
 
       {activeTab==='trash' && (
         <section className="grid">
-          {trashed.map(t=> (
+          {filtered.map(t=> (
             <article key={t.id} className="panel" style={{display:'flex',justifyContent:'space-between',alignItems:'center'}}>
               <div>
                 <div><b>{t.label||'—'}</b></div>
                 <small style={{opacity:.8}}>Service: {t.serviceNumber}</small>
               </div>
               <div style={{display:'flex',gap:8}}>
-                <button className="primary" onClick={async()=>{ await restoreService(t.id); toast.success('Restored') }}>Restore</button>
-                <button className="danger" onClick={async()=>{ try{ await (await import('../store/useElectricity')).useElectricity.getState().deleteServicePermanent(t.id); toast.success('Deleted permanently') }catch(e){ toast.error(e?.response?.data?.error || e?.message || 'Delete failed') } }}>Delete permanently</button>
+                <button className="primary" title="Restore" onClick={async()=>{ await restoreService(t.id); toast.success('Restored') }}>⤴</button>
+                <button className="danger" title="Delete permanently" onClick={async()=>{ try{ await (await import('../store/useElectricity')).useElectricity.getState().deleteServicePermanent(t.id); toast.success('Deleted permanently') }catch(e){ toast.error(e?.response?.data?.error || e?.message || 'Delete failed') } }}>🗑</button>
               </div>
             </article>
           ))}

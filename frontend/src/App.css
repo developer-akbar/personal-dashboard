@@ -275,3 +275,23 @@ select {
   opacity: 1;
   pointer-events: auto;
 }
+
+.clear-btn {
+  position: absolute;
+  right: 6px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 9999px;
+  border: 2px solid var(--panel-border);
+  background: var(--panel-bg);
+  cursor: pointer;
+  opacity: .95;
+  line-height: 1;
+  padding: 0;
+}
+.clear-btn:hover { opacity: 1; }
