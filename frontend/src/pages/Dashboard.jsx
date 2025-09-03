@@ -229,7 +229,7 @@ export default function Dashboard() {
           const url = URL.createObjectURL(blob)
           const a = document.createElement('a'); a.href=url; a.download='accounts.csv'; a.click(); URL.revokeObjectURL(url)
         }}>Export View CSV</button>
-        <button className="muted" onClick={()=> setShowAmazonInfo(true)} style={{display:'inline-flex',alignItems:'center',gap:6}}><FiHelpCircle/> How to use</button>
+        
         <button className="muted" style={{display:'none'}} onClick={async ()=>{
           const { data } = await api.get('/accounts')
           const rows = [["Label","Email","Region","Balance","Currency","Last Refreshed","Pinned","Tags"]]
@@ -249,15 +249,7 @@ export default function Dashboard() {
         )}
       </div>
 
-      {tab==='balance' && (
-      <section className="totals">
-        {Object.entries(total).map(([cur, amount]) => (
-          <div className="pill" key={cur}>
-            Total {cur === "INR" ? "₹" : cur} {Number(amount).toLocaleString("en-IN")}
-          </div>
-        ))}
-      </section>
-      )}
+      
       {tab==='balance' && tagTotalsBase.length > 0 && (
         <section className="totals">
           {tagTotalsBase.map(([tag, amt]) => (
@@ -397,8 +389,7 @@ export default function Dashboard() {
         open={showAmazonInfo}
         title="How to use Amazon account balances"
         onClose={()=> setShowAmazonInfo(false)}
-        closeLabel="Proceed"
-        onCloseAction={()=>{ setShowAmazonInfo(false); setOpen(true); }}
+        closeLabel="Cancel"
         primaryActionLabel="View guide"
         onPrimaryAction={()=>{ window.open('https://github.com/developer-akbar/personal-dashboard/blob/main/SESSIONS.md', '_blank', 'noopener,noreferrer') }}
       >
