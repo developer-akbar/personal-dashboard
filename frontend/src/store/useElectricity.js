@@ -64,8 +64,22 @@ export const useElectricity = create((set,get)=> ({
     await get().fetchTrashed()
   },
   async refreshOne(id){
-    await api.post(`/electricity/services/${id}/refresh`)
-    await get().fetchServices()
+    const { data } = await api.post(`/electricity/services/${id}/refresh`)
+    // Update only this service locally to avoid re-rendering all cards
+    set(state=> ({
+      services: state.services.map(s=> s.id===id ? {
+        ...s,
+        customerName: data?.customerName ?? s.customerName,
+        lastBillDate: data?.billDate ?? s.lastBillDate,
+        lastDueDate: data?.dueDate ?? s.lastDueDate,
+        lastAmountDue: data?.amountDue ?? s.lastAmountDue,
+        lastBilledUnits: data?.billedUnits ?? s.lastBilledUnits,
+        lastThreeAmounts: Array.isArray(data?.lastThreeAmounts)? data.lastThreeAmounts : (s.lastThreeAmounts||[]),
+        lastStatus: data?.status ?? s.lastStatus,
+        lastFetchedAt: new Date().toISOString(),
+        lastError: null,
+      } : s)
+    }))
   },
   async refreshAll(){
     await api.post('/electricity/services/refresh-all', { batchSize: 3 })
