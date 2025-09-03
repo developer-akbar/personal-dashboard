@@ -78,6 +78,12 @@ router.post('/services', async (req,res,next)=>{
     if(!serviceNumber) return res.status(400).json({ error: 'serviceNumber required' })
     const sn = String(serviceNumber).trim()
     if (!/^\d{13}$/.test(sn)) return res.status(400).json({ error: 'Service Number must be 13 digits' })
+    const SUBSCRIBED_USERS = (process.env.SUBSCRIBED_USERS || '').split(',').map(s=> s.trim().toLowerCase()).filter(Boolean)
+    const isPrivileged = ADMIN_EMAILS.includes((req.user?.email||'').toLowerCase()) || SUBSCRIBED_USERS.includes((req.user?.email||'').toLowerCase())
+    if (!isPrivileged){
+      const activeCount = await ElectricityService.countDocuments({ userId: req.user.id, isDeleted: { $ne: true } })
+      if (activeCount >= 5) return res.status(403).json({ error: 'Non subscriber user can only have upto 5 accounts' })
+    }
     const existsSvc = await ElectricityService.findOne({ userId: req.user.id, serviceNumber: sn, isDeleted: { $ne: true } })
     if (existsSvc) return res.status(409).json({ error: 'Service number already exists' })
     if (label){

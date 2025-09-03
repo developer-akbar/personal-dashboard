@@ -35,6 +35,13 @@ router.post("/", async (req, res, next) => {
     if (!label || !email || !password || !region) {
       return res.status(400).json({ error: "label, email, password, region required" });
     }
+    const ADMIN_EMAILS = (process.env.ADMIN_EMAILS || '').split(',').map(s=> s.trim().toLowerCase()).filter(Boolean)
+    const SUBSCRIBED_USERS = (process.env.SUBSCRIBED_USERS || '').split(',').map(s=> s.trim().toLowerCase()).filter(Boolean)
+    const isPrivileged = ADMIN_EMAILS.includes((req.user?.email||'').toLowerCase()) || SUBSCRIBED_USERS.includes((req.user?.email||'').toLowerCase())
+    if (!isPrivileged){
+      const activeCount = await AmazonAccount.countDocuments({ userId: req.user.id, isDeleted: { $ne: true } })
+      if (activeCount >= 5) return res.status(403).json({ error: 'Non subscriber user can only have upto 5 accounts' })
+    }
     // Uniqueness per user: label and email
     const dupLabel = await AmazonAccount.findOne({ userId: req.user.id, label: label.trim(), isDeleted: { $ne: true } })
     if (dupLabel) return res.status(409).json({ error: 'Label already exists. Choose a unique label.' })
