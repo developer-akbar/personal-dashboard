@@ -177,7 +177,6 @@ export default function Dashboard() {
           className="muted"
           onClick={() => {
             setEditing(null);
-            setOpen(true);
             setShowAmazonInfo(true)
           }}
           disabled={refreshing}
@@ -306,7 +305,7 @@ export default function Dashboard() {
       {tab==='balance' && (!accounts.length ? (
         <div className="panel" style={{textAlign:'center'}}>
           <p style={{margin:'6px 0'}}>No Amazon accounts yet.</p>
-          <button className="primary" onClick={()=>{ setEditing(null); setOpen(true); setShowAmazonInfo(true) }}>Add your first account</button>
+          <button className="primary" onClick={()=>{ setEditing(null); setShowAmazonInfo(true) }}>Add your first account</button>
         </div>
       ) : (
         <section className="grid">
