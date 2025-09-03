@@ -3,18 +3,19 @@ import { requireAuth } from '../middleware/auth.js'
 import ElectricityService from '../models/ElectricityService.js'
 import { fetchApspdclBill } from '../services/apspdcl.js'
 import rateLimit from 'express-rate-limit'
+import { istDayKey, getAdminUsers } from '../config/limits.js'
 
 const router = Router()
 router.use(requireAuth)
 
-const ADMIN_USERS = (process.env.ADMIN_USERS || '').split(',').map(s=> s.trim().toLowerCase()).filter(Boolean)
+const ADMIN_USERS = getAdminUsers()
 const ELECTRICITY_REFRESH_RATE_LIMIT_PER_DAY = Number(process.env.ELECTRICITY_REFRESH_RATE_LIMIT_PER_DAY || 5)
 const elecLimiter = rateLimit({
   windowMs: 24*60*60*1000,
   max: ELECTRICITY_REFRESH_RATE_LIMIT_PER_DAY,
   standardHeaders: true,
   legacyHeaders: false,
-  keyGenerator: (req)=> req.user?.id || req.ip,
+  keyGenerator: (req)=> `${req.user?.id || req.ip}:${istDayKey()}`,
   skip: (req)=> ADMIN_USERS.includes((req.user?.email||'').toLowerCase()),
   handler: (_req, res)=> res.status(429).json({ error: `Rate limit exceeded (${ELECTRICITY_REFRESH_RATE_LIMIT_PER_DAY}/day). Please try tomorrow.` })
 })
