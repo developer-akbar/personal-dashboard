@@ -172,7 +172,7 @@ export default function Dashboard() {
         <small style={{opacity:.8}}>Backend: <b style={{color: health.ok? '#10b981':'#ef4444'}}>{health.ok? 'up':'down'}</b> • DB: <b>{health.db}</b></small>
         <span />
       </div>
-      <div className="action-buttons" style={{display:'flex', gap:10, padding:'8px 4px', alignItems:'center'}}>
+      <div className="action-buttons" style={{display:'inline-flex', gap:8, padding:'8px 4px', alignItems:'center', justifyContent:'flex-start'}}>
         <button
           className="muted"
           onClick={() => {
@@ -184,20 +184,18 @@ export default function Dashboard() {
         >
           <FiPlus /> Add account
         </button>
-        <div style={{flex:1, display:'flex', justifyContent:'center'}}>
-          {accounts.length >= 2 && (
-            <button
-              className="primary"
-              onClick={async () => {
-                await toast.promise((async()=>{ await refreshAll(accounts); await fetchAccounts() })(), { loading: 'Queued…', success: 'Done', error: (e)=> e?.response?.status===429? '429 - wait and retry' : 'Failed' })
-              }}
-              disabled={refreshing}
-            >
-              <FiRefreshCcw className={refreshing? 'spin':''}/> Refresh All
-            </button>
-          )}
-        </div>
-        <button className="muted" onClick={()=> setShowAmazonInfo(true)} style={{display:'inline-flex',alignItems:'center',gap:6}}><FiHelpCircle/> How to use</button>
+        {accounts.length >= 2 && (
+          <button
+            className="primary"
+            onClick={async () => {
+              await toast.promise((async()=>{ await refreshAll(accounts); await fetchAccounts() })(), { loading: 'Queued…', success: 'Done', error: (e)=> e?.response?.status===429? '429 - wait and retry' : 'Failed' })
+            }}
+            disabled={refreshing}
+          >
+            <FiRefreshCcw className={refreshing? 'spin':''}/> Refresh All
+          </button>
+        )}
+        <button className="muted" onClick={()=>{ window.open('https://github.com/developer-akbar/personal-dashboard/blob/main/SESSIONS.md', '_blank', 'noopener,noreferrer') }} style={{display:'inline-flex',alignItems:'center',gap:6}}><FiHelpCircle/> How to use</button>
       </div>
       <div style={{display:'flex',alignItems:'baseline',gap:8,margin:'4px 0 8px'}}>
         <div style={{fontSize:14,opacity:.8}}>Accounts: {accounts.length}</div>
