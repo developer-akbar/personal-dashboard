@@ -179,21 +179,24 @@ router.post('/services/refresh-all', elecLimiter, async (req,res,next)=>{
   try{
     const { batchSize = 3 } = req.body || {}
     const list = await ElectricityService.find({ userId: req.user.id }).sort({ createdAt: -1 })
+    const isAdmin = ADMIN_EMAILS.includes((req.user?.email||'').toLowerCase())
     const results = []
     for(let i=0;i<list.length;i+=batchSize){
       const batch = list.slice(i,i+batchSize)
       const settled = await Promise.allSettled(batch.map(async svc=>{
         try{
-          if (svc.refreshInProgress){
-            const staleMs = Number(process.env.REFRESH_LOCK_STALE_MS || 2*60*1000)
-            const updatedAt = svc.updatedAt ? new Date(svc.updatedAt).getTime() : 0
-            if (!updatedAt || (Date.now() - updatedAt) <= staleMs){
-              return { id: svc._id, skipped: true, reason: 'in-progress' }
+          if (!isAdmin){
+            if (svc.refreshInProgress){
+              const staleMs = Number(process.env.REFRESH_LOCK_STALE_MS || 2*60*1000)
+              const updatedAt = svc.updatedAt ? new Date(svc.updatedAt).getTime() : 0
+              if (!updatedAt || (Date.now() - updatedAt) <= staleMs){
+                return { id: svc._id, skipped: true, reason: 'in-progress' }
+              }
+              svc.refreshInProgress = false
+              await svc.save()
             }
-            svc.refreshInProgress = false
-            await svc.save()
+            if (svc.nextAllowedAt && svc.nextAllowedAt > new Date()) return { id: svc._id, skipped: true, reason: 'cooldown' }
           }
-          if (svc.nextAllowedAt && svc.nextAllowedAt > new Date()) return { id: svc._id, skipped: true, reason: 'cooldown' }
           svc.refreshInProgress = true
           await svc.save()
           const result = await fetchApspdclBill({ serviceNumber: svc.serviceNumber, interactive: false })
@@ -205,7 +208,7 @@ router.post('/services/refresh-all', elecLimiter, async (req,res,next)=>{
           svc.lastThreeAmounts = Array.isArray(result.lastThreeAmounts)? result.lastThreeAmounts : []
           svc.lastStatus = result.status
           svc.lastFetchedAt = new Date()
-          svc.nextAllowedAt = new Date(Date.now() + Number(process.env.REFRESH_COOLDOWN_MS || 5*60*1000)) // only on success
+          if (!isAdmin) svc.nextAllowedAt = new Date(Date.now() + Number(process.env.REFRESH_COOLDOWN_MS || 5*60*1000)) // only on success
           svc.lastError = null
           svc.refreshInProgress = false
           await svc.save()
