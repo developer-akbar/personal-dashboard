@@ -104,8 +104,8 @@ export default function Electricity(){
         </button>
       </div>
       <div className="panel" role="tablist" aria-label="Services view" style={{display:'inline-flex',gap:6,padding:6,marginBottom:8}}>
-        <button className={activeTab==='active'? 'primary':'muted'} role="tab" aria-selected={activeTab==='active'} onClick={()=> setActiveTab('active')}>Active</button>
-        <button className={activeTab==='trash'? 'primary':'muted'} role="tab" aria-selected={activeTab==='trash'} onClick={()=> setActiveTab('trash')}>Trash ({trashed.length})</button>
+        <button className={activeTab==='active'? 'primary':'muted'} role="tab" aria-selected={activeTab==='active'} onClick={()=> { setActiveTab('active'); setQuery('') }}>Active</button>
+        <button className={activeTab==='trash'? 'primary':'muted'} role="tab" aria-selected={activeTab==='trash'} onClick={()=> { setActiveTab('trash'); setQuery('') }}>Trash ({trashed.length})</button>
       </div>
       {/* <GlobalDebug/> */}
 
@@ -133,11 +133,13 @@ export default function Electricity(){
             <button aria-label="Clear search" onClick={()=> setQuery('')} className="clear-btn">×</button>
           )}
         </div>
-        <button className="muted" onClick={()=> setShowFilters(v=>!v)} aria-expanded={showFilters} aria-controls="elec-filters" title={showFilters? 'Hide filters' : 'Show filters'}>
-          Filters
-        </button>
+        {activeTab==='active' && (
+          <button className="muted" onClick={()=> setShowFilters(v=>!v)} aria-expanded={showFilters} aria-controls="elec-filters" title={showFilters? 'Hide filters' : 'Show filters'}>
+            Filters
+          </button>
+        )}
       </div>
-      {showFilters && (
+      {activeTab==='active' && showFilters && (
         <div className="filters" id="elec-filters">
           <select aria-label="Sort by" value={sortBy} onChange={(e)=> setSortBy(e.target.value)}>
             <option value="amount">Amount (desc)</option>
@@ -209,7 +211,7 @@ export default function Electricity(){
                 <div>Service Number is already in Trash. Restore it?</div>
                 <div style={{marginTop:8,display:'flex',gap:8}}>
                   <button className="primary" onClick={async()=>{ toast.dismiss(t.id); setOpen(false); setEditing(null); setActiveTab('trash'); await restoreService(e.restoreId); toast.success('Restored'); setActiveTab('active') }}>Restore now</button>
-                  <button className="muted" onClick={()=>{ toast.dismiss(t.id); setActiveTab('trash') }}>Go to Trash</button>
+                  <button className="muted" onClick={()=>{ toast.dismiss(t.id); setQuery(''); setActiveTab('trash') }}>Go to Trash</button>
                 </div>
               </div>
             ), { duration: 6000 })
