@@ -38,7 +38,7 @@ async function validateApspdclServiceNumber(sn){
 // List services
 router.get('/services', async (req,res,next)=>{
   try{
-    const items = await ElectricityService.find({ userId: req.user.id, isDeleted: { $ne: true } }).sort({ pinned: -1, pinnedAt: -1, createdAt: -1 })
+    const items = await ElectricityService.find({ userId: req.user.id, isDeleted: { $ne: true } }).sort({ pinned: -1, pinnedAt: 1, createdAt: -1 })
     res.json(items.map(s=> ({
       id: s._id,
       label: s.label,
