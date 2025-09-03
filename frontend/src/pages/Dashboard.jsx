@@ -161,7 +161,7 @@ export default function Dashboard() {
   }
 
   return (
-    <div className={`container ${selectMode? 'select-mode' : ''}`} style={{minHeight:'100vh', display:'flex', flexDirection:'column'}}>
+    <div className={`container ${selectMode? 'select-mode' : ''}`} style={{minHeight:'calc(var(--vh, 1vh) * 100)', display:'flex', flexDirection:'column'}}>
       <header className="topbar">
         <h2>Personal Dashboard</h2>
         <div className="spacer" />
