@@ -260,9 +260,9 @@ export default function Dashboard() {
 
       <div style={{display:'grid', gridTemplateColumns:'1fr auto', gap:8, margin:'8px 0'}}>
         <div style={{position:'relative'}}>
-          <input placeholder="Search accounts..." aria-label="Search accounts" value={query} onChange={(e)=> setQuery(e.target.value)} style={{paddingRight:28}} />
+          <input placeholder="Search accounts..." aria-label="Search accounts" value={query} onChange={(e)=> setQuery(e.target.value)} style={{width:'100%',paddingRight:36}} />
           {query && (
-            <button aria-label="Clear search" onClick={()=> setQuery('')} style={{position:'absolute',right:6,top:'50%',transform:'translateY(-50%)',border:'none',background:'transparent',cursor:'pointer',opacity:.6}}>✕</button>
+            <button aria-label="Clear search" onClick={()=> setQuery('')} style={{position:'absolute',right:6,top:'50%',transform:'translateY(-50%)',cursor:'pointer',opacity:.8,background:'var(--bg)',border:'1px solid var(--border)',borderRadius:'9999px',width:24,height:24,display:'grid',placeItems:'center',lineHeight:1}}>×</button>
           )}
         </div>
         <button className="muted" onClick={()=> setShowFilters(v=>!v)} aria-expanded={showFilters} aria-controls="filters-panel" title={showFilters? 'Hide filters' : 'Show filters'}>

@@ -56,6 +56,19 @@ router.get('/services', async (req,res,next)=>{
   }catch(e){ next(e) }
 })
 
+// List trashed services
+router.get('/services/trash', async (req,res,next)=>{
+  try{
+    const items = await ElectricityService.find({ userId: req.user.id, isDeleted: true }).sort({ deletedAt: -1 })
+    res.json(items.map(s=> ({
+      id: s._id,
+      label: s.label,
+      serviceNumber: s.serviceNumber,
+      deletedAt: s.deletedAt,
+    })))
+  }catch(e){ next(e) }
+})
+
 // Add service
 router.post('/services', async (req,res,next)=>{
   try{

@@ -11,7 +11,7 @@ import InfoModal from '../components/InfoModal'
 import ConfirmDialog from '../components/ConfirmDialog'
 
 export default function Electricity(){
-  const { services, fetchServices, addService, updateService, deleteService, refreshAll, refreshOne } = useElectricity()
+  const { services, trashed, fetchServices, fetchTrashed, addService, updateService, deleteService, restoreService, refreshAll, refreshOne } = useElectricity()
   const [open,setOpen] = useState(false)
   const [editing,setEditing] = useState(null)
   const [health, setHealth] = useState({ ok:false, db:'unknown' })
@@ -32,6 +32,7 @@ export default function Electricity(){
     })()
   },[])
   useEffect(()=>{ (async()=>{ try{ const api=(await import('../api/client')).default; const { data } = await api.get('/health'); setHealth({ ok: !!data?.ok, db: data?.db||'unknown' }) }catch{} })() },[])
+  useEffect(()=>{ fetchTrashed() },[])
 
   const summary = useMemo(()=>{
     const pending = services.filter(s=> s.lastStatus==='DUE' && (s.lastAmountDue||0)>0)
@@ -78,6 +79,8 @@ export default function Electricity(){
     return list
   }, [filtered, sortBy])
 
+  const [activeTab, setActiveTab] = useState('active') // active | trash
+
   return (
     <div className="container">
       <header className="topbar">
@@ -98,6 +101,10 @@ export default function Electricity(){
           <FiRefreshCcw className={services.some(s=> s.loading)? 'spin':''}/> Refresh All
         </button>
       </div>
+      <div className="panel" role="tablist" aria-label="Services view" style={{display:'inline-flex',gap:6,padding:6,marginBottom:8}}>
+        <button className={activeTab==='active'? 'primary':'muted'} role="tab" aria-selected={activeTab==='active'} onClick={()=> setActiveTab('active')}>Active</button>
+        <button className={activeTab==='trash'? 'primary':'muted'} role="tab" aria-selected={activeTab==='trash'} onClick={()=> setActiveTab('trash')}>Trash ({trashed.length})</button>
+      </div>
       {/* <GlobalDebug/> */}
 
       <section className="totals">
@@ -117,9 +124,9 @@ export default function Electricity(){
 
       <div style={{display:'grid', gridTemplateColumns:'1fr auto', gap:8, margin:'8px 0'}}>
         <div style={{position:'relative'}}>
-          <input placeholder="Search services..." aria-label="Search services" value={query} onChange={(e)=> setQuery(e.target.value)} style={{paddingRight:28}} />
+          <input placeholder="Search services..." aria-label="Search services" value={query} onChange={(e)=> setQuery(e.target.value)} style={{width:'100%',paddingRight:36}} />
           {query && (
-            <button aria-label="Clear search" onClick={()=> setQuery('')} style={{position:'absolute',right:6,top:'50%',transform:'translateY(-50%)',border:'none',background:'transparent',cursor:'pointer',opacity:.6}}>✕</button>
+            <button aria-label="Clear search" onClick={()=> setQuery('')} style={{position:'absolute',right:6,top:'50%',transform:'translateY(-50%)',cursor:'pointer',opacity:.8,background:'var(--bg)',border:'1px solid var(--border)',borderRadius:'9999px',width:24,height:24,display:'grid',placeItems:'center',lineHeight:1}}>×</button>
           )}
         </div>
         <button className="muted" onClick={()=> setShowFilters(v=>!v)} aria-expanded={showFilters} aria-controls="elec-filters" title={showFilters? 'Hide filters' : 'Show filters'}>
@@ -145,6 +152,7 @@ export default function Electricity(){
         </div>
       )}
 
+      {activeTab==='active' && (
       <section className={`grid ${selectMode? 'select-mode':''}`}>
         {sortedFiltered.map(s=> (
           <div key={s.id} className="card-wrapper" onMouseEnter={()=> setSelectMode(true)} onMouseLeave={()=>{ if(selectedIds.size===0) setSelectMode(false) }} onTouchStart={()=>{ if (longPressRef.current) clearTimeout(longPressRef.current); longPressRef.current = setTimeout(()=> setSelectMode(true), 500) }} onTouchEnd={()=>{ if (longPressRef.current) { clearTimeout(longPressRef.current); longPressRef.current=null } }}>
@@ -157,6 +165,23 @@ export default function Electricity(){
           </div>
         ))}
       </section>
+      )}
+
+      {activeTab==='trash' && (
+        <section className="grid">
+          {trashed.map(t=> (
+            <article key={t.id} className="panel" style={{display:'flex',justifyContent:'space-between',alignItems:'center'}}>
+              <div>
+                <div><b>{t.label||'—'}</b></div>
+                <small style={{opacity:.8}}>Service: {t.serviceNumber}</small>
+              </div>
+              <div style={{display:'flex',gap:8}}>
+                <button className="primary" onClick={async()=>{ await restoreService(t.id); toast.success('Restored') }}>Restore</button>
+              </div>
+            </article>
+          ))}
+        </section>
+      )}
 
       <AddElectricityServiceModal open={open} initial={editing} onClose={()=> { setOpen(false); setEditing(null) }} onSubmit={async (serviceNumber,label)=>{
         try{
@@ -172,7 +197,19 @@ export default function Electricity(){
           )
           setEditing(null)
           setOpen(false)
-        }catch(e){ /* keep modal open to allow corrections */ }
+        }catch(e){
+          if (e?.canRestore && e?.restoreId){
+            toast((t)=> (
+              <div>
+                <div>Service Number is already in Trash. Restore it?</div>
+                <div style={{marginTop:8,display:'flex',gap:8}}>
+                  <button className="primary" onClick={async()=>{ toast.dismiss(t.id); setOpen(false); setEditing(null); setActiveTab('trash'); await restoreService(e.restoreId); toast.success('Restored'); setActiveTab('active') }}>Restore now</button>
+                  <button className="muted" onClick={()=>{ toast.dismiss(t.id); setActiveTab('trash') }}>Go to Trash</button>
+                </div>
+              </div>
+            ), { duration: 6000 })
+          }
+        }
       }} />
       
       <InfoModal open={showInfo} onClose={()=> setShowInfo(false)} />

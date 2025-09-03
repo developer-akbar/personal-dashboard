@@ -3,11 +3,16 @@ import api from '../api/client'
 
 export const useElectricity = create((set,get)=> ({
   services: [],
+  trashed: [],
   loading: false,
   async fetchServices(){
     set({ loading:true })
     try{ const { data } = await api.get('/electricity/services'); set({ services: data }) }
     finally{ set({ loading:false }) }
+  },
+  async fetchTrashed(){
+    const { data } = await api.get('/electricity/services/trash')
+    set({ trashed: data })
   },
   async addService(serviceNumber, label){
     try{
@@ -19,6 +24,8 @@ export const useElectricity = create((set,get)=> ({
     }catch(e){
       const msg = e?.response?.data?.error || e?.message || 'Failed to add service'
       e.message = msg
+      e.canRestore = !!e?.response?.data?.canRestore
+      e.restoreId = e?.response?.data?.id
       throw e
     }
   },
@@ -38,6 +45,12 @@ export const useElectricity = create((set,get)=> ({
   async deleteService(id){
     await api.delete(`/electricity/services/${id}`)
     await get().fetchServices()
+    await get().fetchTrashed()
+  },
+  async restoreService(id){
+    await api.post(`/electricity/services/restore/${id}`)
+    await get().fetchServices()
+    await get().fetchTrashed()
   },
   async refreshOne(id){
     await api.post(`/electricity/services/${id}/refresh`)
