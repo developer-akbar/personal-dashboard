@@ -10,16 +10,17 @@ const router = Router();
 
 router.use(requireAuth);
 
-// Per-user limiter: max 5 refresh calls per 24h per user (tunable)
+// Per-user limiter: configurable per-day cap for non-admin users
 const ADMIN_USERS = (process.env.ADMIN_USERS || '').split(',').map(s=> s.trim().toLowerCase()).filter(Boolean)
+const AMAZON_REFRESH_RATE_LIMIT_PER_DAY = Number(process.env.AMAZON_REFRESH_RATE_LIMIT_PER_DAY || 3)
 const refreshLimiter = rateLimit({
   windowMs: 24*60*60*1000,
-  max: 5,
+  max: AMAZON_REFRESH_RATE_LIMIT_PER_DAY,
   standardHeaders: true,
   legacyHeaders: false,
   keyGenerator: (req)=> req.user?.id || req.ip,
   skip: (req)=> ADMIN_USERS.includes((req.user?.email||'').toLowerCase()),
-  handler: (_req, res)=> res.status(429).json({ error: 'Rate limit exceeded (5/day). Please try tomorrow.' })
+  handler: (_req, res)=> res.status(429).json({ error: `Rate limit exceeded (${AMAZON_REFRESH_RATE_LIMIT_PER_DAY}/day). Please try tomorrow.` })
 })
 
 router.get("/history/:accountId", async (req, res, next) => {

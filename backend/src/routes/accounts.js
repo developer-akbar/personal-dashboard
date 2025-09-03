@@ -39,9 +39,9 @@ router.post("/", async (req, res, next) => {
     const SUBSCRIBED_USERS = (process.env.SUBSCRIBED_USERS || '').split(',').map(s=> s.trim().toLowerCase()).filter(Boolean)
     const isPrivileged = ADMIN_USERS.includes((req.user?.email||'').toLowerCase()) || SUBSCRIBED_USERS.includes((req.user?.email||'').toLowerCase())
     if (!isPrivileged){
-      const maxFree = Number(process.env.ALLOWED_FREE_USER_CARDS_COUNT || 5)
+      const maxFree = Number(process.env.ALLOWED_FREE_USER_CARDS_COUNT || 3)
       const activeCount = await AmazonAccount.countDocuments({ userId: req.user.id, isDeleted: { $ne: true } })
-      if (activeCount >= maxFree) return res.status(403).json({ error: 'Non subscriber user can only have upto 5 accounts' })
+      if (activeCount >= maxFree) return res.status(403).json({ error: `Non subscriber user can only have upto ${maxFree} accounts` })
     }
     // Uniqueness per user: label and email
     const dupLabel = await AmazonAccount.findOne({ userId: req.user.id, label: label.trim(), isDeleted: { $ne: true } })

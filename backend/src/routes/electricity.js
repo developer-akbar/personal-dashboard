@@ -8,14 +8,15 @@ const router = Router()
 router.use(requireAuth)
 
 const ADMIN_USERS = (process.env.ADMIN_USERS || '').split(',').map(s=> s.trim().toLowerCase()).filter(Boolean)
+const ELECTRICITY_REFRESH_RATE_LIMIT_PER_DAY = Number(process.env.ELECTRICITY_REFRESH_RATE_LIMIT_PER_DAY || 5)
 const elecLimiter = rateLimit({
   windowMs: 24*60*60*1000,
-  max: 10,
+  max: ELECTRICITY_REFRESH_RATE_LIMIT_PER_DAY,
   standardHeaders: true,
   legacyHeaders: false,
   keyGenerator: (req)=> req.user?.id || req.ip,
   skip: (req)=> ADMIN_USERS.includes((req.user?.email||'').toLowerCase()),
-  handler: (_req, res)=> res.status(429).json({ error: 'Rate limit exceeded (10/day). Please try tomorrow.' })
+  handler: (_req, res)=> res.status(429).json({ error: `Rate limit exceeded (${ELECTRICITY_REFRESH_RATE_LIMIT_PER_DAY}/day). Please try tomorrow.` })
 })
 
 async function validateApspdclServiceNumber(sn){
@@ -81,9 +82,9 @@ router.post('/services', async (req,res,next)=>{
     const SUBSCRIBED_USERS = (process.env.SUBSCRIBED_USERS || '').split(',').map(s=> s.trim().toLowerCase()).filter(Boolean)
     const isPrivileged = ADMIN_USERS.includes((req.user?.email||'').toLowerCase()) || SUBSCRIBED_USERS.includes((req.user?.email||'').toLowerCase())
     if (!isPrivileged){
-      const maxFree = Number(process.env.ALLOWED_FREE_USER_CARDS_COUNT || 5)
+      const maxFree = Number(process.env.ALLOWED_FREE_USER_CARDS_COUNT || 3)
       const activeCount = await ElectricityService.countDocuments({ userId: req.user.id, isDeleted: { $ne: true } })
-      if (activeCount >= maxFree) return res.status(403).json({ error: 'Non subscriber user can only have upto 5 accounts' })
+      if (activeCount >= maxFree) return res.status(403).json({ error: `Non subscriber user can only have upto ${maxFree} accounts` })
     }
     const existsSvc = await ElectricityService.findOne({ userId: req.user.id, serviceNumber: sn, isDeleted: { $ne: true } })
     if (existsSvc) return res.status(409).json({ error: 'Service number already exists' })
