@@ -11,7 +11,7 @@ import InfoModal from '../components/InfoModal'
 import ConfirmDialog from '../components/ConfirmDialog'
 
 export default function Electricity(){
-  const { services, trashed, fetchServices, fetchTrashed, addService, updateService, deleteService, restoreService, refreshAll, refreshOne } = useElectricity()
+  const { services, trashed, fetchServices, fetchTrashed, addService, updateService, deleteService, deleteServicePermanent, restoreService, refreshAll, refreshOne } = useElectricity()
   const [open,setOpen] = useState(false)
   const [editing,setEditing] = useState(null)
   const [health, setHealth] = useState({ ok:false, db:'unknown' })
@@ -180,7 +180,7 @@ export default function Electricity(){
               </div>
               <div style={{display:'flex',gap:8}}>
                 <button className="primary" title="Restore" onClick={async()=>{ await restoreService(t.id); toast.success('Restored') }}>⤴</button>
-                <button className="danger" title="Delete permanently" onClick={async()=>{ try{ await (await import('../store/useElectricity')).useElectricity.getState().deleteServicePermanent(t.id); toast.success('Deleted permanently') }catch(e){ toast.error(e?.response?.data?.error || e?.message || 'Delete failed') } }}>🗑</button>
+                <button className="danger" title="Delete permanently" onClick={async()=>{ try{ await deleteServicePermanent(t.id); toast.success('Deleted permanently') }catch(e){ toast.error(e?.response?.data?.error || e?.message || 'Delete failed') } }}>🗑</button>
               </div>
             </article>
           ))}
@@ -217,7 +217,7 @@ export default function Electricity(){
       }} />
       
       <InfoModal open={showInfo} onClose={()=> setShowInfo(false)} />
-      <ConfirmDialog open={confirm.open} title="Delete service?" message="Choose soft delete (move to Trash) or delete permanently." onCancel={()=> setConfirm({ open:false, id:null })} onConfirm={async()=>{ try{ await deleteService(confirm.id); toast.success('Moved to Trash', { duration: 2000 }) }catch(e){ toast.error(e?.response?.data?.error || e.message, { duration: 2000 }) } finally { setConfirm({ open:false, id:null }) } }} onConfirmHard={async()=>{ try{ await (await import('../store/useElectricity')).useElectricity.getState().deleteServicePermanent(confirm.id); toast.success('Permanently deleted', { duration: 2000 }) }catch(e){ toast.error(e?.response?.data?.error || e.message, { duration: 2000 }) } finally { setConfirm({ open:false, id:null }) } }} hardLabel="Delete permanently" />
+      <ConfirmDialog open={confirm.open} title="Delete service?" message="Choose soft delete (move to Trash) or delete permanently." onCancel={()=> setConfirm({ open:false, id:null })} onConfirm={async()=>{ try{ await deleteService(confirm.id); toast.success('Moved to Trash', { duration: 2000 }) }catch(e){ toast.error(e?.response?.data?.error || e.message, { duration: 2000 }) } finally { setConfirm({ open:false, id:null }) } }} onConfirmHard={async()=>{ try{ await deleteServicePermanent(confirm.id); toast.success('Permanently deleted', { duration: 2000 }) }catch(e){ toast.error(e?.response?.data?.error || e.message, { duration: 2000 }) } finally { setConfirm({ open:false, id:null }) } }} hardLabel="Delete permanently" />
     </div>
   )
 }
