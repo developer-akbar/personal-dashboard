@@ -10,10 +10,10 @@ export default function AddElectricityServiceModal({ open, onClose, onSubmit, in
   }, [initial, open])
   if(!open) return null
   return (
-    <div className="backdrop" style={{position:'fixed',inset:0,background:'rgba(0,0,0,.5)',display:'flex',alignItems:'center',justifyContent:'center',zIndex:1000}} onClick={onClose}>
-      <div className="panel" style={{minWidth:320, maxWidth:500, width:'100%', margin:'.5rem', borderWidth:2}} onClick={e=> e.stopPropagation()}>
+    <div className="backdrop" style={{position:'fixed',inset:0,background:'rgba(0,0,0,.5)',display:'flex',alignItems:'center',justifyContent:'center',zIndex:1000}}>
+      <div className="panel" style={{minWidth:320, maxWidth:500, width:'100%', margin:'.5rem', borderWidth:2}}>
         <h3 style={{marginTop:0}}>{initial? 'Edit Service' : 'Add APSPDCL Service'}</h3>
-        <form onSubmit={async (e)=>{ e.preventDefault(); if(submitting) return; setSubmitting(true); try{ await onSubmit(serviceNumber, label); onClose() } finally { setSubmitting(false) } }} style={{display:'flex',flexDirection:'column',gap:12, padding:'.5rem'}}>
+        <form onSubmit={async (e)=>{ e.preventDefault(); if(submitting) return; setSubmitting(true); try{ await onSubmit(serviceNumber, label); } finally { setSubmitting(false) } }} style={{display:'flex',flexDirection:'column',gap:12, padding:'.5rem'}}>
           <label>Label (optional)
             <input value={label} onChange={e=> setLabel(e.target.value)} placeholder="e.g., Home Meter" />
           </label>

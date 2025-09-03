@@ -20,6 +20,10 @@ export default function Electricity(){
   const longPressRef = useRef(null)
   const [showInfo, setShowInfo] = useState(false)
   const [confirm, setConfirm] = useState({ open:false, id:null })
+  const [query, setQuery] = useState('')
+  const [sortBy, setSortBy] = useState('amount') // amount | label | refreshed
+  const [filterStatus, setFilterStatus] = useState('') // '', DUE, PAID, NO_DUES
+  const [showFilters, setShowFilters] = useState(false)
 
   useEffect(()=>{
     (async()=>{
@@ -49,6 +53,30 @@ export default function Electricity(){
     }
     return { total, count }
   }, [selectedIds, services])
+
+  const filtered = useMemo(()=>{
+    const q = query.trim().toLowerCase()
+    let list = services
+    if (q){
+      list = list.filter(s=> (s.label||'').toLowerCase().includes(q) || String(s.serviceNumber||'').toLowerCase().includes(q))
+    }
+    if (filterStatus){
+      list = list.filter(s=> (s.lastStatus||'') === filterStatus)
+    }
+    return list
+  }, [services, query, filterStatus])
+
+  const sortedFiltered = useMemo(()=>{
+    const list = [...filtered]
+    if (sortBy==='amount'){
+      list.sort((a,b)=> Number(b.lastAmountDue||0) - Number(a.lastAmountDue||0))
+    } else if (sortBy==='label'){
+      list.sort((a,b)=> (a.label||'').localeCompare(b.label||''))
+    } else if (sortBy==='refreshed'){
+      list.sort((a,b)=> new Date(b.lastFetchedAt||0) - new Date(a.lastFetchedAt||0))
+    }
+    return list
+  }, [filtered, sortBy])
 
   return (
     <div className="container">
@@ -87,8 +115,33 @@ export default function Electricity(){
         </div>
       )}
 
+      <div style={{display:'grid', gridTemplateColumns:'1fr auto', gap:8, margin:'8px 0'}}>
+        <input placeholder="Search services..." aria-label="Search services" value={query} onChange={(e)=> setQuery(e.target.value)} />
+        <button className="muted" onClick={()=> setShowFilters(v=>!v)} aria-expanded={showFilters} aria-controls="elec-filters" title={showFilters? 'Hide filters' : 'Show filters'}>
+          Filters
+        </button>
+      </div>
+      {showFilters && (
+        <div className="filters" id="elec-filters">
+          <select aria-label="Sort by" value={sortBy} onChange={(e)=> setSortBy(e.target.value)}>
+            <option value="amount">Amount (desc)</option>
+            <option value="label">Label (A→Z)</option>
+            <option value="refreshed">Last refreshed (newest)</option>
+          </select>
+          <select aria-label="Filter by status" value={filterStatus} onChange={(e)=> setFilterStatus(e.target.value)}>
+            <option value="">All status</option>
+            <option value="DUE">Due</option>
+            <option value="PAID">Paid</option>
+            <option value="NO_DUES">No dues</option>
+          </select>
+          {(filterStatus || query) && (
+            <button className="muted" aria-label="Clear filters" onClick={()=>{ setFilterStatus(''); setQuery('') }}>Clear</button>
+          )}
+        </div>
+      )}
+
       <section className={`grid ${selectMode? 'select-mode':''}`}>
-        {services.map(s=> (
+        {sortedFiltered.map(s=> (
           <div key={s.id} className="card-wrapper" onMouseEnter={()=> setSelectMode(true)} onMouseLeave={()=>{ if(selectedIds.size===0) setSelectMode(false) }} onTouchStart={()=>{ if (longPressRef.current) clearTimeout(longPressRef.current); longPressRef.current = setTimeout(()=> setSelectMode(true), 500) }} onTouchEnd={()=>{ if (longPressRef.current) { clearTimeout(longPressRef.current); longPressRef.current=null } }}>
             {selectMode && (
               <input type="checkbox" className="checkbox" checked={selectedIds.has(s.id)} onChange={()=>{
