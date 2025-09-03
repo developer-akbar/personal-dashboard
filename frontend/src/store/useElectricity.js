@@ -70,6 +70,10 @@ export const useElectricity = create((set,get)=> ({
   async refreshAll(){
     await api.post('/electricity/services/refresh-all', { batchSize: 3 })
     await get().fetchServices()
+  },
+  async togglePinned(id, pinned){
+    await api.put(`/electricity/services/${id}`, { pinned })
+    await get().fetchServices()
   }
 }))
 

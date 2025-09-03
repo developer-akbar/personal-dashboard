@@ -21,7 +21,7 @@ import ConfirmDialog from "../components/ConfirmDialog";
 import InfoModal from "../components/InfoModal";
 
 export default function Dashboard() {
-  const { accounts, fetchAccounts, addAccount, deleteAccount } = useAccounts();
+  const { accounts, fetchAccounts, addAccount, deleteAccount, loading: accountsLoading } = useAccounts();
   const { refreshing, progress, refreshOne, refreshAll } = useBalances();
   const { baseCurrency, exchangeRates, fetchSettings } = useSettings();
   const [open, setOpen] = useState(false);
@@ -134,14 +134,17 @@ export default function Dashboard() {
 
   const sortedFiltered = useMemo(() => {
     const list = [...filtered];
+    const pinned = list.filter(a=> a.pinned)
+    const others = list.filter(a=> !a.pinned)
+    pinned.sort((a,b)=> new Date(a.pinnedAt||0) - new Date(b.pinnedAt||0))
     if (sortBy === "amount") {
-      list.sort((a, b) => (b.lastBalance || 0) - (a.lastBalance || 0));
+      others.sort((a, b) => (b.lastBalance || 0) - (a.lastBalance || 0));
     } else if (sortBy === "label") {
-      list.sort((a, b) => (a.label || '').localeCompare(b.label || ''));
+      others.sort((a, b) => (a.label || '').localeCompare(b.label || ''));
     } else if (sortBy === "refreshed") {
-      list.sort((a, b) => new Date(b.lastRefreshedAt || 0) - new Date(a.lastRefreshedAt || 0));
+      others.sort((a, b) => new Date(b.lastRefreshedAt || 0) - new Date(a.lastRefreshedAt || 0));
     }
-    return list;
+    return [...pinned, ...others];
   }, [filtered, sortBy]);
 
   function computeSelectedTotal(){
@@ -161,7 +164,7 @@ export default function Dashboard() {
   }
 
   return (
-    <div className={`container ${selectMode? 'select-mode' : ''}`}>
+    <div className={`container ${selectMode? 'select-mode' : ''}`} style={{minHeight:'calc(var(--vh, 1vh) * 100)', display:'flex', flexDirection:'column'}}>
       <header className="topbar">
         <h2>Personal Dashboard</h2>
         <div className="spacer" />
@@ -171,6 +174,30 @@ export default function Dashboard() {
       <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',margin:'6px 0'}}>
         <small style={{opacity:.8}}>Backend: <b style={{color: health.ok? '#10b981':'#ef4444'}}>{health.ok? 'up':'down'}</b> • DB: <b>{health.db}</b></small>
         <span />
+      </div>
+      <div className="action-buttons" style={{display:'inline-flex', gap:8, padding:'8px 4px', alignItems:'center', justifyContent:'flex-start'}}>
+        <button
+          className="muted"
+          onClick={() => {
+            setEditing(null);
+            setShowAmazonInfo(true)
+          }}
+          disabled={refreshing}
+        >
+          <FiPlus /> Add account
+        </button>
+        {accounts.length >= 2 && (
+          <button
+            className="primary"
+            onClick={async () => {
+              await toast.promise((async()=>{ await refreshAll(accounts); await fetchAccounts() })(), { loading: 'Queued…', success: 'Done', error: (e)=> e?.response?.status===429? '429 - wait and retry' : 'Failed' })
+            }}
+            disabled={refreshing}
+          >
+            <FiRefreshCcw className={refreshing? 'spin':''}/> Refresh All
+          </button>
+        )}
+        <button className="muted" onClick={()=>{ window.open('https://github.com/developer-akbar/personal-dashboard/blob/main/SESSIONS.md', '_blank', 'noopener,noreferrer') }} style={{display:'inline-flex',alignItems:'center',gap:6}}><FiHelpCircle/> How to use</button>
       </div>
       <div style={{display:'flex',alignItems:'baseline',gap:8,margin:'4px 0 8px'}}>
         <div style={{fontSize:14,opacity:.8}}>Accounts: {accounts.length}</div>
@@ -195,26 +222,6 @@ export default function Dashboard() {
       </div>
 
       <div className="action-buttons" style={{position:'sticky', top:0, zIndex:10, display:'flex', gap:10, padding:'8px 4px', background:'var(--toolbar-bg, transparent)', backdropFilter:'saturate(180%) blur(8px)'}}>
-        <button
-          className="muted"
-          onClick={() => {
-            setEditing(null);
-            setOpen(true);
-            setShowAmazonInfo(true)
-          }}
-          disabled={refreshing}
-        >
-          <FiPlus /> Add account
-        </button>
-        <button
-          className="primary"
-          onClick={async () => {
-            await toast.promise((async()=>{ await refreshAll(accounts); await fetchAccounts() })(), { loading: 'Queued…', success: 'Done', error: (e)=> e?.response?.status===429? '429 - wait and retry' : 'Failed' })
-          }}
-          disabled={refreshing}
-        >
-          <FiRefreshCcw className={refreshing? 'spin':''}/> Refresh All
-        </button>
         <button className="muted" style={{display:'none'}} onClick={async ()=>{
           // Export current view to CSV
           const rows = [['Label','Email','Region','Balance','Currency','Last Refreshed']]
@@ -224,7 +231,7 @@ export default function Dashboard() {
           const url = URL.createObjectURL(blob)
           const a = document.createElement('a'); a.href=url; a.download='accounts.csv'; a.click(); URL.revokeObjectURL(url)
         }}>Export View CSV</button>
-        <button className="muted" onClick={()=> setShowAmazonInfo(true)} style={{display:'inline-flex',alignItems:'center',gap:6}}><FiHelpCircle/> How to use</button>
+        
         <button className="muted" style={{display:'none'}} onClick={async ()=>{
           const { data } = await api.get('/accounts')
           const rows = [["Label","Email","Region","Balance","Currency","Last Refreshed","Pinned","Tags"]]
@@ -244,15 +251,7 @@ export default function Dashboard() {
         )}
       </div>
 
-      {tab==='balance' && (
-      <section className="totals">
-        {Object.entries(total).map(([cur, amount]) => (
-          <div className="pill" key={cur}>
-            Total {cur === "INR" ? "₹" : cur} {Number(amount).toLocaleString("en-IN")}
-          </div>
-        ))}
-      </section>
-      )}
+      
       {tab==='balance' && tagTotalsBase.length > 0 && (
         <section className="totals">
           {tagTotalsBase.map(([tag, amt]) => (
@@ -306,14 +305,18 @@ export default function Dashboard() {
       </div>
       )}
 
-      {tab==='balance' && (!accounts.length ? (
+      {tab==='balance' && (accountsLoading ? (
         <Loader text="Loading accounts…" />
+      ) : !accounts.length ? (
+        <div className="panel" style={{textAlign:'center'}}>
+          <p style={{margin:'6px 0'}}>No Amazon accounts yet.</p>
+          <button className="primary" onClick={()=>{ setEditing(null); setShowAmazonInfo(true) }}>Add your first account</button>
+        </div>
       ) : (
         <section className="grid">
           {sortedFiltered.map((a) => (
             <div key={a.id} className="card-wrapper">
             <AccountCard
-              key={a.id}
               account={a}
               selected={selectedIds.has(a.id)}
               showCheckboxes={selectMode}
@@ -390,6 +393,9 @@ export default function Dashboard() {
         open={showAmazonInfo}
         title="How to use Amazon account balances"
         onClose={()=> setShowAmazonInfo(false)}
+        closeLabel="Cancel"
+        secondaryActionLabel="Proceed"
+        onSecondaryAction={()=>{ setShowAmazonInfo(false); setOpen(true) }}
         primaryActionLabel="View guide"
         onPrimaryAction={()=>{ window.open('https://github.com/developer-akbar/personal-dashboard/blob/main/SESSIONS.md', '_blank', 'noopener,noreferrer') }}
       >
@@ -415,7 +421,9 @@ export default function Dashboard() {
         onCancel={()=> setConfirm({ open:false, id:null })}
         onConfirm={async ()=>{ await deleteAccount(confirm.id); await fetchAccounts(); setConfirm({ open:false, id:null }) }}
       />
-      <AppFooter/>
+      <div style={{marginTop:'auto'}}>
+        <AppFooter/>
+      </div>
     </div>
   );
 }

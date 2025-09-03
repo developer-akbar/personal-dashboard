@@ -44,7 +44,7 @@ export default function Register(){
     try{
       if ((import.meta.env.VITE_TURNSTILE_SITE_KEY) && !captcha){ toast.error('Complete captcha'); return }
       await register({ name, email, password, captchaToken: captcha })
-      nav('/dashboard')
+      nav('/amazon')
     }catch(e){
       toast.error(e?.response?.data?.error || e?.message || 'Registration failed')
     }

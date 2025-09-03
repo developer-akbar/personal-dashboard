@@ -2,12 +2,18 @@ import React from "react";
 import { useEffect, useRef, useState } from "react";
 import { Toaster } from "react-hot-toast";
 import toast from "react-hot-toast";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../store/useAuth";
 
 export default function Login() {
   const nav = useNavigate();
-  const { login, loading } = useAuth();
+  const loc = useLocation();
+  const { login, loading, user } = useAuth();
+  useEffect(()=>{
+    if (user){
+      nav('/electricity', { replace:true })
+    }
+  }, [user])
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [captcha, setCaptcha] = useState("");
@@ -42,7 +48,13 @@ export default function Login() {
     try {
       if ((import.meta.env.VITE_TURNSTILE_SITE_KEY) && !captcha){ toast.error('Complete captcha'); return }
       await login(email, password, captcha);
-      nav("/dashboard");
+      const params = new URLSearchParams(loc.search)
+      const next = params.get('next')
+      if (next) {
+        nav(next.startsWith('/')? next : '/amazon', { replace:true })
+      } else {
+        nav('/electricity', { replace:true })
+      }
     } catch (e) {
       toast.error(e?.response?.data?.error || e?.message || 'Login failed')
     }

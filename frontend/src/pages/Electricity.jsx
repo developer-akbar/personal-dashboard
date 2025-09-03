@@ -6,6 +6,7 @@ import AppFooter from '../components/AppFooter'
 // import GlobalDebug from '../components/GlobalDebug'
 import HeaderAvatar from '../components/HeaderAvatar'
 import toast from 'react-hot-toast'
+import Loader from '../components/Loader'
 import { FiPlus, FiRefreshCcw, FiLoader } from 'react-icons/fi'
 import ElectricityServiceCard from '../components/ElectricityServiceCard'
 import InfoModal from '../components/InfoModal'
@@ -13,7 +14,7 @@ import ConfirmDialog from '../components/ConfirmDialog'
 import api from '../api/client'
 
 export default function Electricity(){
-  const { services, trashed, fetchServices, fetchTrashed, addService, updateService, deleteService, deleteServicePermanent, restoreService, refreshAll, refreshOne } = useElectricity()
+  const { services, trashed, fetchServices, fetchTrashed, addService, updateService, deleteService, deleteServicePermanent, restoreService, refreshAll, refreshOne, loading } = useElectricity()
   const [open,setOpen] = useState(false)
   const [editing,setEditing] = useState(null)
   const [health, setHealth] = useState({ ok:false, db:'unknown' })
@@ -86,19 +87,23 @@ export default function Electricity(){
 
   const sortedFiltered = useMemo(()=>{
     const list = [...filtered]
+    // Partition: pinned first (FIFO by pinnedAt), then others by chosen sort
+    const pinned = list.filter(x=> x.pinned)
+    const others = list.filter(x=> !x.pinned)
+    pinned.sort((a,b)=> new Date(a.pinnedAt||0) - new Date(b.pinnedAt||0))
     if (sortBy==='amount'){
-      list.sort((a,b)=> Number(b.lastAmountDue||0) - Number(a.lastAmountDue||0))
+      others.sort((a,b)=> Number(b.lastAmountDue||0) - Number(a.lastAmountDue||0))
     } else if (sortBy==='label'){
-      list.sort((a,b)=> (a.label||'').localeCompare(b.label||''))
+      others.sort((a,b)=> (a.label||'').localeCompare(b.label||''))
     } else if (sortBy==='refreshed'){
-      list.sort((a,b)=> new Date(b.lastFetchedAt||0) - new Date(a.lastFetchedAt||0))
+      others.sort((a,b)=> new Date(b.lastFetchedAt||0) - new Date(a.lastFetchedAt||0))
     }
-    return list
+    return [...pinned, ...others]
   }, [filtered, sortBy])
 
 
   return (
-    <div className="container">
+    <div className="container" style={{minHeight:'calc(var(--vh, 1vh) * 100)', display:'flex', flexDirection:'column'}}>
       <header className="topbar">
         <h2>Personal Dashboard</h2>
         <div className="spacer" />
@@ -113,9 +118,11 @@ export default function Electricity(){
         <button className="muted" onClick={()=> { setEditing(null); setOpen(true); }} style={{display:'inline-flex',alignItems:'center',gap:6}}>
           <FiPlus/> Add Service
         </button>
+        {services.length >= 2 && (
         <button className="primary" onClick={async()=>{ await toast.promise(refreshAll(), { loading:'Queued…', success:'Done', error:(e)=> e?.response?.status===429? '429 - wait and retry' : 'Failed' }, { success:{ duration:2000 }, error:{ duration:2000 } }) }} style={{display:'inline-flex',alignItems:'center',gap:6}} disabled={false}>
           <FiRefreshCcw className={services.some(s=> s.loading)? 'spin':''}/> Refresh All
         </button>
+        )}
       </div>
 
       {/* Info panel moved to Home */}
@@ -177,7 +184,14 @@ export default function Electricity(){
         </div>
       )}
 
-      {activeTab==='active' && (
+      {activeTab==='active' && (loading ? (
+        <Loader text="Loading services…" />
+      ) : services.length === 0 ? (
+        <div className="panel" style={{textAlign:'center'}}>
+          <p style={{margin:'6px 0'}}>No services added yet.</p>
+          <button className="primary" onClick={()=> { setEditing(null); setOpen(true); }}>Add your first service</button>
+        </div>
+      ) : (
       <section className={`grid elec-grid ${selectMode? 'select-mode':''}`}>
         {sortedFiltered.map(s=> (
           <div key={s.id} className={`card-wrapper`} onMouseEnter={()=> setSelectMode(true)} onMouseLeave={()=>{ if(selectedIds.size===0) setSelectMode(false) }} onTouchStart={()=>{ if (longPressRef.current) clearTimeout(longPressRef.current); longPressRef.current = setTimeout(()=> setSelectMode(true), 500) }} onTouchEnd={()=>{ if (longPressRef.current) { clearTimeout(longPressRef.current); longPressRef.current=null } }}>
@@ -190,6 +204,7 @@ export default function Electricity(){
               item={s}
               highlight={highlightId===s.id}
               domId={`svc-${s.id}`}
+              onTogglePin={(svc, pinned)=> (async()=>{ try{ await (await import('../store/useElectricity')).useElectricity.getState().togglePinned(svc.id, pinned) }catch(e){ toast.error(e?.response?.data?.error || e?.message || 'Failed') } })()}
               onRefresh={async()=>{ await toast.promise(refreshOne(s.id), { loading:`Refreshing ${s.label||s.serviceNumber}…`, success:'Refreshed', error:(e)=> e?.response?.data?.error || 'Refresh failed' }, { success: { duration: 2000 }, error: { duration: 2000 }, loading: { duration: 2000 } }) }}
               onEdit={()=> { setEditing(s); setOpen(true) }}
               onDelete={()=> setConfirm({ open:true, id:s.id })}
@@ -197,7 +212,7 @@ export default function Electricity(){
           </div>
         ))}
       </section>
-      )}
+      ))}
 
       {activeTab==='trash' && (
         <section className="grid">
@@ -266,7 +281,9 @@ export default function Electricity(){
         </ul>
       </InfoModal>
       <ConfirmDialog open={confirm.open} title="Delete service?" message="Choose soft delete (move to Trash) or delete permanently." onCancel={()=> setConfirm({ open:false, id:null })} onConfirm={async()=>{ try{ await deleteService(confirm.id); toast.success('Moved to Trash', { duration: 2000 }) }catch(e){ toast.error(e?.response?.data?.error || e.message, { duration: 2000 }) } finally { setConfirm({ open:false, id:null }) } }} onConfirmHard={async()=>{ try{ await deleteServicePermanent(confirm.id); toast.success('Permanently deleted', { duration: 2000 }) }catch(e){ toast.error(e?.response?.data?.error || e.message, { duration: 2000 }) } finally { setConfirm({ open:false, id:null }) } }} hardLabel="Delete permanently" />
-      <AppFooter/>
+      <div style={{marginTop:'auto'}}>
+        <AppFooter/>
+      </div>
     </div>
   )
 }
