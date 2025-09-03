@@ -66,7 +66,21 @@ export default function ElectricityServiceCard({ item, onRefresh, onEdit, onDele
         </div>
       )}
       <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',fontSize:12,opacity:.8}}>
-        <span>Last refreshed: <b>{item.lastFetchedAt ? new Date(item.lastFetchedAt).toLocaleString() : '—'}</b></span>
+        <span>Last refreshed: <b>{item.lastFetchedAt ? new Date(item.lastFetchedAt).toLocaleString() : '—'}</b> {item.lastFetchedAt && (
+          <span style={{opacity:.75}}>(
+            {(() => {
+              const diffMs = Date.now() - new Date(item.lastFetchedAt).getTime()
+              const s = Math.floor(diffMs/1000)
+              if (s < 60) return `${s}s ago`
+              const m = Math.floor(s/60)
+              if (m < 60) return `${m}m ago`
+              const h = Math.floor(m/60)
+              if (h < 24) return `${h}h ago`
+              const d = Math.floor(h/24)
+              return `${d}d ago`
+            })()}
+          )</span>
+        )}</span>
       </div>
     </article>
   )
