@@ -28,7 +28,7 @@ export default function Login() {
           sitekey: siteKey,
           theme: 'auto',
           callback: (t)=> setCaptcha(t),
-          'error-callback': ()=> { setCaptcha(''); toast.error('Captcha failed, retry') },
+          'error-callback': ()=> { setCaptcha(''); toast.error('Captcha failed, retry', { duration: 2000 }) },
           'expired-callback': ()=> { setCaptcha(''); toast('Captcha expired', { icon: '⚠️' }) }
         })
         widgetRef.current._rendered = true
@@ -42,11 +42,11 @@ export default function Login() {
   async function onSubmit(e) {
     e.preventDefault();
     const emailOk = /.+@.+\..+/.test(email);
-    if (!emailOk) return toast.error("Enter a valid email");
+    if (!emailOk) return toast.error("Enter a valid email", { duration: 2000 });
     if (password.length < 6)
-      return toast.error("Password must be at least 6 characters");
+      return toast.error("Password must be at least 6 characters", { duration: 2000 });
     try {
-      if ((import.meta.env.VITE_TURNSTILE_SITE_KEY) && !captcha){ toast.error('Complete captcha'); return }
+      if ((import.meta.env.VITE_TURNSTILE_SITE_KEY) && !captcha){ toast.error('Complete captcha', { duration: 2000 }); return }
       await login(email, password, captcha);
       const params = new URLSearchParams(loc.search)
       const next = params.get('next')
@@ -56,7 +56,7 @@ export default function Login() {
         nav('/electricity', { replace:true })
       }
     } catch (e) {
-      toast.error(e?.response?.data?.error || e?.message || 'Login failed')
+      toast.error(e?.response?.data?.error || e?.message || 'Login failed', { duration: 2000 })
     }
   }
 

@@ -28,3 +28,22 @@ export function istDayKey(){
   return `${y}${m}${d}`
 }
 
+function parseDurationMs(input, defaultSeconds){
+  const raw = (input==null? '': String(input)).trim().toLowerCase()
+  if (!raw) return defaultSeconds * 1000
+  if (/^\d+ms$/.test(raw)) return Number(raw.replace('ms',''))
+  if (/^\d+s$/.test(raw)) return Number(raw.replace('s','')) * 1000
+  if (/^\d+m$/.test(raw)) return Number(raw.replace('m','')) * 60 * 1000
+  const n = Number(raw)
+  if (!Number.isFinite(n)) return defaultSeconds * 1000
+  return n * 1000
+}
+
+export function getAmazonRefreshWaitMs(){
+  return parseDurationMs(process.env.AMAZON_REFRESH_WAITING_TIME, 120)
+}
+
+export function getElectricityRefreshWaitMs(){
+  return parseDurationMs(process.env.ELECTRICITY_REFRESH_WAITING_TIME, 120)
+}
+

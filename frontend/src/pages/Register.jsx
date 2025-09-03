@@ -23,7 +23,7 @@ export default function Register(){
           sitekey: siteKey,
           theme: 'auto',
           callback: (t)=> setCaptcha(t),
-          'error-callback': ()=> { setCaptcha(''); toast.error('Captcha failed, retry') },
+          'error-callback': ()=> { setCaptcha(''); toast.error('Captcha failed, retry', { duration: 2000 }) },
           'expired-callback': ()=> { setCaptcha(''); toast('Captcha expired', { icon: '⚠️' }) }
         })
         widgetRef.current._rendered = true
@@ -37,16 +37,16 @@ export default function Register(){
   async function onSubmit(e){
     e.preventDefault()
     const emailOk = /.+@.+\..+/.test(email)
-    if(!emailOk) return toast.error('Enter a valid email')
-    if(password.length < 6) return toast.error('Password must be at least 6 characters')
+    if(!emailOk) return toast.error('Enter a valid email', { duration: 2000 })
+    if(password.length < 6) return toast.error('Password must be at least 6 characters', { duration: 2000 })
     const confirm = e.target?.confirm?.value
-    if(confirm !== password) return toast.error('Passwords do not match')
+    if(confirm !== password) return toast.error('Passwords do not match', { duration: 2000 })
     try{
-      if ((import.meta.env.VITE_TURNSTILE_SITE_KEY) && !captcha){ toast.error('Complete captcha'); return }
+      if ((import.meta.env.VITE_TURNSTILE_SITE_KEY) && !captcha){ toast.error('Complete captcha', { duration: 2000 }); return }
       await register({ name, email, password, captchaToken: captcha })
       nav('/amazon')
     }catch(e){
-      toast.error(e?.response?.data?.error || e?.message || 'Registration failed')
+      toast.error(e?.response?.data?.error || e?.message || 'Registration failed', { duration: 2000 })
     }
   }
 

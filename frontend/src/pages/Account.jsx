@@ -17,8 +17,8 @@ export default function Account(){
 
   async function saveProfile(e){
     e.preventDefault(); setSaving(true)
-    try{ await api.put('/users/me',{ name, avatarUrl }); toast.success('Profile updated'); (await import('../store/useAuth')).useAuth.getState().setUser({ name, avatarUrl }) }
-    catch{ toast.error('Failed to update') }
+    try{ await api.put('/users/me',{ name, avatarUrl }); toast.success('Profile updated', { duration: 2000 }); (await import('../store/useAuth')).useAuth.getState().setUser({ name, avatarUrl }) }
+    catch{ toast.error('Failed to update', { duration: 2000 }) }
     finally{ setSaving(false) }
   }
 
@@ -27,9 +27,9 @@ export default function Account(){
     const currentPassword = e.target.currentPassword.value
     const newPassword = e.target.newPassword.value
     const confirm = e.target.confirm.value
-    if(newPassword !== confirm){ toast.error('Passwords do not match'); setCpLoading(false); return }
-    try{ await api.post('/users/change-password',{ currentPassword, newPassword }); toast.success('Password changed') }
-    catch{ toast.error('Failed to change password') }
+    if(newPassword !== confirm){ toast.error('Passwords do not match', { duration: 2000 }); setCpLoading(false); return }
+    try{ await api.post('/users/change-password',{ currentPassword, newPassword }); toast.success('Password changed', { duration: 2000 }) }
+    catch{ toast.error('Failed to change password', { duration: 2000 }) }
     finally{ setCpLoading(false) }
   }
 

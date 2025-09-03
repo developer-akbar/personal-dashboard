@@ -5,7 +5,7 @@ import Balance from "../models/Balance.js";
 import { decryptSecret } from "../utils/crypto.js";
 import { fetchAmazonPayBalance } from "../services/scraper.js";
 import rateLimit from 'express-rate-limit'
-import { getAdminUsers, getAmazonRefreshCap, istDayKey } from '../config/limits.js'
+import { getAdminUsers, getAmazonRefreshCap, istDayKey, getAmazonRefreshWaitMs } from '../config/limits.js'
 
 const router = Router();
 
@@ -37,7 +37,7 @@ router.get("/history/:accountId", async (req, res, next) => {
 
 router.post("/refresh/:accountId", refreshLimiter, async (req, res, next) => {
   try {
-    const cooldownMs = Number(process.env.REFRESH_COOLDOWN_MS || 5*60*1000)
+    const cooldownMs = getAmazonRefreshWaitMs()
     const account = await AmazonAccount.findOne({ _id: req.params.accountId, userId: req.user.id });
     if (!account) return res.status(404).json({ error: "Account not found" });
     const isAdmin = ADMIN_USERS.includes((req.user?.email||'').toLowerCase())
@@ -86,7 +86,7 @@ router.post("/refresh/:accountId", refreshLimiter, async (req, res, next) => {
 
 router.post("/refresh-all", refreshLimiter, async (req, res, next) => {
   try {
-    const cooldownMs = Number(process.env.REFRESH_COOLDOWN_MS || 5*60*1000)
+    const cooldownMs = getAmazonRefreshWaitMs()
     const accounts = await AmazonAccount.find({ userId: req.user.id }).sort({ createdAt: 1 });
     const batchSize = Math.max(1, Math.min(5, Number(req.body?.batchSize) || 3));
     const results = [];

@@ -250,7 +250,7 @@ export default function Electricity(){
             const toastId = toast.loading('Adding service…')
             try{
               const createdId = await addService(serviceNumber, label)
-              toast.success('Service added', { id: toastId, duration: 1500 })
+              toast.success('Service added', { id: toastId, duration: 2000 })
               setOpen(false)
               setHighlightId(createdId)
             }catch(err){

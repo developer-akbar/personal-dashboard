@@ -29,6 +29,6 @@ try {
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     <App />
-    <Toaster position="bottom-center" />
+    <Toaster position="bottom-center" toastOptions={{ duration: 2000, style: { maxWidth: '480px', whiteSpace: 'pre-wrap', wordBreak: 'break-word' } }} />
   </StrictMode>,
 )

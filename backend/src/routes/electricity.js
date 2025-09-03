@@ -3,7 +3,7 @@ import { requireAuth } from '../middleware/auth.js'
 import ElectricityService from '../models/ElectricityService.js'
 import { fetchApspdclBill } from '../services/apspdcl.js'
 import rateLimit from 'express-rate-limit'
-import { istDayKey, getAdminUsers, getElectricityRefreshCap, getSubscribedUsers, getFreeLimit } from '../config/limits.js'
+import { istDayKey, getAdminUsers, getElectricityRefreshCap, getSubscribedUsers, getFreeLimit, getElectricityRefreshWaitMs } from '../config/limits.js'
 
 const router = Router()
 router.use(requireAuth)
@@ -179,7 +179,7 @@ router.post('/services/restore/:id', async (req,res,next)=>{
 // Refresh one
 router.post('/services/:id/refresh', elecLimiter, async (req,res,next)=>{
   try{
-    const cooldownMs = Number(process.env.REFRESH_COOLDOWN_MS || 5*60*1000)
+    const cooldownMs = getElectricityRefreshWaitMs()
     const svc = await ElectricityService.findOne({ _id: req.params.id, userId: req.user.id })
     if(!svc) return res.status(404).json({ error: 'Not found' })
     const isAdmin = ADMIN_USERS.includes((req.user?.email||'').toLowerCase())
@@ -257,7 +257,7 @@ router.post('/services/refresh-all', elecLimiter, async (req,res,next)=>{
           svc.lastThreeAmounts = Array.isArray(result.lastThreeAmounts)? result.lastThreeAmounts : []
           svc.lastStatus = result.status
           svc.lastFetchedAt = new Date()
-          if (!isAdmin) svc.nextAllowedAt = new Date(Date.now() + Number(process.env.REFRESH_COOLDOWN_MS || 5*60*1000)) // only on success
+          if (!isAdmin) svc.nextAllowedAt = new Date(Date.now() + getElectricityRefreshWaitMs()) // only on success
           svc.lastError = null
           svc.refreshInProgress = false
           await svc.save()
