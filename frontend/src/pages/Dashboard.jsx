@@ -172,6 +172,20 @@ export default function Dashboard() {
         <small style={{opacity:.8}}>Backend: <b style={{color: health.ok? '#10b981':'#ef4444'}}>{health.ok? 'up':'down'}</b> • DB: <b>{health.db}</b></small>
         <span />
       </div>
+      <div className="action-buttons" style={{display:'flex', gap:10, padding:'8px 4px'}}>
+        <button
+          className="muted"
+          onClick={() => {
+            setEditing(null);
+            setOpen(true);
+            setShowAmazonInfo(true)
+          }}
+          disabled={refreshing}
+        >
+          <FiPlus /> Add account
+        </button>
+        <button className="muted" onClick={()=> setShowAmazonInfo(true)} style={{display:'inline-flex',alignItems:'center',gap:6}}><FiHelpCircle/> How to use</button>
+      </div>
       <div style={{display:'flex',alignItems:'baseline',gap:8,margin:'4px 0 8px'}}>
         <div style={{fontSize:14,opacity:.8}}>Accounts: {accounts.length}</div>
         <div style={{fontSize:14,opacity:.8,marginLeft:12}}>Total ({baseCurrency==='INR'?'₹':baseCurrency}):</div>
@@ -195,17 +209,6 @@ export default function Dashboard() {
       </div>
 
       <div className="action-buttons" style={{position:'sticky', top:0, zIndex:10, display:'flex', gap:10, padding:'8px 4px', background:'var(--toolbar-bg, transparent)', backdropFilter:'saturate(180%) blur(8px)'}}>
-        <button
-          className="muted"
-          onClick={() => {
-            setEditing(null);
-            setOpen(true);
-            setShowAmazonInfo(true)
-          }}
-          disabled={refreshing}
-        >
-          <FiPlus /> Add account
-        </button>
         {accounts.length >= 2 && (
           <button
             className="primary"

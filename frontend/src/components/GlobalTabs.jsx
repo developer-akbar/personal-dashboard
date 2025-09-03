@@ -6,9 +6,9 @@ export default function GlobalTabs(){
   const isAmazon = pathname === '/dashboard'
   const isElectricity = pathname === '/electricity'
   return (
-    <div className="panel" role="tablist" aria-label="Sections" style={{display:'inline-flex',gap:6,padding:6,marginBottom:8}}>
-      <Link to="/dashboard" role="tab" aria-selected={isAmazon} className={`tab-link ${isAmazon? 'primary':'muted'}`}>Amazon</Link>
-      <Link to="/electricity" role="tab" aria-selected={isElectricity} className={`tab-link ${isElectricity? 'primary':'muted'}`}>Electricity</Link>
+    <div className="panel main-tabs" role="tablist" aria-label="Sections" style={{display:'flex',justifyContent:'space-between',gap:6,padding:6,marginBottom:8}}>
+      <Link to="/dashboard" role="tab" aria-selected={isAmazon} className={`tab-link ${isAmazon? 'primary':'muted'}`} style={{flex:1, textAlign:'center'}}>Amazon</Link>
+      <Link to="/electricity" role="tab" aria-selected={isElectricity} className={`tab-link ${isElectricity? 'primary':'muted'}`} style={{flex:1, textAlign:'center'}}>Electricity</Link>
     </div>
   )
 }
