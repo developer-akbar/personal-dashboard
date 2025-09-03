@@ -30,9 +30,9 @@ body {
   --avatar-bg: #2a2a2a;
   --avatar-border: #444;
   /* Flash colors (dark) */
-  --flash-glow: rgba(56, 189, 248, 0.9);
-  --flash-ring: rgba(56, 189, 248, 0.45);
-  --flash-tint: rgba(56, 189, 248, 0.16);
+  --flash-glow: rgba(56, 189, 248, 1.0); /* brighter glow */
+  --flash-ring: rgba(56, 189, 248, 0.65); /* stronger ring */
+  --flash-tint: rgba(56, 189, 248, 0.25); /* darker tint */
 }
 :root[data-theme="light"] {
   --bg: #f9fafb;
@@ -56,9 +56,9 @@ body {
   --avatar-bg: #e5e7eb;
   --avatar-border: #94a3b8;
   /* Flash colors (light) */
-  --flash-glow: rgba(79, 70, 229, 0.8);
-  --flash-ring: rgba(79, 70, 229, 0.45);
-  --flash-tint: rgba(79, 70, 229, 0.14);
+  --flash-glow: rgba(79, 70, 229, 0.9);
+  --flash-ring: rgba(79, 70, 229, 0.55);
+  --flash-tint: rgba(79, 70, 229, 0.18);
 }
 #root {
   max-width: 1100px;
@@ -305,14 +305,14 @@ select {
 .clear-btn:hover { opacity: 1; }
 
 /* Flash highlight for newly added items */
-.flash { animation: flashPulse 1.4s ease-out 1; }
+.flash { animation: flashPulse 2.5s ease-out 1; }
 @keyframes flashPulse {
   0% {
-    box-shadow: 0 0 0 0 var(--flash-glow), 0 0 0 2px var(--flash-ring) inset;
+    box-shadow: 0 0 0 0 var(--flash-glow), 0 0 0 3px var(--flash-ring) inset;
     background-image: linear-gradient(0deg, var(--flash-tint), var(--flash-tint));
   }
   50% {
-    box-shadow: 0 0 0 10px var(--flash-tint), 0 0 0 3px var(--flash-ring) inset;
+    box-shadow: 0 0 0 14px var(--flash-tint), 0 0 0 4px var(--flash-ring) inset;
   }
   100% {
     box-shadow: 0 0 0 0 rgba(0,0,0,0), 0 0 0 0 rgba(0,0,0,0) inset;
