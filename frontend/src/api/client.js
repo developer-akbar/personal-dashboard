@@ -24,7 +24,8 @@ api.interceptors.request.use((config) => {
 api.interceptors.response.use(
   (res)=>{ try{ localStorage.setItem('lastApiMeta', JSON.stringify({ url: res.config?.url, status: res.status, at: Date.now() })) }catch{}; return res },
   (err)=>{
-    if(err?.response?.status === 401){
+    const url = err?.config?.url || ''
+    if(err?.response?.status === 401 && !/\/auth\/(login|register)$/.test(url)){
       try{ toast.error('Session expired. Please sign in again.') }catch{}
       try{ localStorage.removeItem('accessToken'); localStorage.removeItem('refreshToken'); localStorage.removeItem('user') }catch{}
       try{ window.location.hash = '#/' }catch{}
