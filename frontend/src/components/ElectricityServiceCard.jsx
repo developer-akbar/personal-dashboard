@@ -2,7 +2,7 @@ import React from 'react'
 import toast from 'react-hot-toast'
 import { FiRefreshCcw, FiMoreVertical } from 'react-icons/fi'
 
-export default function ElectricityServiceCard({ item, onRefresh, onEdit, onDelete }){
+export default function ElectricityServiceCard({ item, onRefresh, onEdit, onDelete, highlight=false, domId }){
   const onToggleMenu = (e)=>{
     e.stopPropagation()
     const menu = e.currentTarget.nextSibling
@@ -16,7 +16,7 @@ export default function ElectricityServiceCard({ item, onRefresh, onEdit, onDele
     }
   }
   return (
-    <article className="panel" style={{display:'flex',flexDirection:'column',gap:8,borderLeft:'4px solid var(--primary-bg)'}}>
+    <article id={domId} className={`panel ${highlight? 'flash':''}`} style={{display:'flex',flexDirection:'column',gap:8,borderLeft:'4px solid var(--primary-bg)'}}>
       <div style={{display:'flex',justifyContent:'space-between',alignItems:'center'}}>
         <div style={{display:'flex',flexDirection:'column'}}>
           <strong>{item.label || '—'}</strong>

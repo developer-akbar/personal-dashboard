@@ -176,13 +176,20 @@ export default function Electricity(){
       {activeTab==='active' && (
       <section className={`grid ${selectMode? 'select-mode':''}`}>
         {sortedFiltered.map(s=> (
-          <div key={s.id} id={`svc-${s.id}`} className={`card-wrapper ${highlightId===s.id? 'flash':''}`} onMouseEnter={()=> setSelectMode(true)} onMouseLeave={()=>{ if(selectedIds.size===0) setSelectMode(false) }} onTouchStart={()=>{ if (longPressRef.current) clearTimeout(longPressRef.current); longPressRef.current = setTimeout(()=> setSelectMode(true), 500) }} onTouchEnd={()=>{ if (longPressRef.current) { clearTimeout(longPressRef.current); longPressRef.current=null } }}>
+          <div key={s.id} className={`card-wrapper`} onMouseEnter={()=> setSelectMode(true)} onMouseLeave={()=>{ if(selectedIds.size===0) setSelectMode(false) }} onTouchStart={()=>{ if (longPressRef.current) clearTimeout(longPressRef.current); longPressRef.current = setTimeout(()=> setSelectMode(true), 500) }} onTouchEnd={()=>{ if (longPressRef.current) { clearTimeout(longPressRef.current); longPressRef.current=null } }}>
             {selectMode && (
               <input type="checkbox" className="checkbox" checked={selectedIds.has(s.id)} onChange={()=>{
                 const next=new Set(selectedIds); if(next.has(s.id)) next.delete(s.id); else next.add(s.id); setSelectedIds(next); if(next.size===0) setSelectMode(false)
               }} style={{position:'absolute', margin:8}} />
             )}
-            <ElectricityServiceCard item={s} onRefresh={async()=>{ await toast.promise(refreshOne(s.id), { loading:`Refreshing ${s.label||s.serviceNumber}…`, success:'Refreshed', error:(e)=> e?.response?.data?.error || 'Refresh failed' }, { success: { duration: 2000 }, error: { duration: 2000 }, loading: { duration: 2000 } }) }} onEdit={()=> { setEditing(s); setOpen(true) }} onDelete={()=> setConfirm({ open:true, id:s.id })} />
+            <ElectricityServiceCard
+              item={s}
+              highlight={highlightId===s.id}
+              domId={`svc-${s.id}`}
+              onRefresh={async()=>{ await toast.promise(refreshOne(s.id), { loading:`Refreshing ${s.label||s.serviceNumber}…`, success:'Refreshed', error:(e)=> e?.response?.data?.error || 'Refresh failed' }, { success: { duration: 2000 }, error: { duration: 2000 }, loading: { duration: 2000 } }) }}
+              onEdit={()=> { setEditing(s); setOpen(true) }}
+              onDelete={()=> setConfirm({ open:true, id:s.id })}
+            />
           </div>
         ))}
       </section>
