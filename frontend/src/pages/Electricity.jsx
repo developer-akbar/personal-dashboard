@@ -197,6 +197,7 @@ export default function Electricity(){
               item={s}
               highlight={highlightId===s.id}
               domId={`svc-${s.id}`}
+              onTogglePin={(svc, pinned)=> (async()=>{ try{ await (await import('../store/useElectricity')).useElectricity.getState().togglePinned(svc.id, pinned) }catch(e){ toast.error(e?.response?.data?.error || e?.message || 'Failed') } })()}
               onRefresh={async()=>{ await toast.promise(refreshOne(s.id), { loading:`Refreshing ${s.label||s.serviceNumber}…`, success:'Refreshed', error:(e)=> e?.response?.data?.error || 'Refresh failed' }, { success: { duration: 2000 }, error: { duration: 2000 }, loading: { duration: 2000 } }) }}
               onEdit={()=> { setEditing(s); setOpen(true) }}
               onDelete={()=> setConfirm({ open:true, id:s.id })}

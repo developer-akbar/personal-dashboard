@@ -38,7 +38,7 @@ async function validateApspdclServiceNumber(sn){
 // List services
 router.get('/services', async (req,res,next)=>{
   try{
-    const items = await ElectricityService.find({ userId: req.user.id, isDeleted: { $ne: true } }).sort({ createdAt: -1 })
+    const items = await ElectricityService.find({ userId: req.user.id, isDeleted: { $ne: true } }).sort({ pinned: -1, pinnedAt: -1, createdAt: -1 })
     res.json(items.map(s=> ({
       id: s._id,
       label: s.label,
@@ -52,6 +52,8 @@ router.get('/services', async (req,res,next)=>{
       lastStatus: s.lastStatus,
       lastFetchedAt: s.lastFetchedAt,
       lastError: s.lastError,
+      pinned: !!s.pinned,
+      pinnedAt: s.pinnedAt || null,
     })))
   }catch(e){ next(e) }
 })
@@ -107,7 +109,7 @@ router.post('/services', async (req,res,next)=>{
 // Update service (label/serviceNumber)
 router.put('/services/:id', async (req,res,next)=>{
   try{
-    const { serviceNumber, label } = req.body || {}
+    const { serviceNumber, label, pinned } = req.body || {}
     const update = {}
     if (serviceNumber){
       const sn = String(serviceNumber).trim()
@@ -127,6 +129,10 @@ router.put('/services/:id', async (req,res,next)=>{
         if (dupLabel) return res.status(409).json({ error: 'Label already exists' })
       }
       update.label = (label||'').trim()
+    }
+    if (typeof pinned === 'boolean'){
+      update.pinned = pinned
+      update.pinnedAt = pinned ? new Date() : null
     }
     await ElectricityService.updateOne({ _id: req.params.id, userId: req.user.id }, update)
     res.json({ ok: true })

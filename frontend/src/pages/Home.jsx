@@ -1,14 +1,16 @@
 import React from 'react'
 import { Link } from 'react-router-dom'
 import AppFooter from '../components/AppFooter'
+import { useAuth } from '../store/useAuth'
 
 export default function Home(){
+  const { user } = useAuth()
   return (
     <div className="container" style={{minHeight:'100vh', display:'flex', flexDirection:'column'}}>
       <header className="topbar">
         <h2 style={{margin:0}}>Personal Dashboard</h2>
         <div className="spacer" />
-        <Link to="/login" className="primary" style={{textDecoration:'none',padding:'8px 12px',borderRadius:8}}>Sign in</Link>
+        {!user && <Link to="/login" className="primary" style={{textDecoration:'none',padding:'8px 12px',borderRadius:8}}>Sign in</Link>}
       </header>
 
       <section className="panel" style={{display:'grid',gridTemplateColumns:'1fr',gap:12}}>

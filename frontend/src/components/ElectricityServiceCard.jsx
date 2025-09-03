@@ -2,7 +2,7 @@ import React from 'react'
 import toast from 'react-hot-toast'
 import { FiRefreshCcw, FiMoreVertical } from 'react-icons/fi'
 
-export default function ElectricityServiceCard({ item, onRefresh, onEdit, onDelete, highlight=false, domId }){
+export default function ElectricityServiceCard({ item, onRefresh, onEdit, onDelete, highlight=false, domId, onTogglePin }){
   const onToggleMenu = (e)=>{
     e.stopPropagation()
     const menu = e.currentTarget.nextSibling
@@ -27,6 +27,7 @@ export default function ElectricityServiceCard({ item, onRefresh, onEdit, onDele
           </small>
         </div>
         <div style={{display:'inline-flex',gap:8,alignItems:'center'}}>
+          <button className="muted" onClick={()=> onTogglePin?.(item, !item.pinned)} aria-label={item.pinned? 'Unpin':'Pin'} title={item.pinned? 'Unpin':'Pin'}>{item.pinned? '★':'☆'}</button>
           <button className="muted" onClick={onRefresh} aria-label="Refresh"><FiRefreshCcw/></button>
           <div style={{position:'relative'}}>
             <div onClick={onToggleMenu} style={{cursor:'pointer', padding:'4px 8px'}}><FiMoreVertical/></div>
