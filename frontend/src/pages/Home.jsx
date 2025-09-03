@@ -1,9 +1,10 @@
 import React from 'react'
 import { Link } from 'react-router-dom'
+import AppFooter from '../components/AppFooter'
 
 export default function Home(){
   return (
-    <div className="container">
+    <div className="container" style={{minHeight:'100vh', display:'flex', flexDirection:'column'}}>
       <header className="topbar">
         <h2 style={{margin:0}}>Personal Dashboard</h2>
         <div className="spacer" />
@@ -24,19 +25,31 @@ export default function Home(){
       </section>
 
       <section className="grid">
-        <article className="panel">
-          <h4 style={{marginTop:0}}>Amazon Pay</h4>
-          <p>Connect multiple Amazon accounts and view balances at a glance. Rewards view included.</p>
+        <article className="panel" style={{display:'flex', flexDirection:'column', gap:10, alignItems:'center'}}>
+          <img src="https://upload.wikimedia.org/wikipedia/commons/a/a9/Amazon_logo.svg" alt="Amazon" style={{height:32}}/>
+          <div>
+            <h4 style={{marginTop:0}}>Amazon Pay</h4>
+            <p style={{margin:'6px 0'}}>Connect multiple Amazon accounts and view balances at a glance. Rewards view included.</p>
+            <p style={{margin:'6px 0'}}>Refresh single/all, see totals and rewards. Pin, tag, and filter for focus.</p>
+          </div>
         </article>
-        <article className="panel">
-          <h4 style={{marginTop:0}}>Electricity (APSPDCL)</h4>
-          <p>Monitor dues, billed units, and last three bills with one click refresh.</p>
+        <article className="panel" style={{display:'flex', flexDirection:'column', gap:10, alignItems:'center'}}>
+          <img src="https://apspdcl.in/ConsumerDashboard/assets/images/logo-new.png" alt="APSPDCL" style={{height:36, background:'#fff', borderRadius:6, padding:2}}/>
+          <div>
+            <h4 style={{marginTop:0}}>Electricity (APSPDCL)</h4>
+            <p style={{margin:'6px 0'}}>Monitor dues, billed units, and last three bills with one click refresh.</p>
+            <p style={{margin:'6px 0'}}>Validated 13‑digit Service Number, refresh locks, admin bypass. Trash/Restore included.</p>
+          </div>
         </article>
         <article className="panel">
           <h4 style={{marginTop:0}}>Privacy & Security</h4>
           <p>Credentials are encrypted. Sessions are local-seeded by you. No third-party sharing.</p>
         </article>
       </section>
+
+      <div style={{marginTop:'auto'}}>
+        <AppFooter/>
+      </div>
     </div>
   )
 }

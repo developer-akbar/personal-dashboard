@@ -86,7 +86,8 @@ body {
 .container {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  gap: 1rem;
+  padding-top: 8px;
 }
 .grid {
   display: grid;
@@ -108,7 +109,7 @@ body {
   background: var(--panel-bg);
   border: 2px solid var(--panel-border);
   border-radius: 14px;
-  padding: 16px;
+  padding: 18px;
   box-shadow: 0 8px 18px rgba(0, 0, 0, 0.25);
 }
 .centered {
@@ -193,7 +194,8 @@ select {
 .totals {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: 10px;
+  padding: 4px 0;
 }
 .pill {
   background: var(--pill-bg);
@@ -283,6 +285,23 @@ select {
   opacity: 1;
   pointer-events: auto;
 }
+
+/* Electricity: default 2 columns; 3 only on very wide screens; 1 on small */
+.elec-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+@media (min-width: 1600px) {
+  .elec-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+@media (max-width: 600px) {
+  .elec-grid { grid-template-columns: 1fr; }
+}
+
+/* Card hover effects (both dashboards) */
+.card-wrapper > .panel { transition: transform 120ms ease, box-shadow 120ms ease; }
+.card-wrapper:hover > .panel { transform: translateY(-1px) scale(1.01); }
+
+/* Pay Now emphasis only on card hover */
+.card-wrapper:hover .pay-now { box-shadow: 0 10px 22px rgba(79, 70, 229, 0.35); }
+.card-wrapper:hover .danger.pay-now { box-shadow: 0 10px 22px rgba(239, 68, 68, 0.35); }
 
 .clear-btn {
   position: absolute;

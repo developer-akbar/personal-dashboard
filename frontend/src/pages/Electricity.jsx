@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useRef, useState } from 'react'
 import { useElectricity } from '../store/useElectricity'
 import AddElectricityServiceModal from '../components/AddElectricityServiceModal'
 import GlobalTabs from '../components/GlobalTabs'
+import AppFooter from '../components/AppFooter'
 // import GlobalDebug from '../components/GlobalDebug'
 import HeaderAvatar from '../components/HeaderAvatar'
 import toast from 'react-hot-toast'
@@ -27,6 +28,7 @@ export default function Electricity(){
   const [showFilters, setShowFilters] = useState(false)
   const [activeTab, setActiveTab] = useState('active') // active | trash
   const [highlightId, setHighlightId] = useState(null)
+  // moved info panel to Home page
 
   useEffect(()=>{
     (async()=>{
@@ -107,7 +109,7 @@ export default function Electricity(){
         <small style={{opacity:.8}}>Backend: <b style={{color: health.ok? '#10b981':'#ef4444'}}>{health.ok? 'up':'down'}</b> • DB: <b>{health.db}</b></small>
         <span />
       </div>
-      <div className="action-buttons" style={{display:'flex',gap:8,marginBottom:8}}>
+      <div className="action-buttons" style={{display:'flex',gap:10,marginBottom:10, padding:'6px 2px'}}>
         <button className="muted" onClick={()=> { setEditing(null); setOpen(true); }} style={{display:'inline-flex',alignItems:'center',gap:6}}>
           <FiPlus/> Add Service
         </button>
@@ -115,6 +117,8 @@ export default function Electricity(){
           <FiRefreshCcw className={services.some(s=> s.loading)? 'spin':''}/> Refresh All
         </button>
       </div>
+
+      {/* Info panel moved to Home */}
       <div className="panel" role="tablist" aria-label="Services view" style={{display:'inline-flex',gap:6,padding:6,marginBottom:8}}>
         <button className={activeTab==='active'? 'primary':'muted'} role="tab" aria-selected={activeTab==='active'} onClick={()=> { setActiveTab('active'); setQuery('') }}>Active</button>
         <button className={activeTab==='trash'? 'primary':'muted'} role="tab" aria-selected={activeTab==='trash'} onClick={()=> { setActiveTab('trash'); setQuery('') }}>Trash ({trashed.length})</button>
@@ -174,7 +178,7 @@ export default function Electricity(){
       )}
 
       {activeTab==='active' && (
-      <section className={`grid ${selectMode? 'select-mode':''}`}>
+      <section className={`grid elec-grid ${selectMode? 'select-mode':''}`}>
         {sortedFiltered.map(s=> (
           <div key={s.id} className={`card-wrapper`} onMouseEnter={()=> setSelectMode(true)} onMouseLeave={()=>{ if(selectedIds.size===0) setSelectMode(false) }} onTouchStart={()=>{ if (longPressRef.current) clearTimeout(longPressRef.current); longPressRef.current = setTimeout(()=> setSelectMode(true), 500) }} onTouchEnd={()=>{ if (longPressRef.current) { clearTimeout(longPressRef.current); longPressRef.current=null } }}>
             {selectMode && (
@@ -249,8 +253,20 @@ export default function Electricity(){
         }
       }} />
       
-      <InfoModal open={showInfo} onClose={()=> setShowInfo(false)} />
+      <InfoModal open={showInfo} onClose={()=> setShowInfo(false)} title="APSPDCL Electricity">
+        <div style={{display:'flex', gap:12, alignItems:'center', marginBottom:8}}>
+          <img src="https://www.apspdcl.in/images/logo1.png" alt="APSPDCL" style={{height:30, background:'#fff', borderRadius:6, padding:2}}/>
+          <strong>APSPDCL</strong>
+        </div>
+        <p>Track APSPDCL bill details, status, and pay dues quickly.</p>
+        <ul>
+          <li>Services validated (13-digit format and APSPDCL check).</li>
+          <li>Refresh locks/cooldowns prevent abuse; admins bypass limits.</li>
+          <li>Trash and Restore help manage services safely.</li>
+        </ul>
+      </InfoModal>
       <ConfirmDialog open={confirm.open} title="Delete service?" message="Choose soft delete (move to Trash) or delete permanently." onCancel={()=> setConfirm({ open:false, id:null })} onConfirm={async()=>{ try{ await deleteService(confirm.id); toast.success('Moved to Trash', { duration: 2000 }) }catch(e){ toast.error(e?.response?.data?.error || e.message, { duration: 2000 }) } finally { setConfirm({ open:false, id:null }) } }} onConfirmHard={async()=>{ try{ await deleteServicePermanent(confirm.id); toast.success('Permanently deleted', { duration: 2000 }) }catch(e){ toast.error(e?.response?.data?.error || e.message, { duration: 2000 }) } finally { setConfirm({ open:false, id:null }) } }} hardLabel="Delete permanently" />
+      <AppFooter/>
     </div>
   )
 }
