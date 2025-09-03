@@ -286,10 +286,13 @@ select {
   pointer-events: auto;
 }
 
-/* Electricity: prefer 2 columns on ~14" laptops; 3 on larger screens */
-.elec-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-@media (max-width: 1400px) {
-  .elec-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+/* Electricity: default 2 columns; 3 only on very wide screens; 1 on small */
+.elec-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+@media (min-width: 1600px) {
+  .elec-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+@media (max-width: 600px) {
+  .elec-grid { grid-template-columns: 1fr; }
 }
 
 /* Card hover effects (both dashboards) */
