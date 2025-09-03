@@ -37,6 +37,17 @@ export default function Electricity(){
   useEffect(()=>{ (async()=>{ try{ const { data } = await api.get('/health'); setHealth({ ok: !!data?.ok, db: data?.db||'unknown' }) }catch{} })() },[])
   useEffect(()=>{ fetchTrashed() },[])
 
+  // After services load/update, if we have a highlight target, scroll into view
+  useEffect(()=>{
+    if (!highlightId) return
+    const el = document.getElementById(`svc-${highlightId}`)
+    if (el){
+      el.scrollIntoView({ behavior:'smooth', block:'center' })
+      const t = setTimeout(()=> setHighlightId(null), 2000)
+      return ()=> clearTimeout(t)
+    }
+  }, [services, highlightId])
+
   const summary = useMemo(()=>{
     const pending = services.filter(s=> s.lastStatus==='DUE' && (s.lastAmountDue||0)>0)
     const paid = services.filter(s=> s.lastStatus==='PAID')
@@ -196,27 +207,25 @@ export default function Electricity(){
 
       <AddElectricityServiceModal open={open} initial={editing} onClose={()=> { setOpen(false); setEditing(null) }} onSubmit={async (serviceNumber,label)=>{
         try{
-          const promise = editing ? updateService(editing.id, { serviceNumber, label }) : addService(serviceNumber, label)
-          await toast.promise(
-            promise,
-            {
-              loading: editing ? 'Updating service…' : 'Adding service…',
-              success: editing ? 'Service updated' : 'Service added',
-              error: (e)=> e?.response?.data?.error || e?.message || 'Failed to save service',
-            },
-            { success: { duration: 2000 }, error: { duration: 2000 } }
-          )
-          setEditing(null)
-          setOpen(false)
-          // If created, highlight and scroll into view
-          if (!editing && typeof promise === 'string'){
-            const id = promise
-            setHighlightId(id)
-            setTimeout(()=> setHighlightId(null), 2000)
-            setTimeout(()=>{
-              const el = document.getElementById(`svc-${id}`)
-              if (el) el.scrollIntoView({ behavior:'smooth', block:'center' })
-            }, 100)
+          if (editing){
+            await toast.promise(
+              updateService(editing.id, { serviceNumber, label }),
+              { loading:'Updating service…', success:'Service updated', error: (e)=> e?.response?.data?.error || e?.message || 'Failed to save service' },
+              { success:{ duration:2000 }, error:{ duration:2000 } }
+            )
+            setEditing(null)
+            setOpen(false)
+          } else {
+            const toastId = toast.loading('Adding service…')
+            try{
+              const createdId = await addService(serviceNumber, label)
+              toast.success('Service added', { id: toastId, duration: 1500 })
+              setOpen(false)
+              setHighlightId(createdId)
+            }catch(err){
+              toast.error(err?.message || 'Failed to add service', { id: toastId, duration: 2000 })
+              throw err
+            }
           }
         }catch(e){
           if (e?.canRestore && e?.restoreId){

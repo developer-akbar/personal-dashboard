@@ -56,7 +56,12 @@ export default function ElectricityServiceCard({ item, onRefresh, onEdit, onDele
       )}
       {(item.lastStatus==='DUE' && item.lastAmountDue>0) && (
         <div style={{display:'flex',justifyContent:'flex-end'}}>
-          <a className="primary" href="https://payments.billdesk.com/MercOnline/SPDCLController" target="_blank" rel="noreferrer" style={{textDecoration:'none',padding:'8px 12px',borderRadius:8}} onClick={async(e)=>{ try{ await navigator.clipboard.writeText(String(item.serviceNumber||'')); toast.success('Service Number copied') }catch{} }}>Pay Now</a>
+          <button className="primary" style={{textDecoration:'none',padding:'8px 12px',borderRadius:8}} onClick={async()=>{
+            try{ await navigator.clipboard.writeText(String(item.serviceNumber||'')); }catch{}
+            await new Promise(r=> setTimeout(r, 300))
+            window.open('https://payments.billdesk.com/MercOnline/SPDCLController','_blank','noopener,noreferrer')
+            toast.success('Service Number copied')
+          }}>Pay Now</button>
         </div>
       )}
       <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',fontSize:12,opacity:.8}}>
