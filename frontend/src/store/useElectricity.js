@@ -21,6 +21,26 @@ export const useElectricity = create((set,get)=> ({
       const { data } = await api.post('/electricity/services', { serviceNumber: sn, label })
       const createdId = data?.id
       if (createdId){
+        // Insert a placeholder item locally so the new card appears immediately
+        set(state=> ({ services: [
+          {
+            id: createdId,
+            label: label || '',
+            serviceNumber: sn,
+            customerName: null,
+            lastBillDate: null,
+            lastDueDate: null,
+            lastAmountDue: null,
+            lastBilledUnits: null,
+            lastThreeAmounts: [],
+            lastStatus: null,
+            lastFetchedAt: null,
+            lastError: null,
+            pinned: false,
+            pinnedAt: null,
+          },
+          ...state.services,
+        ] }))
         // Auto-refresh the newly added service so user sees current bill details
         await get().refreshOne(createdId)
       } else {
