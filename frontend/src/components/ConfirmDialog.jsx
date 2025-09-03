@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 
-export default function ConfirmDialog({ open, title='Are you sure?', message, onCancel, onConfirm }){
+export default function ConfirmDialog({ open, title='Are you sure?', message, onCancel, onConfirm, onConfirmHard, hardLabel='Delete permanently' }){
   if(!open) return null
   const [submitting, setSubmitting] = useState(false)
   return (
@@ -10,6 +10,9 @@ export default function ConfirmDialog({ open, title='Are you sure?', message, on
         {message && <p style={{opacity:.85}}>{message}</p>}
         <div style={{display:'flex',justifyContent:'flex-end',gap:8,marginTop:12}}>
           <button className="muted" onClick={onCancel} disabled={submitting}>Cancel</button>
+          {onConfirmHard && (
+            <button className="danger" onClick={async()=>{ if(submitting) return; setSubmitting(true); try{ await onConfirmHard() } finally { setSubmitting(false) } }} disabled={submitting}>{submitting? 'Deleting…' : hardLabel}</button>
+          )}
           <button className="danger" onClick={async()=>{ if(submitting) return; setSubmitting(true); try{ await onConfirm() } finally { setSubmitting(false) } }} disabled={submitting}>{submitting? 'Deleting…' : 'Delete'}</button>
         </div>
       </div>

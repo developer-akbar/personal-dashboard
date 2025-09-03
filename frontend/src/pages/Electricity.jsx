@@ -126,7 +126,7 @@ export default function Electricity(){
         <div style={{position:'relative'}}>
           <input placeholder="Search services..." aria-label="Search services" value={query} onChange={(e)=> setQuery(e.target.value)} style={{width:'100%',paddingRight:36}} />
           {query && (
-            <button aria-label="Clear search" onClick={()=> setQuery('')} style={{position:'absolute',right:6,top:'50%',transform:'translateY(-50%)',cursor:'pointer',opacity:.8,background:'var(--bg)',border:'1px solid var(--border)',borderRadius:'9999px',width:24,height:24,display:'grid',placeItems:'center',lineHeight:1}}>×</button>
+            <button aria-label="Clear search" onClick={()=> setQuery('')} style={{position:'absolute',right:6,top:'50%',transform:'translateY(-50%)',cursor:'pointer',opacity:.9,background:'var(--panel-bg)',border:'2px solid var(--panel-border)',borderRadius:'9999px',width:24,height:24,display:'grid',placeItems:'center',lineHeight:1}}>×</button>
           )}
         </div>
         <button className="muted" onClick={()=> setShowFilters(v=>!v)} aria-expanded={showFilters} aria-controls="elec-filters" title={showFilters? 'Hide filters' : 'Show filters'}>
@@ -177,6 +177,7 @@ export default function Electricity(){
               </div>
               <div style={{display:'flex',gap:8}}>
                 <button className="primary" onClick={async()=>{ await restoreService(t.id); toast.success('Restored') }}>Restore</button>
+                <button className="danger" onClick={async()=>{ try{ await (await import('../store/useElectricity')).useElectricity.getState().deleteServicePermanent(t.id); toast.success('Deleted permanently') }catch(e){ toast.error(e?.response?.data?.error || e?.message || 'Delete failed') } }}>Delete permanently</button>
               </div>
             </article>
           ))}
@@ -213,7 +214,7 @@ export default function Electricity(){
       }} />
       
       <InfoModal open={showInfo} onClose={()=> setShowInfo(false)} />
-      <ConfirmDialog open={confirm.open} title="Delete service?" message="This will soft-delete the service. You can restore it later." onCancel={()=> setConfirm({ open:false, id:null })} onConfirm={async()=>{ try{ await deleteService(confirm.id); toast.success('Service deleted', { duration: 2000 }) }catch(e){ toast.error(e?.response?.data?.error || e.message, { duration: 2000 }) } finally { setConfirm({ open:false, id:null }) } }} />
+      <ConfirmDialog open={confirm.open} title="Delete service?" message="Choose soft delete (move to Trash) or delete permanently." onCancel={()=> setConfirm({ open:false, id:null })} onConfirm={async()=>{ try{ await deleteService(confirm.id); toast.success('Moved to Trash', { duration: 2000 }) }catch(e){ toast.error(e?.response?.data?.error || e.message, { duration: 2000 }) } finally { setConfirm({ open:false, id:null }) } }} onConfirmHard={async()=>{ try{ await (await import('../store/useElectricity')).useElectricity.getState().deleteServicePermanent(confirm.id); toast.success('Permanently deleted', { duration: 2000 }) }catch(e){ toast.error(e?.response?.data?.error || e.message, { duration: 2000 }) } finally { setConfirm({ open:false, id:null }) } }} hardLabel="Delete permanently" />
     </div>
   )
 }

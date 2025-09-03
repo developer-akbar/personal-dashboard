@@ -136,7 +136,20 @@ router.put('/services/:id', async (req,res,next)=>{
 // Delete service
 router.delete('/services/:id', async (req,res,next)=>{
   try{
+    const hard = String(req.query?.hard||'').toLowerCase()==='true'
+    if (hard){
+      await ElectricityService.deleteOne({ _id: req.params.id, userId: req.user.id })
+      return res.json({ ok: true, deleted: 'permanent' })
+    }
     await ElectricityService.updateOne({ _id: req.params.id, userId: req.user.id }, { isDeleted: true, deletedAt: new Date() })
+    res.json({ ok: true, deleted: 'soft' })
+  }catch(e){ next(e) }
+})
+
+// Permanent delete from trash
+router.delete('/services/permanent/:id', async (req,res,next)=>{
+  try{
+    await ElectricityService.deleteOne({ _id: req.params.id, userId: req.user.id })
     res.json({ ok: true })
   }catch(e){ next(e) }
 })

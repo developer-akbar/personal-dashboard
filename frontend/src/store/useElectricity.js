@@ -47,6 +47,11 @@ export const useElectricity = create((set,get)=> ({
     await get().fetchServices()
     await get().fetchTrashed()
   },
+  async deleteServicePermanent(id){
+    await api.delete(`/electricity/services/permanent/${id}`)
+    await get().fetchServices()
+    await get().fetchTrashed()
+  },
   async restoreService(id){
     await api.post(`/electricity/services/restore/${id}`)
     await get().fetchServices()
