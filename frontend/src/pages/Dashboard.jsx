@@ -172,7 +172,7 @@ export default function Dashboard() {
         <small style={{opacity:.8}}>Backend: <b style={{color: health.ok? '#10b981':'#ef4444'}}>{health.ok? 'up':'down'}</b> • DB: <b>{health.db}</b></small>
         <span />
       </div>
-      <div className="action-buttons" style={{display:'flex', gap:10, padding:'8px 4px'}}>
+      <div className="action-buttons" style={{display:'flex', gap:10, padding:'8px 4px', alignItems:'center'}}>
         <button
           className="muted"
           onClick={() => {
@@ -184,6 +184,19 @@ export default function Dashboard() {
         >
           <FiPlus /> Add account
         </button>
+        <div style={{flex:1, display:'flex', justifyContent:'center'}}>
+          {accounts.length >= 2 && (
+            <button
+              className="primary"
+              onClick={async () => {
+                await toast.promise((async()=>{ await refreshAll(accounts); await fetchAccounts() })(), { loading: 'Queued…', success: 'Done', error: (e)=> e?.response?.status===429? '429 - wait and retry' : 'Failed' })
+              }}
+              disabled={refreshing}
+            >
+              <FiRefreshCcw className={refreshing? 'spin':''}/> Refresh All
+            </button>
+          )}
+        </div>
         <button className="muted" onClick={()=> setShowAmazonInfo(true)} style={{display:'inline-flex',alignItems:'center',gap:6}}><FiHelpCircle/> How to use</button>
       </div>
       <div style={{display:'flex',alignItems:'baseline',gap:8,margin:'4px 0 8px'}}>
@@ -209,17 +222,6 @@ export default function Dashboard() {
       </div>
 
       <div className="action-buttons" style={{position:'sticky', top:0, zIndex:10, display:'flex', gap:10, padding:'8px 4px', background:'var(--toolbar-bg, transparent)', backdropFilter:'saturate(180%) blur(8px)'}}>
-        {accounts.length >= 2 && (
-          <button
-            className="primary"
-            onClick={async () => {
-              await toast.promise((async()=>{ await refreshAll(accounts); await fetchAccounts() })(), { loading: 'Queued…', success: 'Done', error: (e)=> e?.response?.status===429? '429 - wait and retry' : 'Failed' })
-            }}
-            disabled={refreshing}
-          >
-            <FiRefreshCcw className={refreshing? 'spin':''}/> Refresh All
-          </button>
-        )}
         <button className="muted" style={{display:'none'}} onClick={async ()=>{
           // Export current view to CSV
           const rows = [['Label','Email','Region','Balance','Currency','Last Refreshed']]
@@ -397,6 +399,8 @@ export default function Dashboard() {
         open={showAmazonInfo}
         title="How to use Amazon account balances"
         onClose={()=> setShowAmazonInfo(false)}
+        closeLabel="Proceed"
+        onCloseAction={()=>{ setShowAmazonInfo(false); setOpen(true); }}
         primaryActionLabel="View guide"
         onPrimaryAction={()=>{ window.open('https://github.com/developer-akbar/personal-dashboard/blob/main/SESSIONS.md', '_blank', 'noopener,noreferrer') }}
       >

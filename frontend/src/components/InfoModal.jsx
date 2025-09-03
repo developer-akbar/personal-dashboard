@@ -1,6 +1,6 @@
 import React from 'react'
 
-export default function InfoModal({ open, title, children, onClose, primaryActionLabel, onPrimaryAction }){
+export default function InfoModal({ open, title, children, onClose, primaryActionLabel, onPrimaryAction, closeLabel='Close', onCloseAction }){
   if (!open) return null
   return (
     <div className="backdrop" style={{position:'fixed',inset:0,background:'rgba(0,0,0,.5)',display:'flex',alignItems:'center',justifyContent:'center',zIndex:1000}} onClick={onClose}>
@@ -11,7 +11,7 @@ export default function InfoModal({ open, title, children, onClose, primaryActio
           {children}
         </div>
         <div style={{display:'flex',gap:8,justifyContent:'flex-end',marginTop:12}}>
-          <button className="muted" onClick={onClose}>Close</button>
+          <button className="muted" onClick={()=> { if (onCloseAction) onCloseAction(); else onClose?.() }}>{closeLabel}</button>
           {primaryActionLabel && (
             <button className="primary" onClick={onPrimaryAction}>{primaryActionLabel}</button>
           )}
