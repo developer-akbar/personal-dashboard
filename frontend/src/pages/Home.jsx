@@ -25,26 +25,20 @@ export default function Home(){
       </section>
 
       <section className="grid">
-        <article className="panel" style={{display:'flex', gap:12, alignItems:'flex-start'}}>
-          <img src="https://upload.wikimedia.org/wikipedia/commons/a/a9/Amazon_logo.svg" alt="Amazon" style={{height:28, marginTop:2}}/>
+        <article className="panel" style={{display:'flex', flexDirection:'column', gap:10, alignItems:'center', textAlign:'center'}}>
+          <img src="https://upload.wikimedia.org/wikipedia/commons/a/a9/Amazon_logo.svg" alt="Amazon" style={{height:32}}/>
           <div>
             <h4 style={{marginTop:0}}>Amazon Pay</h4>
-            <p>Connect multiple Amazon accounts and view balances at a glance. Rewards view included.</p>
-            <ul style={{margin:'6px 0 0 16px'}}>
-              <li>Refresh single/all, see totals and rewards.</li>
-              <li>Pin, tag, and filter accounts for focus.</li>
-            </ul>
+            <p style={{margin:'6px 0'}}>Connect multiple Amazon accounts and view balances at a glance. Rewards view included.</p>
+            <p style={{margin:'6px 0'}}>Refresh single/all, see totals and rewards. Pin, tag, and filter for focus.</p>
           </div>
         </article>
-        <article className="panel" style={{display:'flex', gap:12, alignItems:'flex-start'}}>
-          <img src="https://apspdcl.in/ConsumerDashboard/assets/images/logo-new.png" alt="APSPDCL" style={{height:30, background:'#fff', borderRadius:6, padding:2}}/>
+        <article className="panel" style={{display:'flex', flexDirection:'column', gap:10, alignItems:'center', textAlign:'center'}}>
+          <img src="https://apspdcl.in/ConsumerDashboard/assets/images/logo-new.png" alt="APSPDCL" style={{height:36, background:'#fff', borderRadius:6, padding:2}}/>
           <div>
             <h4 style={{marginTop:0}}>Electricity (APSPDCL)</h4>
-            <p>Monitor dues, billed units, and last three bills with one click refresh.</p>
-            <ul style={{margin:'6px 0 0 16px'}}>
-              <li>Validated 13‑digit Service Number, refresh locks, admin bypass.</li>
-              <li>Trash with restore/permanent delete options.</li>
-            </ul>
+            <p style={{margin:'6px 0'}}>Monitor dues, billed units, and last three bills with one click refresh.</p>
+            <p style={{margin:'6px 0'}}>Validated 13‑digit Service Number, refresh locks, admin bypass. Trash/Restore included.</p>
           </div>
         </article>
         <article className="panel">
