@@ -161,7 +161,7 @@ export default function Dashboard() {
   }
 
   return (
-    <div className={`container ${selectMode? 'select-mode' : ''}`}>
+    <div className={`container ${selectMode? 'select-mode' : ''}`} style={{minHeight:'100vh', display:'flex', flexDirection:'column'}}>
       <header className="topbar">
         <h2>Personal Dashboard</h2>
         <div className="spacer" />
@@ -206,15 +206,17 @@ export default function Dashboard() {
         >
           <FiPlus /> Add account
         </button>
-        <button
-          className="primary"
-          onClick={async () => {
-            await toast.promise((async()=>{ await refreshAll(accounts); await fetchAccounts() })(), { loading: 'Queued…', success: 'Done', error: (e)=> e?.response?.status===429? '429 - wait and retry' : 'Failed' })
-          }}
-          disabled={refreshing}
-        >
-          <FiRefreshCcw className={refreshing? 'spin':''}/> Refresh All
-        </button>
+        {accounts.length >= 2 && (
+          <button
+            className="primary"
+            onClick={async () => {
+              await toast.promise((async()=>{ await refreshAll(accounts); await fetchAccounts() })(), { loading: 'Queued…', success: 'Done', error: (e)=> e?.response?.status===429? '429 - wait and retry' : 'Failed' })
+            }}
+            disabled={refreshing}
+          >
+            <FiRefreshCcw className={refreshing? 'spin':''}/> Refresh All
+          </button>
+        )}
         <button className="muted" style={{display:'none'}} onClick={async ()=>{
           // Export current view to CSV
           const rows = [['Label','Email','Region','Balance','Currency','Last Refreshed']]
@@ -307,13 +309,15 @@ export default function Dashboard() {
       )}
 
       {tab==='balance' && (!accounts.length ? (
-        <Loader text="Loading accounts…" />
+        <div className="panel" style={{textAlign:'center'}}>
+          <p style={{margin:'6px 0'}}>No Amazon accounts yet.</p>
+          <button className="primary" onClick={()=>{ setEditing(null); setOpen(true) }}>Add your first account</button>
+        </div>
       ) : (
         <section className="grid">
           {sortedFiltered.map((a) => (
             <div key={a.id} className="card-wrapper">
             <AccountCard
-              key={a.id}
               account={a}
               selected={selectedIds.has(a.id)}
               showCheckboxes={selectMode}

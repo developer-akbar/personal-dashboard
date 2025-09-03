@@ -98,7 +98,7 @@ export default function Electricity(){
 
 
   return (
-    <div className="container">
+    <div className="container" style={{minHeight:'100vh', display:'flex', flexDirection:'column'}}>
       <header className="topbar">
         <h2>Personal Dashboard</h2>
         <div className="spacer" />
@@ -113,9 +113,11 @@ export default function Electricity(){
         <button className="muted" onClick={()=> { setEditing(null); setOpen(true); }} style={{display:'inline-flex',alignItems:'center',gap:6}}>
           <FiPlus/> Add Service
         </button>
+        {services.length >= 2 && (
         <button className="primary" onClick={async()=>{ await toast.promise(refreshAll(), { loading:'Queued…', success:'Done', error:(e)=> e?.response?.status===429? '429 - wait and retry' : 'Failed' }, { success:{ duration:2000 }, error:{ duration:2000 } }) }} style={{display:'inline-flex',alignItems:'center',gap:6}} disabled={false}>
           <FiRefreshCcw className={services.some(s=> s.loading)? 'spin':''}/> Refresh All
         </button>
+        )}
       </div>
 
       {/* Info panel moved to Home */}
@@ -177,7 +179,12 @@ export default function Electricity(){
         </div>
       )}
 
-      {activeTab==='active' && (
+      {activeTab==='active' && (services.length === 0 ? (
+        <div className="panel" style={{textAlign:'center'}}>
+          <p style={{margin:'6px 0'}}>No services added yet.</p>
+          <button className="primary" onClick={()=> { setEditing(null); setOpen(true); }}>Add your first service</button>
+        </div>
+      ) : (
       <section className={`grid elec-grid ${selectMode? 'select-mode':''}`}>
         {sortedFiltered.map(s=> (
           <div key={s.id} className={`card-wrapper`} onMouseEnter={()=> setSelectMode(true)} onMouseLeave={()=>{ if(selectedIds.size===0) setSelectMode(false) }} onTouchStart={()=>{ if (longPressRef.current) clearTimeout(longPressRef.current); longPressRef.current = setTimeout(()=> setSelectMode(true), 500) }} onTouchEnd={()=>{ if (longPressRef.current) { clearTimeout(longPressRef.current); longPressRef.current=null } }}>
@@ -197,7 +204,7 @@ export default function Electricity(){
           </div>
         ))}
       </section>
-      )}
+      ))}
 
       {activeTab==='trash' && (
         <section className="grid">
