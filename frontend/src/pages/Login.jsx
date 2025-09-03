@@ -51,7 +51,7 @@ export default function Login() {
       const params = new URLSearchParams(loc.search)
       const next = params.get('next')
       if (next) {
-        nav(next.startsWith('/')? next : '/dashboard', { replace:true })
+        nav(next.startsWith('/')? next : '/amazon', { replace:true })
       } else {
         nav('/electricity', { replace:true })
       }

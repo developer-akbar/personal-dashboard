@@ -28,7 +28,7 @@ export default function App(){
         <Route path="/" element={<Home/>} />
         <Route path="/login" element={<Login/>} />
         <Route path="/register" element={<Register/>} />
-        <Route path="/dashboard" element={<RequireAuth><Dashboard/></RequireAuth>} />
+        <Route path="/amazon" element={<RequireAuth><Dashboard/></RequireAuth>} />
         <Route path="/electricity" element={<RequireAuth><Electricity/></RequireAuth>} />
         <Route path="/account" element={<RequireAuth><Account/></RequireAuth>} />
         <Route path="/account/:id" element={<RequireAuth><AccountDetails/></RequireAuth>} />
