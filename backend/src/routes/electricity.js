@@ -133,7 +133,8 @@ router.post('/services/:id/refresh', elecLimiter, async (req,res,next)=>{
     const cooldownMs = Number(process.env.REFRESH_COOLDOWN_MS || 5*60*1000)
     const svc = await ElectricityService.findOne({ _id: req.params.id, userId: req.user.id })
     if(!svc) return res.status(404).json({ error: 'Not found' })
-    if (svc.refreshInProgress){
+    const isAdmin = ADMIN_EMAILS.includes((req.user?.email||'').toLowerCase())
+    if (!isAdmin && svc.refreshInProgress){
       const staleMs = Number(process.env.REFRESH_LOCK_STALE_MS || 2*60*1000)
       const updatedAt = svc.updatedAt ? new Date(svc.updatedAt).getTime() : 0
       if (!updatedAt || (Date.now() - updatedAt) > staleMs){
@@ -143,7 +144,7 @@ router.post('/services/:id/refresh', elecLimiter, async (req,res,next)=>{
         return res.status(409).json({ error: 'Already refreshing' })
       }
     }
-    if (svc.nextAllowedAt && svc.nextAllowedAt > new Date()){
+    if (!isAdmin && svc.nextAllowedAt && svc.nextAllowedAt > new Date()){
       const wait = Math.ceil((svc.nextAllowedAt - new Date())/1000)
       return res.status(429).json({ error: `Please wait ${wait}s` })
     }
@@ -159,7 +160,7 @@ router.post('/services/:id/refresh', elecLimiter, async (req,res,next)=>{
     svc.lastThreeAmounts = Array.isArray(result.lastThreeAmounts)? result.lastThreeAmounts : []
     svc.lastStatus = result.status
     svc.lastFetchedAt = new Date()
-    svc.nextAllowedAt = new Date(Date.now() + cooldownMs) // only on success
+    if (!isAdmin) svc.nextAllowedAt = new Date(Date.now() + cooldownMs) // only on success
     svc.lastError = null
     svc.refreshInProgress = false
     await svc.save()
