@@ -18,7 +18,8 @@ export const useElectricity = create((set,get)=> ({
       await get().fetchServices()
     }catch(e){
       const msg = e?.response?.data?.error || e?.message || 'Failed to add service'
-      throw new Error(msg)
+      e.message = msg
+      throw e
     }
   },
   async updateService(id, payload){

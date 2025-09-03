@@ -78,7 +78,15 @@ router.post('/services', async (req,res,next)=>{
     const created = await ElectricityService.create({ userId: req.user.id, serviceNumber: sn, label: (label||'').trim() || undefined })
     res.status(201).json({ id: created._id })
   }catch(e){
-    if (e?.code === 11000) return res.status(409).json({ error: 'Service already exists' })
+    if (e?.code === 11000){
+      try{
+        const existing = await ElectricityService.findOne({ userId: req.user.id, serviceNumber: String(req.body?.serviceNumber||'').trim() })
+        if (existing && existing.isDeleted){
+          return res.status(409).json({ error: 'Service exists in Trash. You can restore it.', canRestore: true, id: existing._id })
+        }
+      }catch{}
+      return res.status(409).json({ error: 'Service already exists' })
+    }
     next(e)
   }
 })

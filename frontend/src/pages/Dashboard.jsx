@@ -259,7 +259,12 @@ export default function Dashboard() {
       {/* <GlobalDebug/> */}
 
       <div style={{display:'grid', gridTemplateColumns:'1fr auto', gap:8, margin:'8px 0'}}>
-        <input placeholder="Search accounts..." aria-label="Search accounts" value={query} onChange={(e)=> setQuery(e.target.value)} />
+        <div style={{position:'relative'}}>
+          <input placeholder="Search accounts..." aria-label="Search accounts" value={query} onChange={(e)=> setQuery(e.target.value)} style={{paddingRight:28}} />
+          {query && (
+            <button aria-label="Clear search" onClick={()=> setQuery('')} style={{position:'absolute',right:6,top:'50%',transform:'translateY(-50%)',border:'none',background:'transparent',cursor:'pointer',opacity:.6}}>✕</button>
+          )}
+        </div>
         <button className="muted" onClick={()=> setShowFilters(v=>!v)} aria-expanded={showFilters} aria-controls="filters-panel" title={showFilters? 'Hide filters' : 'Show filters'}>
           <FiFilter /> {showFilters? 'Hide' : 'Filters'}
         </button>
