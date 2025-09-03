@@ -1,5 +1,5 @@
 import React from 'react'
-import { HashRouter, Routes, Route, Navigate } from 'react-router-dom'
+import { HashRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom'
 import './App.css'
 import Login from './pages/Login'
 import Home from './pages/Home'
@@ -13,7 +13,11 @@ import { useAuth } from './store/useAuth'
 
 function RequireAuth({ children }){
   const { user } = useAuth()
-  if(!user) return <Navigate to="/" replace />
+  const loc = useLocation()
+  if(!user){
+    const next = encodeURIComponent(loc.pathname + loc.search)
+    return <Navigate to={`/login?next=${next}`} replace />
+  }
   return children
 }
 
