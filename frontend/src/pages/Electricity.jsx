@@ -86,14 +86,18 @@ export default function Electricity(){
 
   const sortedFiltered = useMemo(()=>{
     const list = [...filtered]
+    // Partition: pinned first (FIFO by pinnedAt), then others by chosen sort
+    const pinned = list.filter(x=> x.pinned)
+    const others = list.filter(x=> !x.pinned)
+    pinned.sort((a,b)=> new Date(a.pinnedAt||0) - new Date(b.pinnedAt||0))
     if (sortBy==='amount'){
-      list.sort((a,b)=> Number(b.lastAmountDue||0) - Number(a.lastAmountDue||0))
+      others.sort((a,b)=> Number(b.lastAmountDue||0) - Number(a.lastAmountDue||0))
     } else if (sortBy==='label'){
-      list.sort((a,b)=> (a.label||'').localeCompare(b.label||''))
+      others.sort((a,b)=> (a.label||'').localeCompare(b.label||''))
     } else if (sortBy==='refreshed'){
-      list.sort((a,b)=> new Date(b.lastFetchedAt||0) - new Date(a.lastFetchedAt||0))
+      others.sort((a,b)=> new Date(b.lastFetchedAt||0) - new Date(a.lastFetchedAt||0))
     }
-    return list
+    return [...pinned, ...others]
   }, [filtered, sortBy])
 
 
