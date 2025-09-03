@@ -111,9 +111,6 @@ body {
   border-radius: 14px;
   padding: 18px;
   box-shadow: 0 8px 18px rgba(0, 0, 0, 0.25);
-  display: flex;
-  flex-direction: column;
-  align-items: stretch;
 }
 .centered {
   display: flex;

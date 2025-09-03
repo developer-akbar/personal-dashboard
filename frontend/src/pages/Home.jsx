@@ -25,7 +25,7 @@ export default function Home(){
       </section>
 
       <section className="grid">
-        <article className="panel" style={{display:'flex', flexDirection:'column', gap:10, alignItems:'center', textAlign:'center'}}>
+        <article className="panel" style={{display:'flex', flexDirection:'column', gap:10, alignItems:'center'}}>
           <img src="https://upload.wikimedia.org/wikipedia/commons/a/a9/Amazon_logo.svg" alt="Amazon" style={{height:32}}/>
           <div>
             <h4 style={{marginTop:0}}>Amazon Pay</h4>
@@ -33,7 +33,7 @@ export default function Home(){
             <p style={{margin:'6px 0'}}>Refresh single/all, see totals and rewards. Pin, tag, and filter for focus.</p>
           </div>
         </article>
-        <article className="panel" style={{display:'flex', flexDirection:'column', gap:10, alignItems:'center', textAlign:'center'}}>
+        <article className="panel" style={{display:'flex', flexDirection:'column', gap:10, alignItems:'center'}}>
           <img src="https://apspdcl.in/ConsumerDashboard/assets/images/logo-new.png" alt="APSPDCL" style={{height:36, background:'#fff', borderRadius:6, padding:2}}/>
           <div>
             <h4 style={{marginTop:0}}>Electricity (APSPDCL)</h4>
