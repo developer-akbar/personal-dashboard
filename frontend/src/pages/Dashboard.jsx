@@ -134,14 +134,17 @@ export default function Dashboard() {
 
   const sortedFiltered = useMemo(() => {
     const list = [...filtered];
+    const pinned = list.filter(a=> a.pinned)
+    const others = list.filter(a=> !a.pinned)
+    pinned.sort((a,b)=> new Date(a.pinnedAt||0) - new Date(b.pinnedAt||0))
     if (sortBy === "amount") {
-      list.sort((a, b) => (b.lastBalance || 0) - (a.lastBalance || 0));
+      others.sort((a, b) => (b.lastBalance || 0) - (a.lastBalance || 0));
     } else if (sortBy === "label") {
-      list.sort((a, b) => (a.label || '').localeCompare(b.label || ''));
+      others.sort((a, b) => (a.label || '').localeCompare(b.label || ''));
     } else if (sortBy === "refreshed") {
-      list.sort((a, b) => new Date(b.lastRefreshedAt || 0) - new Date(a.lastRefreshedAt || 0));
+      others.sort((a, b) => new Date(b.lastRefreshedAt || 0) - new Date(a.lastRefreshedAt || 0));
     }
-    return list;
+    return [...pinned, ...others];
   }, [filtered, sortBy]);
 
   function computeSelectedTotal(){
