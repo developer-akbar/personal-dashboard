@@ -171,3 +171,8 @@ backend/logs/
 # Environment files
 backend/.env
 frontend/.env
+
+# Core dumps
+core
+core.*
+*.core
