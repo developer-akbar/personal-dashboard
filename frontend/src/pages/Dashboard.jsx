@@ -311,7 +311,7 @@ export default function Dashboard() {
       {tab==='balance' && (!accounts.length ? (
         <div className="panel" style={{textAlign:'center'}}>
           <p style={{margin:'6px 0'}}>No Amazon accounts yet.</p>
-          <button className="primary" onClick={()=>{ setEditing(null); setOpen(true) }}>Add your first account</button>
+          <button className="primary" onClick={()=>{ setEditing(null); setOpen(true); setShowAmazonInfo(true) }}>Add your first account</button>
         </div>
       ) : (
         <section className="grid">
@@ -419,7 +419,9 @@ export default function Dashboard() {
         onCancel={()=> setConfirm({ open:false, id:null })}
         onConfirm={async ()=>{ await deleteAccount(confirm.id); await fetchAccounts(); setConfirm({ open:false, id:null }) }}
       />
-      <AppFooter/>
+      <div style={{marginTop:'auto'}}>
+        <AppFooter/>
+      </div>
     </div>
   );
 }

@@ -273,7 +273,9 @@ export default function Electricity(){
         </ul>
       </InfoModal>
       <ConfirmDialog open={confirm.open} title="Delete service?" message="Choose soft delete (move to Trash) or delete permanently." onCancel={()=> setConfirm({ open:false, id:null })} onConfirm={async()=>{ try{ await deleteService(confirm.id); toast.success('Moved to Trash', { duration: 2000 }) }catch(e){ toast.error(e?.response?.data?.error || e.message, { duration: 2000 }) } finally { setConfirm({ open:false, id:null }) } }} onConfirmHard={async()=>{ try{ await deleteServicePermanent(confirm.id); toast.success('Permanently deleted', { duration: 2000 }) }catch(e){ toast.error(e?.response?.data?.error || e.message, { duration: 2000 }) } finally { setConfirm({ open:false, id:null }) } }} hardLabel="Delete permanently" />
-      <AppFooter/>
+      <div style={{marginTop:'auto'}}>
+        <AppFooter/>
+      </div>
     </div>
   )
 }
