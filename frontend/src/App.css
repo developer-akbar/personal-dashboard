@@ -286,6 +286,20 @@ select {
   pointer-events: auto;
 }
 
+/* Electricity: prefer 2 columns on ~14" laptops; 3 on larger screens */
+.elec-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+@media (max-width: 1400px) {
+  .elec-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+/* Card hover effects (both dashboards) */
+.card-wrapper > .panel { transition: transform 120ms ease, box-shadow 120ms ease; }
+.card-wrapper:hover > .panel { transform: translateY(-1px) scale(1.01); }
+
+/* Pay Now emphasis only on card hover */
+.card-wrapper:hover .pay-now { box-shadow: 0 10px 22px rgba(79, 70, 229, 0.35); }
+.card-wrapper:hover .danger.pay-now { box-shadow: 0 10px 22px rgba(239, 68, 68, 0.35); }
+
 .clear-btn {
   position: absolute;
   right: 6px;

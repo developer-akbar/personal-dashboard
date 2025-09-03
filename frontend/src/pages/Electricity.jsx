@@ -178,7 +178,7 @@ export default function Electricity(){
       )}
 
       {activeTab==='active' && (
-      <section className={`grid ${selectMode? 'select-mode':''}`}>
+      <section className={`grid elec-grid ${selectMode? 'select-mode':''}`}>
         {sortedFiltered.map(s=> (
           <div key={s.id} className={`card-wrapper`} onMouseEnter={()=> setSelectMode(true)} onMouseLeave={()=>{ if(selectedIds.size===0) setSelectMode(false) }} onTouchStart={()=>{ if (longPressRef.current) clearTimeout(longPressRef.current); longPressRef.current = setTimeout(()=> setSelectMode(true), 500) }} onTouchEnd={()=>{ if (longPressRef.current) { clearTimeout(longPressRef.current); longPressRef.current=null } }}>
             {selectMode && (

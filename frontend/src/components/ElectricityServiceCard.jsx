@@ -48,7 +48,7 @@ export default function ElectricityServiceCard({ item, onRefresh, onEdit, onDele
               const diffMs = new Date(item.lastDueDate).getTime() - Date.now()
               const days = Math.ceil(diffMs / (1000*60*60*24))
               const color = days < 0 ? '#ef4444' : (days <= 3 ? '#f59e0b' : '#10b981')
-              const text = days < 0 ? `Overdue ${Math.abs(days)}d` : `Due in ${days}d`
+              const text = days < 0 ? `Overdue ${Math.abs(days)} days` : `Due in ${days} days`
               return <span style={{marginLeft:8, color, fontWeight:600}}>{text}</span>
             })()
           )}
@@ -80,7 +80,7 @@ export default function ElectricityServiceCard({ item, onRefresh, onEdit, onDele
       )}
       {(item.lastStatus==='DUE' && Number(item.lastAmountDue||0)>0) && (
         <div style={{display:'flex',justifyContent:'flex-end'}}>
-          <button className="primary" style={{textDecoration:'none',padding:'8px 12px',borderRadius:8}} onClick={async()=>{
+          <button className={`primary pay-now ${(()=>{ const due = item.lastDueDate? new Date(item.lastDueDate).getTime() - Date.now() : null; return (due!=null && due<0)? 'danger' : '' })()}`} style={{textDecoration:'none',padding:'8px 12px',borderRadius:8}} onClick={async()=>{
             try{ await navigator.clipboard.writeText(String(item.serviceNumber||'')); }catch{}
             toast.success('Service Number copied')
             // Give the user a moment to read the toast before opening new tab

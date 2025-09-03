@@ -311,6 +311,7 @@ export default function Dashboard() {
       ) : (
         <section className="grid">
           {sortedFiltered.map((a) => (
+            <div key={a.id} className="card-wrapper">
             <AccountCard
               key={a.id}
               account={a}
@@ -328,6 +329,7 @@ export default function Dashboard() {
               onTogglePin={async ()=>{ await api.put(`/accounts/${a.id}`, { pinned: !a.pinned }); await fetchAccounts() }}
               onToggleSelect={(acc,checked)=>{ setSelectedIds(prev=>{ const next=new Set(prev); if(checked){ next.add(acc.id); setSelectMode(true) } else { next.delete(acc.id); if(next.size===0) setSelectMode(false) } return next }) }}
             />
+            </div>
           ))}
         </section>
       ))}
