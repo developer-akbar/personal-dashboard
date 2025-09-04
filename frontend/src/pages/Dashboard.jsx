@@ -198,18 +198,8 @@ export default function Dashboard() {
                 <FiPlus /> Add account
               </button>
             )
-          } else {
-            return (
-              <div className="panel" style={{padding:'12px 16px', textAlign:'center', background:'var(--card-bg)', border:'1px solid var(--border)', borderRadius:'8px', maxWidth:'400px'}}>
-                <p style={{margin:'0 0 8px 0', fontSize:'14px', opacity:0.9}}>
-                  Amazon account tracking is currently available only for subscriber accounts.
-                </p>
-                <p style={{margin:'0', fontSize:'13px', opacity:0.7}}>
-                  Please contact Akbar for access.
-                </p>
-              </div>
-            )
           }
+          return null;
         })()}
         {(() => { const plan = usePlan.getState(); if (!plan.isAdmin && !plan.isSubscribed) { return (
           <span className="pill" title="Daily refresh limit for non-subscribers" style={{opacity:.85}}>Limit: {usePlan.getState().amazonRefreshPerDay}/day</span>
@@ -351,7 +341,7 @@ export default function Dashboard() {
                     Amazon account tracking is currently available only for subscriber accounts.
                   </p>
                   <p style={{margin:'0', fontSize:'13px', opacity:0.7}}>
-                    Please contact Akbar for access.
+                    Please contact Akbar at <a href="mailto:akbar.ak219@gmail.com" style={{color:'var(--primary-bg)', textDecoration:'none'}}>akbar.ak219@gmail.com</a> for access.
                   </p>
                 </div>
               )
