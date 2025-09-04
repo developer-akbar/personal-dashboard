@@ -4,6 +4,7 @@ import { Toaster } from "react-hot-toast";
 import toast from "react-hot-toast";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../store/useAuth";
+import ForgotPasswordModal from "../components/ForgotPasswordModal";
 
 export default function Login() {
   const nav = useNavigate();
@@ -17,6 +18,7 @@ export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [captcha, setCaptcha] = useState("");
+  const [showForgotPassword, setShowForgotPassword] = useState(false);
   const widgetRef = useRef(null)
 
   useEffect(()=>{
@@ -101,10 +103,36 @@ export default function Login() {
             {loading ? "Signing in..." : "Sign in"}
           </button>
         </form>
-        <p style={{ opacity: 0.8, marginTop: 8 }}>
-          New here? <Link to="/register">Create account</Link>
-        </p>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 16 }}>
+          <p style={{ opacity: 0.8, margin: 0 }}>
+            New here? <Link to="/register">Create account</Link>
+          </p>
+          <button 
+            type="button"
+            onClick={() => setShowForgotPassword(true)}
+            style={{
+              background: 'none',
+              border: 'none',
+              color: 'var(--primary-bg)',
+              cursor: 'pointer',
+              textDecoration: 'underline',
+              fontSize: '14px'
+            }}
+          >
+            Forgot password?
+          </button>
+        </div>
       </div>
+      
+      <ForgotPasswordModal
+        open={showForgotPassword}
+        onClose={() => setShowForgotPassword(false)}
+        onSuccess={() => {
+          setShowForgotPassword(false)
+          toast.success('Password reset successfully! Please sign in with your new password.')
+        }}
+      />
+      
       <Toaster />
     </div>
   );

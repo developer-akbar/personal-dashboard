@@ -1,76 +1,214 @@
 import React from 'react'
 import { useEffect, useState } from 'react'
+import { FiEdit, FiKey, FiUser, FiMail, FiPhone, FiImage, FiLogOut } from 'react-icons/fi'
 import api from '../api/client'
 import { useAuth } from '../store/useAuth'
 import toast from 'react-hot-toast'
+import ProfileEditModal from '../components/ProfileEditModal'
+import PasswordChangeModal from '../components/PasswordChangeModal'
+import styles from './Account.module.css'
 
 export default function Account(){
   const { user, logout } = useAuth()
-  const [name,setName]=useState(user?.name||'')
-  const [avatarUrl,setAvatarUrl]=useState(user?.avatarUrl||'')
-  const [saving,setSaving]=useState(false)
-  const [cpLoading,setCpLoading]=useState(false)
+  const [userData, setUserData] = useState({
+    name: user?.name || '',
+    email: user?.email || '',
+    phone: user?.phone || '',
+    avatarUrl: user?.avatarUrl || ''
+  })
+  const [showProfileModal, setShowProfileModal] = useState(false)
+  const [showPasswordModal, setShowPasswordModal] = useState(false)
+  const [loading, setLoading] = useState(false)
 
-  useEffect(()=>{ (async()=>{
-    try{ const { data } = await api.get('/users/me'); setName(data.name||''); setAvatarUrl(data.avatarUrl||'') }catch{}
-  })() },[])
+  useEffect(() => {
+    fetchUserData()
+  }, [])
 
-  async function saveProfile(e){
-    e.preventDefault(); setSaving(true)
-    try{ await api.put('/users/me',{ name, avatarUrl }); toast.success('Profile updated', { duration: 2000 }); (await import('../store/useAuth')).useAuth.getState().setUser({ name, avatarUrl }) }
-    catch{ toast.error('Failed to update', { duration: 2000 }) }
-    finally{ setSaving(false) }
+  const fetchUserData = async () => {
+    setLoading(true)
+    try {
+      const { data } = await api.get('/users/me')
+      setUserData({
+        name: data.name || '',
+        email: data.email || '',
+        phone: data.phone || '',
+        avatarUrl: data.avatarUrl || ''
+      })
+    } catch (error) {
+      toast.error('Failed to load profile data')
+    } finally {
+      setLoading(false)
+    }
   }
 
-  async function changePassword(e){
-    e.preventDefault(); setCpLoading(true)
-    const currentPassword = e.target.currentPassword.value
-    const newPassword = e.target.newPassword.value
-    const confirm = e.target.confirm.value
-    if(newPassword !== confirm){ toast.error('Passwords do not match', { duration: 2000 }); setCpLoading(false); return }
-    try{ await api.post('/users/change-password',{ currentPassword, newPassword }); toast.success('Password changed', { duration: 2000 }) }
-    catch{ toast.error('Failed to change password', { duration: 2000 }) }
-    finally{ setCpLoading(false) }
+  const handleProfileUpdate = async (data) => {
+    try {
+      await api.put('/users/me', data)
+      toast.success('Profile updated successfully')
+      setUserData(data)
+      // Update auth store
+      const { useAuth } = await import('../store/useAuth')
+      useAuth.getState().setUser(data)
+    } catch (error) {
+      toast.error(error?.response?.data?.error || 'Failed to update profile')
+      throw error
+    }
+  }
+
+  const handlePasswordChange = async (data) => {
+    try {
+      await api.post('/users/change-password', {
+        currentPassword: data.currentPassword,
+        newPassword: data.newPassword
+      })
+      toast.success('Password changed successfully')
+    } catch (error) {
+      toast.error(error?.response?.data?.error || 'Failed to change password')
+      throw error
+    }
+  }
+
+  const handleLogout = () => {
+    logout()
+    toast.success('Logged out successfully')
   }
 
   return (
     <div className="container">
       <header className="topbar">
         <button className="muted" onClick={()=>{ try{ if (window.history.length > 1) window.history.back(); else window.location.hash = '#/' }catch{ window.location.hash = '#/' } }}>←</button>
-        <h3>Account</h3>
+        <h3>Account Settings</h3>
       </header>
 
-      <div className="panel" style={{display:'flex',alignItems:'center',gap:12}}>
-        <div style={{width:48,height:48,borderRadius:'999px',background:'var(--avatar-bg)',display:'inline-flex',alignItems:'center',justifyContent:'center',fontWeight:700,fontSize:18}}>
-          {(user?.name||user?.email||'?').slice(0,1).toUpperCase()}
+      {loading ? (
+        <div className={styles.loadingContainer}>
+          <div className={styles.spinner}></div>
+          <p>Loading profile...</p>
         </div>
-        <div>
-          <div style={{fontWeight:700}}>{user?.name || '—'}</div>
-          <div style={{opacity:.8,fontSize:12}}>{user?.email}</div>
-        </div>
-      </div>
-
-      <div className="panel">
-        <h3 style={{marginTop:0}}>Profile</h3>
-        <form onSubmit={saveProfile} style={{display:'flex',flexDirection:'column',gap:12}}>
-          <div style={{display:'flex',alignItems:'center',gap:12}}>
-            <img src={avatarUrl||'https://via.placeholder.com/64'} alt="avatar" width={48} height={48} style={{borderRadius:999}}/>
-            <label style={{flex:1}}>Avatar URL<input value={avatarUrl} onChange={e=>setAvatarUrl(e.target.value)} placeholder="https://..." /></label>
+      ) : (
+        <>
+          {/* Profile Header */}
+          <div className={styles.profileHeader}>
+            <div className={styles.avatarContainer}>
+              {userData.avatarUrl ? (
+                <img 
+                  src={userData.avatarUrl} 
+                  alt="Profile" 
+                  className={styles.avatar}
+                  onError={(e) => {
+                    e.target.style.display = 'none'
+                    e.target.nextSibling.style.display = 'flex'
+                  }}
+                />
+              ) : null}
+              <div 
+                className={styles.avatarPlaceholder}
+                style={{ display: userData.avatarUrl ? 'none' : 'flex' }}
+              >
+                <FiUser />
+              </div>
+            </div>
+            <div className={styles.profileInfo}>
+              <h2 className={styles.profileName}>{userData.name || 'No name set'}</h2>
+              <p className={styles.profileEmail}>{userData.email}</p>
+              {userData.phone && (
+                <p className={styles.profilePhone}>{userData.phone}</p>
+              )}
+            </div>
           </div>
-          <label>Name<input value={name} onChange={e=>setName(e.target.value)} required /></label>
-          <button className="primary" type="submit" disabled={saving}>{saving? 'Saving...' : 'Save'}</button>
-        </form>
-      </div>
 
-      <div className="panel">
-        <h3 style={{marginTop:0}}>Change password</h3>
-        <form onSubmit={changePassword} style={{display:'flex',flexDirection:'column',gap:12}}>
-          <label>Current password<input name="currentPassword" type="password" required /></label>
-          <label>New password<input name="newPassword" type="password" required minLength={6} /></label>
-          <label>Confirm password<input name="confirm" type="password" required /></label>
-          <button className="primary" type="submit" disabled={cpLoading}>{cpLoading? 'Updating...' : 'Update password'}</button>
-        </form>
-      </div>
+          {/* Profile Actions */}
+          <div className={styles.actionsGrid}>
+            <button 
+              className={styles.actionCard}
+              onClick={() => setShowProfileModal(true)}
+            >
+              <div className={styles.actionIcon}>
+                <FiEdit />
+              </div>
+              <div className={styles.actionContent}>
+                <h3>Edit Profile</h3>
+                <p>Update your personal information</p>
+              </div>
+            </button>
+
+            <button 
+              className={styles.actionCard}
+              onClick={() => setShowPasswordModal(true)}
+            >
+              <div className={styles.actionIcon}>
+                <FiKey />
+              </div>
+              <div className={styles.actionContent}>
+                <h3>Change Password</h3>
+                <p>Update your account password</p>
+              </div>
+            </button>
+
+            <button 
+              className={styles.actionCard}
+              onClick={handleLogout}
+            >
+              <div className={styles.actionIcon}>
+                <FiLogOut />
+              </div>
+              <div className={styles.actionContent}>
+                <h3>Sign Out</h3>
+                <p>Log out of your account</p>
+              </div>
+            </button>
+          </div>
+
+          {/* Account Information */}
+          <div className={styles.infoSection}>
+            <h3>Account Information</h3>
+            <div className={styles.infoGrid}>
+              <div className={styles.infoItem}>
+                <FiMail className={styles.infoIcon} />
+                <div>
+                  <label>Email Address</label>
+                  <span>{userData.email}</span>
+                </div>
+              </div>
+              <div className={styles.infoItem}>
+                <FiUser className={styles.infoIcon} />
+                <div>
+                  <label>Full Name</label>
+                  <span>{userData.name || 'Not set'}</span>
+                </div>
+              </div>
+              <div className={styles.infoItem}>
+                <FiPhone className={styles.infoIcon} />
+                <div>
+                  <label>Mobile Number</label>
+                  <span>{userData.phone || 'Not set'}</span>
+                </div>
+              </div>
+              <div className={styles.infoItem}>
+                <FiImage className={styles.infoIcon} />
+                <div>
+                  <label>Avatar</label>
+                  <span>{userData.avatarUrl ? 'Custom avatar' : 'Default avatar'}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </>
+      )}
+
+      {/* Modals */}
+      <ProfileEditModal
+        open={showProfileModal}
+        onClose={() => setShowProfileModal(false)}
+        onSubmit={handleProfileUpdate}
+        initialData={userData}
+      />
+
+      <PasswordChangeModal
+        open={showPasswordModal}
+        onClose={() => setShowPasswordModal(false)}
+        onSubmit={handlePasswordChange}
+      />
     </div>
   )
 }

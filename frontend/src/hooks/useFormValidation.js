@@ -124,3 +124,69 @@ export function useElectricityValidation() {
     formValidationRules.electricity
   )
 }
+
+export function useProfileValidation() {
+  return useFormValidation(
+    { name: '', email: '', phone: '', avatarUrl: '' },
+    {
+      name: (name) => {
+        if (!name || typeof name !== 'string') {
+          throw new ValidationError('Name is required', 'name', name)
+        }
+        const trimmed = name.trim()
+        if (trimmed.length < 2) {
+          throw new ValidationError('Name must be at least 2 characters', 'name', name)
+        }
+        if (trimmed.length > 50) {
+          throw new ValidationError('Name must be no more than 50 characters', 'name', name)
+        }
+        return trimmed
+      },
+      email: validateEmail,
+      phone: (phone) => {
+        if (!phone || typeof phone !== 'string') {
+          return '' // Phone is optional
+        }
+        const trimmed = phone.trim()
+        if (trimmed && !/^\+?[\d\s\-\(\)]{10,15}$/.test(trimmed)) {
+          throw new ValidationError('Please enter a valid phone number', 'phone', phone)
+        }
+        return trimmed
+      },
+      avatarUrl: (url) => {
+        if (!url || typeof url !== 'string') {
+          return '' // Avatar URL is optional
+        }
+        const trimmed = url.trim()
+        if (trimmed && !/^https?:\/\/.+/.test(trimmed)) {
+          throw new ValidationError('Please enter a valid URL starting with http:// or https://', 'avatarUrl', url)
+        }
+        return trimmed
+      }
+    }
+  )
+}
+
+export function usePasswordValidation() {
+  return useFormValidation(
+    { currentPassword: '', newPassword: '', confirmPassword: '' },
+    {
+      currentPassword: (password) => {
+        if (!password || typeof password !== 'string') {
+          throw new ValidationError('Current password is required', 'currentPassword', password)
+        }
+        return password
+      },
+      newPassword: validatePassword,
+      confirmPassword: (confirm, formData) => {
+        if (!confirm || typeof confirm !== 'string') {
+          throw new ValidationError('Please confirm your new password', 'confirmPassword', confirm)
+        }
+        if (confirm !== formData.newPassword) {
+          throw new ValidationError('Passwords do not match', 'confirmPassword', confirm)
+        }
+        return confirm
+      }
+    }
+  )
+}

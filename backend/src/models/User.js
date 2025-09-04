@@ -7,7 +7,7 @@ const userSchema = new mongoose.Schema(
     username: { type: String, unique: true, sparse: true },
     email: { type: String, required: true, unique: true, index: true },
     passwordHash: { type: String, required: true },
-    phone: { type: String },
+    phone: { type: String, unique: true, sparse: true },
     avatarUrl: { type: String },
     baseCurrency: { type: String, default: "INR" },
     exchangeRates: {
@@ -17,6 +17,8 @@ const userSchema = new mongoose.Schema(
       default: {},
     },
     refreshSchedule: { type: String, enum: ['off','daily','weekly'], default: 'off' },
+    otpCode: { type: String },
+    otpExpires: { type: Date },
   },
   { timestamps: true }
 );

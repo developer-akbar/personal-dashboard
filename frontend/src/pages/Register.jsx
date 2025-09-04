@@ -10,6 +10,7 @@ export default function Register(){
   const { register, loading } = useAuth()
   const [name,setName]=useState('')
   const [email,setEmail]=useState('')
+  const [phone,setPhone]=useState('')
   const [password,setPassword]=useState('')
   const [captcha,setCaptcha]=useState('')
   const widgetRef = useRef(null)
@@ -43,7 +44,7 @@ export default function Register(){
     if(confirm !== password) return toast.error('Passwords do not match', { duration: 2000 })
     try{
       if ((import.meta.env.VITE_TURNSTILE_SITE_KEY) && !captcha){ toast.error('Complete captcha', { duration: 2000 }); return }
-      await register({ name, email, password, captchaToken: captcha })
+      await register({ name, email, phone, password, captchaToken: captcha })
       nav('/amazon')
     }catch(e){
       toast.error(e?.response?.data?.error || e?.message || 'Registration failed', { duration: 2000 })
@@ -57,6 +58,7 @@ export default function Register(){
         <form onSubmit={onSubmit} style={{display:'flex',flexDirection:'column',gap:12}}>
           <label>Name<input value={name} onChange={e=>setName(e.target.value)} required type="text" placeholder="Your name"/></label>
           <label>Email<input value={email} onChange={e=>setEmail(e.target.value)} required type="email" placeholder="you@example.com"/></label>
+          <label>Mobile Number<input value={phone} onChange={e=>setPhone(e.target.value)} type="tel" placeholder="+91 9876543210"/></label>
           <label>Password<input value={password} onChange={e=>setPassword(e.target.value)} required type="password" placeholder="At least 6 characters"/></label>
           <label>Confirm Password<input name="confirm" required type="password" placeholder="Re-enter password"/></label>
           <div ref={widgetRef} className="cf-turnstile"></div>
