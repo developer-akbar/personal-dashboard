@@ -208,6 +208,8 @@ export default function Dashboard() {
           <button
             className="primary"
             onClick={async () => {
+              // Small delay to ensure toast system is ready
+              await new Promise(resolve => setTimeout(resolve, 100))
               await toast.promise((async()=>{ await refreshAll(accounts); await fetchAccounts() })(), { loading: 'Queued…', success: 'Done', error: (e)=> e?.response?.data?.error || 'Failed' })
             }}
             disabled={refreshing}
@@ -358,6 +360,8 @@ export default function Dashboard() {
               showCheckboxes={selectMode}
               onLongPressActivate={()=> setSelectMode(true)}
               onRefresh={async () => {
+                // Small delay to ensure toast system is ready
+                await new Promise(resolve => setTimeout(resolve, 100))
                 await toast.promise((async()=>{ await refreshOne(a.id); await fetchAccounts() })(), { loading: `Refreshing ${a.label||'account'}…`, success: 'Refreshed', error: 'Refresh failed' })
               }}
               onEdit={() => {
@@ -384,7 +388,11 @@ export default function Dashboard() {
       {tab==='rewards' && (
         <div className="panel" style={{display:'flex',justifyContent:'space-between',alignItems:'center',gap:8}}>
           <div style={{opacity:.8}}>Rewards are fetched live from your accounts. Click Refresh to update all.</div>
-          <button className="primary" onClick={async()=>{ await toast.promise(refreshAllRewards(), { loading:'Refreshing rewards…', success:'Rewards updated', error:'Rewards refresh failed' }) }}>Refresh</button>
+          <button className="primary" onClick={async()=>{ 
+            // Small delay to ensure toast system is ready
+            await new Promise(resolve => setTimeout(resolve, 100))
+            await toast.promise(refreshAllRewards(), { loading:'Refreshing rewards…', success:'Rewards updated', error:'Rewards refresh failed' }) 
+          }}>Refresh</button>
         </div>
       )}
       {tab==='rewards' && (

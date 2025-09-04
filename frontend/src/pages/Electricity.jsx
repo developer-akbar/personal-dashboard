@@ -42,6 +42,20 @@ export default function Electricity(){
   useEffect(()=>{ fetchTrashed() },[])
   useEffect(()=>{ try{ usePlan.getState().fetch() }catch{} },[])
 
+  // Clear selection mode when clicking outside cards
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (selectMode && !e.target.closest('.card-wrapper') && !e.target.closest('.panel')) {
+        setSelectMode(false)
+        setSelectedIds(new Set())
+      }
+    }
+    if (selectMode) {
+      document.addEventListener('click', handleClickOutside)
+      return () => document.removeEventListener('click', handleClickOutside)
+    }
+  }, [selectMode])
+
   // After services load/update, if we have a highlight target, scroll into view
   useEffect(()=>{
     if (!highlightId) return
@@ -124,7 +138,11 @@ export default function Electricity(){
           <span className="pill" title="Daily refresh limit for non-subscribers" style={{opacity:.85}}>Limit: {usePlan.getState().electricityRefreshPerDay}/day</span>
         ) } return null })()}
         {services.length >= 2 && (
-        <button className="primary" onClick={async()=>{ await toast.promise(refreshAll(), { loading:'Queued…', success:'Done', error:(e)=> e?.response?.data?.error || 'Failed' }, { success:{ duration:2000 }, error:{ duration:2000 } }) }} style={{display:'inline-flex',alignItems:'center',gap:6}} disabled={false}>
+        <button className="primary" onClick={async()=>{ 
+          // Small delay to ensure toast system is ready
+          await new Promise(resolve => setTimeout(resolve, 100))
+          await toast.promise(refreshAll(), { loading:'Queued…', success:'Done', error:(e)=> e?.response?.data?.error || 'Failed' }, { success:{ duration:2000 }, error:{ duration:2000 } }) 
+        }} style={{display:'inline-flex',alignItems:'center',gap:6}} disabled={false}>
           <FiRefreshCcw className={services.some(s=> s.loading)? 'spin':''}/> Refresh All
         </button>
         )}
@@ -199,10 +217,10 @@ export default function Electricity(){
       ) : (
       <section className={`grid elec-grid ${selectMode? 'select-mode':''}`}>
         {sortedFiltered.map(s=> (
-          <div key={s.id} className={`card-wrapper`} onMouseEnter={()=> setSelectMode(true)} onMouseLeave={()=>{ if(selectedIds.size===0) setSelectMode(false) }} onTouchStart={()=>{ if (longPressRef.current) clearTimeout(longPressRef.current); longPressRef.current = setTimeout(()=> setSelectMode(true), 500) }} onTouchEnd={()=>{ if (longPressRef.current) { clearTimeout(longPressRef.current); longPressRef.current=null } }}>
+          <div key={s.id} className={`card-wrapper`} onMouseEnter={()=> setSelectMode(true)} onTouchStart={()=>{ if (longPressRef.current) clearTimeout(longPressRef.current); longPressRef.current = setTimeout(()=> setSelectMode(true), 500) }} onTouchEnd={()=>{ if (longPressRef.current) { clearTimeout(longPressRef.current); longPressRef.current=null } }}>
             {selectMode && (
               <input type="checkbox" className="checkbox" checked={selectedIds.has(s.id)} onChange={()=>{
-                const next=new Set(selectedIds); if(next.has(s.id)) next.delete(s.id); else next.add(s.id); setSelectedIds(next); if(next.size===0) setSelectMode(false)
+                const next=new Set(selectedIds); if(next.has(s.id)) next.delete(s.id); else next.add(s.id); setSelectedIds(next)
               }} style={{position:'absolute', margin:8}} />
             )}
             <ElectricityServiceCard
@@ -210,7 +228,11 @@ export default function Electricity(){
               highlight={highlightId===s.id}
               domId={`svc-${s.id}`}
               onTogglePin={(svc, pinned)=> (async()=>{ try{ await (await import('../store/useElectricity')).useElectricity.getState().togglePinned(svc.id, pinned) }catch(e){ toast.error(e?.response?.data?.error || e?.message || 'Failed') } })()}
-              onRefresh={async()=>{ await toast.promise(refreshOne(s.id), { loading:`Refreshing ${s.label||s.serviceNumber}…`, success:'Refreshed', error:(e)=> e?.response?.data?.error || 'Refresh failed' }, { success: { duration: 2000 }, error: { duration: 2000 }, loading: { duration: 2000 } }) }}
+              onRefresh={async()=>{ 
+                // Small delay to ensure toast system is ready
+                await new Promise(resolve => setTimeout(resolve, 100))
+                await toast.promise(refreshOne(s.id), { loading:`Refreshing ${s.label||s.serviceNumber}…`, success:'Refreshed', error:(e)=> e?.response?.data?.error || 'Refresh failed' }, { success: { duration: 2000 }, error: { duration: 2000 }, loading: { duration: 2000 } }) 
+              }}
               onEdit={()=> { setEditing(s); setOpen(true) }}
               onDelete={()=> setConfirm({ open:true, id:s.id })}
             />
