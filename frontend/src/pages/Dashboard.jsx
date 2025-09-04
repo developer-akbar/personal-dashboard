@@ -21,6 +21,8 @@ import Loader from "../components/Loader";
 import ConfirmDialog from "../components/ConfirmDialog";
 import InfoModal from "../components/InfoModal";
 import { useToastReady } from "../hooks/useToastReady";
+import ErrorBoundary from "../components/ErrorBoundary";
+import { DashboardSkeleton, AccountCardSkeleton } from "../components/LoadingSkeleton";
 
 export default function Dashboard() {
   const { accounts, fetchAccounts, addAccount, deleteAccount, loading: accountsLoading } = useAccounts();
@@ -327,7 +329,11 @@ export default function Dashboard() {
       )}
 
       {tab==='balance' && (accountsLoading ? (
-        <Loader text="Loading accounts…" />
+        <div className="grid">
+          <AccountCardSkeleton />
+          <AccountCardSkeleton />
+          <AccountCardSkeleton />
+        </div>
       ) : !accounts.length ? (
         <div className="panel" style={{textAlign:'center'}}>
           <p style={{margin:'6px 0'}}>No Amazon accounts yet.</p>

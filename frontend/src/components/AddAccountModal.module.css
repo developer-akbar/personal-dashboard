@@ -2,8 +2,15 @@
 .modal{background:var(--panel-bg);border:2px solid var(--panel-border);border-radius:12px;padding:8px;min-width:320px;max-width:500px;width:100%;margin:.5rem}
 .form{display:flex;flex-direction:column;gap:10px;padding:.5rem}
 label{display:flex;flex-direction:column;gap:6px;font-size:12px}
-input,select{background:var(--input-bg);border:2px solid var(--input-border);border-radius:8px;padding:8px;color:var(--input-text)}
+input,select{background:var(--input-bg);border:2px solid var(--input-border);border-radius:8px;padding:8px;color:var(--input-text);transition:border-color 0.2s ease}
+input:focus,select:focus{outline:none;border-color:var(--primary-bg)}
+input.error,select.error{border-color:var(--danger-bg)}
 .row{display:flex;justify-content:flex-end;gap:8px;margin-top:8px}
-.muted{background:var(--muted-bg);border:0;border-radius:8px;padding:8px 12px;color:var(--muted-text);cursor:pointer}
-.primary{background:var(--primary-bg);color:#fff;border:0;border-radius:8px;padding:8px 12px;cursor:pointer}
+.muted{background:var(--muted-bg);border:0;border-radius:8px;padding:8px 12px;color:var(--muted-text);cursor:pointer;transition:opacity 0.2s ease}
+.muted:hover{opacity:0.8}
+.muted:disabled{opacity:0.5;cursor:not-allowed}
+.primary{background:var(--primary-bg);color:#fff;border:0;border-radius:8px;padding:8px 12px;cursor:pointer;transition:opacity 0.2s ease}
+.primary:hover{opacity:0.9}
+.primary:disabled{opacity:0.5;cursor:not-allowed}
+.error{color:var(--danger-bg);font-size:11px;margin-top:2px;display:block}
 

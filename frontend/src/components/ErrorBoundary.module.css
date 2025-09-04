@@ -1,0 +1,154 @@
+.errorBoundary {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: var(--bg);
+}
+
+.errorContainer {
+  max-width: 500px;
+  text-align: center;
+  padding: 40px;
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 12px;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+.errorIcon {
+  font-size: 48px;
+  color: var(--danger-bg);
+  margin-bottom: 20px;
+}
+
+.errorTitle {
+  font-size: 24px;
+  font-weight: 600;
+  color: var(--text);
+  margin: 0 0 16px 0;
+}
+
+.errorMessage {
+  font-size: 16px;
+  color: var(--muted-text);
+  margin: 0 0 32px 0;
+  line-height: 1.5;
+}
+
+.errorActions {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.retryButton,
+.homeButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 24px;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-decoration: none;
+}
+
+.retryButton {
+  background: var(--primary-bg);
+  color: var(--primary-text);
+}
+
+.retryButton:hover:not(:disabled) {
+  background: var(--primary-bg);
+  opacity: 0.9;
+  transform: translateY(-1px);
+}
+
+.retryButton:disabled {
+  background: var(--muted-bg);
+  color: var(--muted-text);
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.homeButton {
+  background: var(--muted-bg);
+  color: var(--text);
+  border: 1px solid var(--card-border);
+}
+
+.homeButton:hover {
+  background: var(--card-border);
+  transform: translateY(-1px);
+}
+
+.errorDetails {
+  margin-top: 32px;
+  text-align: left;
+  background: var(--muted-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 8px;
+  padding: 16px;
+}
+
+.errorDetails summary {
+  cursor: pointer;
+  font-weight: 500;
+  color: var(--text);
+  margin-bottom: 12px;
+}
+
+.errorStack {
+  background: var(--bg);
+  border: 1px solid var(--card-border);
+  border-radius: 4px;
+  padding: 12px;
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+  font-size: 12px;
+  color: var(--text);
+  overflow-x: auto;
+  white-space: pre-wrap;
+  word-break: break-word;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+/* Mobile optimizations */
+@media (max-width: 768px) {
+  .errorBoundary {
+    padding: 16px;
+  }
+  
+  .errorContainer {
+    padding: 24px;
+  }
+  
+  .errorIcon {
+    font-size: 36px;
+  }
+  
+  .errorTitle {
+    font-size: 20px;
+  }
+  
+  .errorMessage {
+    font-size: 14px;
+  }
+  
+  .errorActions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .retryButton,
+  .homeButton {
+    padding: 16px 24px;
+    font-size: 16px;
+  }
+}

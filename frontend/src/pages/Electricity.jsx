@@ -14,6 +14,8 @@ import ConfirmDialog from '../components/ConfirmDialog'
 import api from '../api/client'
 import { usePlan } from '../store/usePlan'
 import { useToastReady } from '../hooks/useToastReady'
+import ErrorBoundary from '../components/ErrorBoundary'
+import { ElectricitySkeleton, ElectricityCardSkeleton } from '../components/LoadingSkeleton'
 
 export default function Electricity(){
   const { services, trashed, fetchServices, fetchTrashed, addService, updateService, deleteService, deleteServicePermanent, restoreService, refreshAll, refreshOne, loading } = useElectricity()
@@ -211,7 +213,11 @@ export default function Electricity(){
       )}
 
       {activeTab==='active' && (loading ? (
-        <Loader text="Loading services…" />
+        <div className="grid elec-grid">
+          <ElectricityCardSkeleton />
+          <ElectricityCardSkeleton />
+          <ElectricityCardSkeleton />
+        </div>
       ) : services.length === 0 ? (
         <div className="panel" style={{textAlign:'center'}}>
           <p style={{margin:'6px 0'}}>No services added yet.</p>

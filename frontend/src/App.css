@@ -338,3 +338,55 @@ select {
     background-image: none;
   }
 }
+
+/* Mobile optimizations */
+@media (max-width: 768px) {
+  /* Improved touch targets for mobile */
+  button, input[type="button"], input[type="submit"], input[type="checkbox"], input[type="radio"] {
+    min-height: 44px;
+    min-width: 44px;
+  }
+  
+  /* Better spacing for mobile */
+  .action-buttons {
+    gap: 12px;
+    padding: 12px 4px;
+  }
+  
+  .action-buttons button {
+    padding: 12px 16px;
+    font-size: 16px;
+  }
+  
+  /* Improved card interactions */
+  .card-wrapper {
+    padding: 16px;
+    margin-bottom: 12px;
+  }
+  
+  /* Better form inputs on mobile */
+  input, select, textarea {
+    font-size: 16px; /* Prevents zoom on iOS */
+    padding: 12px;
+    min-height: 44px;
+  }
+  
+  /* Improved modal on mobile */
+  .modal {
+    margin: 16px;
+    max-height: calc(100vh - 32px);
+    overflow-y: auto;
+  }
+  
+  /* Better touch targets for interactive elements */
+  .checkbox {
+    min-height: 24px;
+    min-width: 24px;
+  }
+  
+  /* Improved button spacing */
+  .row button {
+    padding: 12px 20px;
+    font-size: 16px;
+  }
+}

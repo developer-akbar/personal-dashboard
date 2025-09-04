@@ -10,6 +10,7 @@ import AccountDetails from './pages/AccountDetails'
 import Settings from './pages/Settings'
 import Account from './pages/Account'
 import { useAuth } from './store/useAuth'
+import ErrorBoundary from './components/ErrorBoundary'
 
 function RequireAuth({ children }){
   const { user } = useAuth()
@@ -23,18 +24,20 @@ function RequireAuth({ children }){
 
 export default function App(){
   return (
-    <HashRouter>
-      <Routes>
-        <Route path="/" element={<Home/>} />
-        <Route path="/login" element={<Login/>} />
-        <Route path="/register" element={<Register/>} />
-        <Route path="/amazon" element={<RequireAuth><Dashboard/></RequireAuth>} />
-        <Route path="/electricity" element={<RequireAuth><Electricity/></RequireAuth>} />
-        <Route path="/account" element={<RequireAuth><Account/></RequireAuth>} />
-        <Route path="/account/:id" element={<RequireAuth><AccountDetails/></RequireAuth>} />
-        <Route path="/settings" element={<RequireAuth><Settings/></RequireAuth>} />
-        <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
-    </HashRouter>
+    <ErrorBoundary>
+      <HashRouter>
+        <Routes>
+          <Route path="/" element={<Home/>} />
+          <Route path="/login" element={<Login/>} />
+          <Route path="/register" element={<Register/>} />
+          <Route path="/amazon" element={<RequireAuth><Dashboard/></RequireAuth>} />
+          <Route path="/electricity" element={<RequireAuth><Electricity/></RequireAuth>} />
+          <Route path="/account" element={<RequireAuth><Account/></RequireAuth>} />
+          <Route path="/account/:id" element={<RequireAuth><AccountDetails/></RequireAuth>} />
+          <Route path="/settings" element={<RequireAuth><Settings/></RequireAuth>} />
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </HashRouter>
+    </ErrorBoundary>
   )
 }

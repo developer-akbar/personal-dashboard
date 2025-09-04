@@ -1,0 +1,191 @@
+.skeletonCard {
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 12px;
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+.skeletonContainer {
+  padding: 16px;
+  animation: pulse 1.5s ease-in-out infinite;
+}
+
+.skeletonHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.skeletonTitle {
+  height: 20px;
+  width: 120px;
+  background: var(--muted-bg);
+  border-radius: 4px;
+  margin-bottom: 8px;
+}
+
+.skeletonSubtitle {
+  height: 14px;
+  width: 80px;
+  background: var(--muted-bg);
+  border-radius: 4px;
+}
+
+.skeletonActions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.skeletonButton {
+  height: 32px;
+  width: 32px;
+  background: var(--muted-bg);
+  border-radius: 6px;
+}
+
+.skeletonCheckbox {
+  height: 16px;
+  width: 16px;
+  background: var(--muted-bg);
+  border-radius: 3px;
+  margin-right: 8px;
+}
+
+.skeletonContent {
+  margin-bottom: 16px;
+}
+
+.skeletonRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.skeletonLabel {
+  height: 14px;
+  width: 60px;
+  background: var(--muted-bg);
+  border-radius: 3px;
+}
+
+.skeletonValue {
+  height: 16px;
+  width: 80px;
+  background: var(--muted-bg);
+  border-radius: 3px;
+}
+
+.skeletonGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.skeletonItem {
+  height: 40px;
+  background: var(--muted-bg);
+  border-radius: 6px;
+}
+
+.skeletonFooter {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.skeletonText {
+  height: 12px;
+  width: 100px;
+  background: var(--muted-bg);
+  border-radius: 3px;
+}
+
+.skeletonStats {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.skeletonStat {
+  height: 40px;
+  width: 100px;
+  background: var(--muted-bg);
+  border-radius: 8px;
+}
+
+.skeletonTabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.skeletonTab {
+  height: 32px;
+  width: 80px;
+  background: var(--muted-bg);
+  border-radius: 6px;
+}
+
+.skeletonList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.skeletonListItem {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 8px;
+}
+
+.skeletonContent {
+  flex: 1;
+}
+
+.skeletonAvatar {
+  height: 32px;
+  width: 32px;
+  background: var(--muted-bg);
+  border-radius: 50%;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+/* Mobile optimizations */
+@media (max-width: 768px) {
+  .skeletonCard {
+    padding: 12px;
+    margin-bottom: 8px;
+  }
+  
+  .skeletonButton {
+    height: 40px;
+    width: 40px;
+  }
+  
+  .skeletonCheckbox {
+    height: 20px;
+    width: 20px;
+  }
+  
+  .skeletonListItem {
+    padding: 16px;
+  }
+}
