@@ -53,7 +53,12 @@ export default function Dashboard() {
     // Keyboard shortcuts
     function onKey(e){
       if (e.target && (e.target.tagName==='INPUT' || e.target.tagName==='TEXTAREA')) return;
-      if (e.key==='a'){ setEditing(null); setOpen(true) }
+      if (e.key==='a'){ 
+        const plan = usePlan.getState(); 
+        if (plan.isAdmin || plan.isSubscribed) {
+          setEditing(null); setOpen(true) 
+        }
+      }
       if (e.key==='r'){ (async()=>{ await refreshAll(accounts); await fetchAccounts() })() }
     }
     window.addEventListener('keydown', onKey)
@@ -178,16 +183,34 @@ export default function Dashboard() {
         <span />
       </div>
       <div className="action-buttons" style={{display:'inline-flex', gap:8, padding:'8px 4px', alignItems:'center', justifyContent:'flex-start', flexWrap:'wrap'}}>
-        <button
-          className="muted"
-          onClick={() => {
-            setEditing(null);
-            setShowAmazonInfo(true)
-          }}
-          disabled={refreshing}
-        >
-          <FiPlus /> Add account
-        </button>
+        {(() => { 
+          const plan = usePlan.getState(); 
+          if (plan.isAdmin || plan.isSubscribed) {
+            return (
+              <button
+                className="muted"
+                onClick={() => {
+                  setEditing(null);
+                  setShowAmazonInfo(true)
+                }}
+                disabled={refreshing}
+              >
+                <FiPlus /> Add account
+              </button>
+            )
+          } else {
+            return (
+              <div className="panel" style={{padding:'12px 16px', textAlign:'center', background:'var(--card-bg)', border:'1px solid var(--border)', borderRadius:'8px', maxWidth:'400px'}}>
+                <p style={{margin:'0 0 8px 0', fontSize:'14px', opacity:0.9}}>
+                  Amazon account tracking is currently available only for subscriber accounts.
+                </p>
+                <p style={{margin:'0', fontSize:'13px', opacity:0.7}}>
+                  Please contact Akbar for access.
+                </p>
+              </div>
+            )
+          }
+        })()}
         {(() => { const plan = usePlan.getState(); if (!plan.isAdmin && !plan.isSubscribed) { return (
           <span className="pill" title="Daily refresh limit for non-subscribers" style={{opacity:.85}}>Limit: {usePlan.getState().amazonRefreshPerDay}/day</span>
         ) } return null })()}
@@ -315,7 +338,25 @@ export default function Dashboard() {
       ) : !accounts.length ? (
         <div className="panel" style={{textAlign:'center'}}>
           <p style={{margin:'6px 0'}}>No Amazon accounts yet.</p>
-          <button className="primary" onClick={()=>{ setEditing(null); setShowAmazonInfo(true) }}>Add your first account</button>
+          {(() => { 
+            const plan = usePlan.getState(); 
+            if (plan.isAdmin || plan.isSubscribed) {
+              return (
+                <button className="primary" onClick={()=>{ setEditing(null); setShowAmazonInfo(true) }}>Add your first account</button>
+              )
+            } else {
+              return (
+                <div style={{padding:'12px 16px', textAlign:'center', background:'var(--card-bg)', border:'1px solid var(--border)', borderRadius:'8px', maxWidth:'400px', margin:'0 auto'}}>
+                  <p style={{margin:'0 0 8px 0', fontSize:'14px', opacity:0.9}}>
+                    Amazon account tracking is currently available only for subscriber accounts.
+                  </p>
+                  <p style={{margin:'0', fontSize:'13px', opacity:0.7}}>
+                    Please contact Akbar for access.
+                  </p>
+                </div>
+              )
+            }
+          })()}
         </div>
       ) : (
         <section className="grid">
@@ -330,10 +371,18 @@ export default function Dashboard() {
                 await toast.promise((async()=>{ await refreshOne(a.id); await fetchAccounts() })(), { loading: `Refreshing ${a.label||'account'}…`, success: 'Refreshed', error: 'Refresh failed' })
               }}
               onEdit={() => {
-                setEditing(a);
-                setOpen(true);
+                const plan = usePlan.getState(); 
+                if (plan.isAdmin || plan.isSubscribed) {
+                  setEditing(a);
+                  setOpen(true);
+                }
               }}
-              onDelete={async () => { setConfirm({ open:true, id:a.id }) }}
+              onDelete={async () => { 
+                const plan = usePlan.getState(); 
+                if (plan.isAdmin || plan.isSubscribed) {
+                  setConfirm({ open:true, id:a.id }) 
+                }
+              }}
               onTogglePin={async ()=>{ await api.put(`/accounts/${a.id}`, { pinned: !a.pinned }); await fetchAccounts() }}
               onToggleSelect={(acc,checked)=>{ setSelectedIds(prev=>{ const next=new Set(prev); if(checked){ next.add(acc.id); setSelectMode(true) } else { next.delete(acc.id); if(next.size===0) setSelectMode(false) } return next }) }}
             />
@@ -400,7 +449,12 @@ export default function Dashboard() {
         onClose={()=> setShowAmazonInfo(false)}
         closeLabel="Cancel"
         secondaryActionLabel="Proceed"
-        onSecondaryAction={()=>{ setShowAmazonInfo(false); setOpen(true) }}
+        onSecondaryAction={()=>{ 
+          const plan = usePlan.getState(); 
+          if (plan.isAdmin || plan.isSubscribed) {
+            setShowAmazonInfo(false); setOpen(true) 
+          }
+        }}
         primaryActionLabel="View guide"
         onPrimaryAction={()=>{ window.open('https://github.com/developer-akbar/personal-dashboard/blob/main/SESSIONS.md', '_blank', 'noopener,noreferrer') }}
       >
