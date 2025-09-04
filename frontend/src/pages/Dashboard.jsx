@@ -20,11 +20,13 @@ import RefreshProgress from "../components/RefreshProgress";
 import Loader from "../components/Loader";
 import ConfirmDialog from "../components/ConfirmDialog";
 import InfoModal from "../components/InfoModal";
+import { useToastReady } from "../hooks/useToastReady";
 
 export default function Dashboard() {
   const { accounts, fetchAccounts, addAccount, deleteAccount, loading: accountsLoading } = useAccounts();
   const { refreshing, progress, refreshOne, refreshAll } = useBalances();
   const { baseCurrency, exchangeRates, fetchSettings } = useSettings();
+  const isToastReady = useToastReady();
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState(null);
   const [query, setQuery] = useState("");
@@ -208,8 +210,7 @@ export default function Dashboard() {
           <button
             className="primary"
             onClick={async () => {
-              // Small delay to ensure toast system is ready
-              await new Promise(resolve => setTimeout(resolve, 100))
+              if (!isToastReady) return
               await toast.promise((async()=>{ await refreshAll(accounts); await fetchAccounts() })(), { loading: 'Queued…', success: 'Done', error: (e)=> e?.response?.data?.error || 'Failed' })
             }}
             disabled={refreshing}
@@ -360,8 +361,7 @@ export default function Dashboard() {
               showCheckboxes={selectMode}
               onLongPressActivate={()=> setSelectMode(true)}
               onRefresh={async () => {
-                // Small delay to ensure toast system is ready
-                await new Promise(resolve => setTimeout(resolve, 100))
+                if (!isToastReady) return
                 await toast.promise((async()=>{ await refreshOne(a.id); await fetchAccounts() })(), { loading: `Refreshing ${a.label||'account'}…`, success: 'Refreshed', error: 'Refresh failed' })
               }}
               onEdit={() => {
@@ -389,8 +389,7 @@ export default function Dashboard() {
         <div className="panel" style={{display:'flex',justifyContent:'space-between',alignItems:'center',gap:8}}>
           <div style={{opacity:.8}}>Rewards are fetched live from your accounts. Click Refresh to update all.</div>
           <button className="primary" onClick={async()=>{ 
-            // Small delay to ensure toast system is ready
-            await new Promise(resolve => setTimeout(resolve, 100))
+            if (!isToastReady) return
             await toast.promise(refreshAllRewards(), { loading:'Refreshing rewards…', success:'Rewards updated', error:'Rewards refresh failed' }) 
           }}>Refresh</button>
         </div>

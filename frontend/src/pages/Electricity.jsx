@@ -13,14 +13,17 @@ import InfoModal from '../components/InfoModal'
 import ConfirmDialog from '../components/ConfirmDialog'
 import api from '../api/client'
 import { usePlan } from '../store/usePlan'
+import { useToastReady } from '../hooks/useToastReady'
 
 export default function Electricity(){
   const { services, trashed, fetchServices, fetchTrashed, addService, updateService, deleteService, deleteServicePermanent, restoreService, refreshAll, refreshOne, loading } = useElectricity()
+  const isToastReady = useToastReady()
   const [open,setOpen] = useState(false)
   const [editing,setEditing] = useState(null)
   const [health, setHealth] = useState({ ok:false, db:'unknown' })
   const [selectedIds, setSelectedIds] = useState(new Set())
   const [selectMode, setSelectMode] = useState(false)
+  const [hoveredCardId, setHoveredCardId] = useState(null)
   const longPressRef = useRef(null)
   const [showInfo, setShowInfo] = useState(false)
   const [confirm, setConfirm] = useState({ open:false, id:null })
@@ -35,7 +38,7 @@ export default function Electricity(){
   useEffect(()=>{
     (async()=>{
       const p = fetchServices()
-      await toast.promise(p, { loading: 'Loading services…', success: 'Loaded', error: 'Failed to load' }, { success: { duration: 1500 }, error: { duration: 2000 } })
+      await toast.promise(p, { loading: 'Loading services…', success: 'Loaded', error: 'Failed to load' }, { success: { duration: 2500 }, error: { duration: 2500 } })
     })()
   },[])
   useEffect(()=>{ (async()=>{ try{ const { data } = await api.get('/health'); setHealth({ ok: !!data?.ok, db: data?.db||'unknown' }) }catch{} })() },[])
@@ -48,6 +51,7 @@ export default function Electricity(){
       if (selectMode && !e.target.closest('.card-wrapper') && !e.target.closest('.panel')) {
         setSelectMode(false)
         setSelectedIds(new Set())
+        setHoveredCardId(null)
       }
     }
     if (selectMode) {
@@ -139,9 +143,8 @@ export default function Electricity(){
         ) } return null })()}
         {services.length >= 2 && (
         <button className="primary" onClick={async()=>{ 
-          // Small delay to ensure toast system is ready
-          await new Promise(resolve => setTimeout(resolve, 100))
-          await toast.promise(refreshAll(), { loading:'Queued…', success:'Done', error:(e)=> e?.response?.data?.error || 'Failed' }, { success:{ duration:2000 }, error:{ duration:2000 } }) 
+          if (!isToastReady) return
+          await toast.promise(refreshAll(), { loading:'Queued…', success:'Done', error:(e)=> e?.response?.data?.error || 'Failed' }, { success:{ duration:2500 }, error:{ duration:2500 } }) 
         }} style={{display:'inline-flex',alignItems:'center',gap:6}} disabled={false}>
           <FiRefreshCcw className={services.some(s=> s.loading)? 'spin':''}/> Refresh All
         </button>
@@ -217,8 +220,33 @@ export default function Electricity(){
       ) : (
       <section className={`grid elec-grid ${selectMode? 'select-mode':''}`}>
         {sortedFiltered.map(s=> (
-          <div key={s.id} className={`card-wrapper`} onMouseEnter={()=> setSelectMode(true)} onTouchStart={()=>{ if (longPressRef.current) clearTimeout(longPressRef.current); longPressRef.current = setTimeout(()=> setSelectMode(true), 500) }} onTouchEnd={()=>{ if (longPressRef.current) { clearTimeout(longPressRef.current); longPressRef.current=null } }}>
-            {selectMode && (
+          <div 
+            key={s.id} 
+            className={`card-wrapper`} 
+            onMouseEnter={()=> { 
+              setSelectMode(true); 
+              setHoveredCardId(s.id); 
+            }} 
+            onMouseLeave={()=> { 
+              if (selectedIds.size === 0) {
+                setHoveredCardId(null);
+              }
+            }}
+            onTouchStart={()=>{ 
+              if (longPressRef.current) clearTimeout(longPressRef.current); 
+              longPressRef.current = setTimeout(()=> { 
+                setSelectMode(true); 
+                setHoveredCardId(s.id); 
+              }, 500) 
+            }} 
+            onTouchEnd={()=>{ 
+              if (longPressRef.current) { 
+                clearTimeout(longPressRef.current); 
+                longPressRef.current=null 
+              } 
+            }}
+          >
+            {(selectMode && (hoveredCardId === s.id || selectedIds.has(s.id))) && (
               <input type="checkbox" className="checkbox" checked={selectedIds.has(s.id)} onChange={()=>{
                 const next=new Set(selectedIds); if(next.has(s.id)) next.delete(s.id); else next.add(s.id); setSelectedIds(next)
               }} style={{position:'absolute', margin:8}} />
@@ -229,9 +257,8 @@ export default function Electricity(){
               domId={`svc-${s.id}`}
               onTogglePin={(svc, pinned)=> (async()=>{ try{ await (await import('../store/useElectricity')).useElectricity.getState().togglePinned(svc.id, pinned) }catch(e){ toast.error(e?.response?.data?.error || e?.message || 'Failed') } })()}
               onRefresh={async()=>{ 
-                // Small delay to ensure toast system is ready
-                await new Promise(resolve => setTimeout(resolve, 100))
-                await toast.promise(refreshOne(s.id), { loading:`Refreshing ${s.label||s.serviceNumber}…`, success:'Refreshed', error:(e)=> e?.response?.data?.error || 'Refresh failed' }, { success: { duration: 2000 }, error: { duration: 2000 }, loading: { duration: 2000 } }) 
+                if (!isToastReady) return
+                await toast.promise(refreshOne(s.id), { loading:`Refreshing ${s.label||s.serviceNumber}…`, success:'Refreshed', error:(e)=> e?.response?.data?.error || 'Refresh failed' }, { success: { duration: 2500 }, error: { duration: 2500 }, loading: { duration: 2500 } }) 
               }}
               onEdit={()=> { setEditing(s); setOpen(true) }}
               onDelete={()=> setConfirm({ open:true, id:s.id })}
@@ -264,7 +291,7 @@ export default function Electricity(){
             await toast.promise(
               updateService(editing.id, { serviceNumber, label }),
               { loading:'Updating service…', success:'Service updated', error: (e)=> e?.response?.data?.error || e?.message || 'Failed to save service' },
-              { success:{ duration:2000 }, error:{ duration:2000 } }
+              { success:{ duration:2500 }, error:{ duration:2500 } }
             )
             setEditing(null)
             setOpen(false)
@@ -272,11 +299,11 @@ export default function Electricity(){
             const toastId = toast.loading('Adding service…')
             try{
               const createdId = await addService(serviceNumber, label)
-              toast.success('Service added', { id: toastId, duration: 2000 })
+              toast.success('Service added', { id: toastId, duration: 2500 })
               setOpen(false)
               setHighlightId(createdId)
             }catch(err){
-              toast.error(err?.message || 'Failed to add service', { id: toastId, duration: 2000 })
+              toast.error(err?.message || 'Failed to add service', { id: toastId, duration: 2500 })
               throw err
             }
           }
@@ -307,7 +334,7 @@ export default function Electricity(){
           <li>Trash and Restore help manage services safely.</li>
         </ul>
       </InfoModal>
-      <ConfirmDialog open={confirm.open} title="Delete service?" message="Choose soft delete (move to Trash) or delete permanently." onCancel={()=> setConfirm({ open:false, id:null })} onConfirm={async()=>{ try{ await deleteService(confirm.id); toast.success('Moved to Trash', { duration: 2000 }) }catch(e){ toast.error(e?.response?.data?.error || e.message, { duration: 2000 }) } finally { setConfirm({ open:false, id:null }) } }} onConfirmHard={async()=>{ try{ await deleteServicePermanent(confirm.id); toast.success('Permanently deleted', { duration: 2000 }) }catch(e){ toast.error(e?.response?.data?.error || e.message, { duration: 2000 }) } finally { setConfirm({ open:false, id:null }) } }} hardLabel="Delete permanently" />
+      <ConfirmDialog open={confirm.open} title="Delete service?" message="Choose soft delete (move to Trash) or delete permanently." onCancel={()=> setConfirm({ open:false, id:null })} onConfirm={async()=>{ try{ await deleteService(confirm.id); toast.success('Moved to Trash', { duration: 2500 }) }catch(e){ toast.error(e?.response?.data?.error || e.message, { duration: 2500 }) } finally { setConfirm({ open:false, id:null }) } }} onConfirmHard={async()=>{ try{ await deleteServicePermanent(confirm.id); toast.success('Permanently deleted', { duration: 2500 }) }catch(e){ toast.error(e?.response?.data?.error || e.message, { duration: 2500 }) } finally { setConfirm({ open:false, id:null }) } }} hardLabel="Delete permanently" />
       <div style={{marginTop:'auto'}}>
         <AppFooter/>
       </div>

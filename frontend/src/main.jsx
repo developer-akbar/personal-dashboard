@@ -32,7 +32,7 @@ createRoot(document.getElementById('root')).render(
     <Toaster 
       position="bottom-center" 
       toastOptions={{ 
-        duration: 2000, 
+        duration: 2500, 
         style: { 
           maxWidth: '480px', 
           whiteSpace: 'pre-wrap', 
