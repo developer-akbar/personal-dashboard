@@ -130,6 +130,10 @@
   z-index: 1;
 }
 
+.inputGroup input::placeholder {
+  text-align: center;
+}
+
 .inputGroup input {
   background: var(--input-bg);
   border: 2px solid var(--input-border);

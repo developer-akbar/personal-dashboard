@@ -13,7 +13,11 @@ import { connectToDatabase } from "./config/db.js";
 const PORT = process.env.PORT || 4000;
 
 async function start() {
-  await connectToDatabase();
+  try {
+    await connectToDatabase();
+  } catch (error) {
+    console.log("Database connection failed, continuing without database:", error.message);
+  }
 
   const server = http.createServer(app);
 
