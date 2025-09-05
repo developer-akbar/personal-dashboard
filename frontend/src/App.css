@@ -288,8 +288,8 @@ select {
 
 /* AccountCard checkboxes - always visible when showCheckboxes is true */
 .card .checkbox[aria-label="Select account"] {
-  opacity: 1;
-  pointer-events: auto;
+  opacity: 1 !important;
+  pointer-events: auto !important;
 }
 
 /* Electricity: default 2 columns; 3 only on very wide screens; 1 on small */

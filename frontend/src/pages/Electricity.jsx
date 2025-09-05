@@ -240,7 +240,6 @@ export default function Electricity(){
               }
             }}
             onTouchStart={(e)=> { 
-              e.preventDefault();
               if (longPressRef.current) clearTimeout(longPressRef.current); 
               longPressRef.current = setTimeout(()=> { 
                 setSelectMode(true); 

@@ -7,10 +7,17 @@ import { FaStar } from "react-icons/fa";
 export default function AccountCard({ account, onRefresh, onEdit, onDelete, onTogglePin, selected=false, onToggleSelect, onLongPressActivate, showCheckboxes=false }) {
   // simple long-press activation for mobile
   let pressTimer;
-  const onTouchStart = ()=>{
+  const onTouchStart = (e)=>{
+    e.preventDefault();
     pressTimer = setTimeout(()=>{ onLongPressActivate?.(); }, 500)
   }
   const onTouchEnd = ()=>{ if(pressTimer) clearTimeout(pressTimer) }
+  const onTouchMove = ()=>{
+    if(pressTimer) {
+      clearTimeout(pressTimer);
+      pressTimer = null;
+    }
+  }
   const onToggleMenu = (e)=>{
     e.stopPropagation()
     const menu = e.currentTarget.nextSibling
@@ -27,7 +34,7 @@ export default function AccountCard({ account, onRefresh, onEdit, onDelete, onTo
     return `hsl(${h} 70% 35% / 1)`
   })()
   return (
-    <div className={styles.card} onTouchStart={onTouchStart} onTouchEnd={onTouchEnd} style={{ borderLeft: `4px solid ${accent}` }}>
+    <div className={styles.card} onTouchStart={onTouchStart} onTouchEnd={onTouchEnd} onTouchMove={onTouchMove} style={{ borderLeft: `4px solid ${accent}` }}>
       <div className={styles.header}>
         <div className={styles.headerLeft}>
           {showCheckboxes && (
