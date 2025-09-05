@@ -101,7 +101,37 @@ export default function Account(){
         </div>
       ) : (
         <>
-          {/* Account Information - Moved to Top */}
+          {/* Profile Header - Back to Top */}
+          <div className={styles.profileHeader}>
+            <div className={styles.avatarContainer}>
+              {userData?.avatarUrl ? (
+                <img 
+                  src={userData.avatarUrl} 
+                  alt="Profile" 
+                  className={styles.avatar}
+                  onError={(e) => {
+                    e.target.style.display = 'none'
+                    e.target.nextSibling.style.display = 'flex'
+                  }}
+                />
+              ) : null}
+              <div 
+                className={styles.avatarPlaceholder}
+                style={{ display: userData?.avatarUrl ? 'none' : 'flex' }}
+              >
+                <FiUser />
+              </div>
+            </div>
+            <div className={styles.profileInfo}>
+              <h2 className={styles.profileName}>{userData?.name || 'No name set'}</h2>
+              <p className={styles.profileEmail}>{userData?.email || ''}</p>
+              {userData?.phone && (
+                <p className={styles.profilePhone}>{userData.phone}</p>
+              )}
+            </div>
+          </div>
+
+          {/* Account Information - Below Profile */}
           <div className={styles.infoSection}>
             <h3>Account Information</h3>
             <div className={styles.infoGrid}>
@@ -136,37 +166,7 @@ export default function Account(){
             </div>
           </div>
 
-          {/* Profile Header - Moved to Middle */}
-          <div className={styles.profileHeader}>
-            <div className={styles.avatarContainer}>
-              {userData?.avatarUrl ? (
-                <img 
-                  src={userData.avatarUrl} 
-                  alt="Profile" 
-                  className={styles.avatar}
-                  onError={(e) => {
-                    e.target.style.display = 'none'
-                    e.target.nextSibling.style.display = 'flex'
-                  }}
-                />
-              ) : null}
-              <div 
-                className={styles.avatarPlaceholder}
-                style={{ display: userData?.avatarUrl ? 'none' : 'flex' }}
-              >
-                <FiUser />
-              </div>
-            </div>
-            <div className={styles.profileInfo}>
-              <h2 className={styles.profileName}>{userData?.name || 'No name set'}</h2>
-              <p className={styles.profileEmail}>{userData?.email || ''}</p>
-              {userData?.phone && (
-                <p className={styles.profilePhone}>{userData.phone}</p>
-              )}
-            </div>
-          </div>
-
-          {/* Profile Actions - Moved to Bottom */}
+          {/* Profile Actions - At Bottom */}
           <div className={styles.actionsGrid}>
             <button 
               className={styles.actionCard}
