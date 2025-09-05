@@ -28,8 +28,8 @@ export default function HeaderAvatar() {
             alt="Avatar" 
             onError={()=> setImgError(true)} 
             style={{ 
-              width: '50px', 
-              height: '50px', 
+              width: '54px', 
+              height: '54px', 
               borderRadius: '50%', 
               objectFit: 'cover',
               border: '2px solid var(--panel-bg)'
@@ -37,14 +37,14 @@ export default function HeaderAvatar() {
           />
         ) : (
           <div style={{ 
-            width: '50px', 
-            height: '50px', 
+            width: '54px', 
+            height: '54px', 
             borderRadius: '50%', 
             backgroundColor: 'var(--avatar-bg)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            fontSize: '1.2rem',
+            fontSize: '1.3rem',
             fontWeight: '700',
             color: 'var(--text)',
             border: '2px solid var(--panel-bg)'
