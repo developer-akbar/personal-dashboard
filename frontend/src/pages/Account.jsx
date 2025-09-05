@@ -15,7 +15,9 @@ export default function Account(){
     name: '',
     email: '',
     phone: '',
-    avatarUrl: ''
+    avatarUrl: '',
+    userType: '',
+    subscription: ''
   })
   const [showProfileModal, setShowProfileModal] = useState(false)
   const [showPasswordModal, setShowPasswordModal] = useState(false)
@@ -28,7 +30,9 @@ export default function Account(){
         name: user.name || '',
         email: user.email || '',
         phone: user.phone || '',
-        avatarUrl: user.avatarUrl || ''
+        avatarUrl: user.avatarUrl || '',
+        userType: user.userType || 'Non Subscriber',
+        subscription: user.subscription || 'Free'
       })
     }
     
@@ -44,7 +48,9 @@ export default function Account(){
         name: data.name || '',
         email: data.email || '',
         phone: data.phone || '',
-        avatarUrl: data.avatarUrl || ''
+        avatarUrl: data.avatarUrl || '',
+        userType: data.userType || 'Non Subscriber',
+        subscription: data.subscription || 'Free'
       })
     } catch (error) {
       console.error('Failed to load profile data:', error)
@@ -152,6 +158,22 @@ export default function Account(){
                 <div>
                   <label>Mobile Number</label>
                   <span>{userData?.phone || 'Not set'}</span>
+                </div>
+              </div>
+              <div className={styles.infoItem}>
+                <FiUser className={styles.infoIcon} />
+                <div>
+                  <label>User Type</label>
+                  <span style={{ 
+                    color: userData?.userType === 'Admin' ? '#ef4444' : 
+                           userData?.subscription === 'Free' ? '#6b7280' : '#16a34a',
+                    fontWeight: '600'
+                  }}>
+                    {userData?.userType || 'Non Subscriber'} 
+                    {userData?.subscription && userData.subscription !== 'Free' && 
+                      ` (${userData.subscription})`
+                    }
+                  </span>
                 </div>
               </div>
             </div>
