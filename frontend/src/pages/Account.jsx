@@ -11,18 +11,29 @@ import styles from './Account.module.css'
 export default function Account(){
   const { user, logout } = useAuth()
   const [userData, setUserData] = useState({
-    name: user?.name || '',
-    email: user?.email || '',
-    phone: user?.phone || '',
-    avatarUrl: user?.avatarUrl || ''
+    name: '',
+    email: '',
+    phone: '',
+    avatarUrl: ''
   })
   const [showProfileModal, setShowProfileModal] = useState(false)
   const [showPasswordModal, setShowPasswordModal] = useState(false)
   const [loading, setLoading] = useState(false)
 
   useEffect(() => {
+    // Initialize with user data from auth store
+    if (user) {
+      setUserData({
+        name: user.name || '',
+        email: user.email || '',
+        phone: user.phone || '',
+        avatarUrl: user.avatarUrl || ''
+      })
+    }
+    
+    // Fetch fresh data from server
     fetchUserData()
-  }, [])
+  }, [user])
 
   const fetchUserData = async () => {
     setLoading(true)
@@ -215,4 +226,3 @@ export default function Account(){
     </div>
   )
 }
-

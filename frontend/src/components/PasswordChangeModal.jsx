@@ -1,19 +1,14 @@
 import React, { useState } from 'react'
 import { FiX, FiLock, FiEye, FiEyeOff } from 'react-icons/fi'
-import { usePasswordValidation } from '../hooks/useFormValidation'
 import styles from './PasswordChangeModal.module.css'
 
 export default function PasswordChangeModal({ open, onClose, onSubmit }) {
-  const {
-    data,
-    errors,
-    isValidating,
-    updateField,
-    validateField,
-    validateForm,
-    resetForm
-  } = usePasswordValidation()
-  
+  const [formData, setFormData] = useState({
+    currentPassword: '',
+    newPassword: '',
+    confirmPassword: ''
+  })
+  const [errors, setErrors] = useState({})
   const [submitting, setSubmitting] = useState(false)
   const [showPasswords, setShowPasswords] = useState({
     current: false,
@@ -21,17 +16,57 @@ export default function PasswordChangeModal({ open, onClose, onSubmit }) {
     confirm: false
   })
 
+  const handleInputChange = (field, value) => {
+    setFormData(prev => ({ ...prev, [field]: value }))
+    // Clear error when user starts typing
+    if (errors[field]) {
+      setErrors(prev => {
+        const newErrors = { ...prev }
+        delete newErrors[field]
+        return newErrors
+      })
+    }
+  }
+
+  const validateForm = () => {
+    const newErrors = {}
+    
+    if (!formData.currentPassword.trim()) {
+      newErrors.currentPassword = 'Current password is required'
+    }
+    
+    if (!formData.newPassword.trim()) {
+      newErrors.newPassword = 'New password is required'
+    } else if (formData.newPassword.length < 8) {
+      newErrors.newPassword = 'Password must be at least 8 characters'
+    } else if (!/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])/.test(formData.newPassword)) {
+      newErrors.newPassword = 'Password must contain uppercase, lowercase, number, and special character'
+    }
+    
+    if (!formData.confirmPassword.trim()) {
+      newErrors.confirmPassword = 'Please confirm your new password'
+    } else if (formData.confirmPassword !== formData.newPassword) {
+      newErrors.confirmPassword = 'Passwords do not match'
+    }
+    
+    setErrors(newErrors)
+    return Object.keys(newErrors).length === 0
+  }
+
   const handleSubmit = async (e) => {
     e.preventDefault()
-    if (submitting || isValidating) return
+    if (submitting) return
 
-    const validation = await validateForm()
-    if (!validation.isValid) return
+    if (!validateForm()) return
 
     setSubmitting(true)
     try {
-      await onSubmit(validation.data)
-      resetForm()
+      await onSubmit(formData)
+      setFormData({
+        currentPassword: '',
+        newPassword: '',
+        confirmPassword: ''
+      })
       onClose()
     } catch (error) {
       console.error('Password change failed:', error)
@@ -75,9 +110,8 @@ export default function PasswordChangeModal({ open, onClose, onSubmit }) {
               <div className={styles.passwordInput}>
                 <input
                   type={showPasswords.current ? 'text' : 'password'}
-                  value={data.currentPassword}
-                  onChange={(e) => updateField('currentPassword', e.target.value)}
-                  onBlur={(e) => validateField('currentPassword', e.target.value)}
+                  value={formData.currentPassword}
+                  onChange={(e) => handleInputChange('currentPassword', e.target.value)}
                   placeholder="Enter your current password"
                   required
                 />
@@ -100,9 +134,8 @@ export default function PasswordChangeModal({ open, onClose, onSubmit }) {
               <div className={styles.passwordInput}>
                 <input
                   type={showPasswords.new ? 'text' : 'password'}
-                  value={data.newPassword}
-                  onChange={(e) => updateField('newPassword', e.target.value)}
-                  onBlur={(e) => validateField('newPassword', e.target.value)}
+                  value={formData.newPassword}
+                  onChange={(e) => handleInputChange('newPassword', e.target.value)}
                   placeholder="Enter your new password"
                   required
                 />
@@ -125,9 +158,8 @@ export default function PasswordChangeModal({ open, onClose, onSubmit }) {
               <div className={styles.passwordInput}>
                 <input
                   type={showPasswords.confirm ? 'text' : 'password'}
-                  value={data.confirmPassword}
-                  onChange={(e) => updateField('confirmPassword', e.target.value)}
-                  onBlur={(e) => validateField('confirmPassword', e.target.value)}
+                  value={formData.confirmPassword}
+                  onChange={(e) => handleInputChange('confirmPassword', e.target.value)}
                   placeholder="Confirm your new password"
                   required
                 />
@@ -146,19 +178,19 @@ export default function PasswordChangeModal({ open, onClose, onSubmit }) {
           <div className={styles.passwordRequirements}>
             <h4>Password Requirements:</h4>
             <ul>
-              <li className={data.newPassword?.length >= 8 ? styles.valid : ''}>
+              <li className={formData.newPassword?.length >= 8 ? styles.valid : ''}>
                 At least 8 characters
               </li>
-              <li className={/[A-Z]/.test(data.newPassword || '') ? styles.valid : ''}>
+              <li className={/[A-Z]/.test(formData.newPassword || '') ? styles.valid : ''}>
                 One uppercase letter
               </li>
-              <li className={/[a-z]/.test(data.newPassword || '') ? styles.valid : ''}>
+              <li className={/[a-z]/.test(formData.newPassword || '') ? styles.valid : ''}>
                 One lowercase letter
               </li>
-              <li className={/\d/.test(data.newPassword || '') ? styles.valid : ''}>
+              <li className={/\d/.test(formData.newPassword || '') ? styles.valid : ''}>
                 One number
               </li>
-              <li className={/[!@#$%^&*(),.?":{}|<>]/.test(data.newPassword || '') ? styles.valid : ''}>
+              <li className={/[!@#$%^&*(),.?":{}|<>]/.test(formData.newPassword || '') ? styles.valid : ''}>
                 One special character
               </li>
             </ul>
@@ -176,7 +208,7 @@ export default function PasswordChangeModal({ open, onClose, onSubmit }) {
             <button 
               type="submit" 
               className={styles.saveButton}
-              disabled={submitting || isValidating}
+              disabled={submitting}
             >
               {submitting ? 'Changing...' : 'Change Password'}
             </button>
