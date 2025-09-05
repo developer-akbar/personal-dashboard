@@ -234,22 +234,30 @@ export default function Electricity(){
               setHoveredCardId(s.id); 
             }} 
             onMouseLeave={()=> { 
+              setHoveredCardId(null);
               if (selectedIds.size === 0) {
-                setHoveredCardId(null);
+                setSelectMode(false);
               }
             }}
-            onTouchStart={()=>{ 
+            onTouchStart={(e)=> { 
+              e.preventDefault();
               if (longPressRef.current) clearTimeout(longPressRef.current); 
               longPressRef.current = setTimeout(()=> { 
                 setSelectMode(true); 
                 setHoveredCardId(s.id); 
               }, 500) 
             }} 
-            onTouchEnd={()=>{ 
+            onTouchEnd={()=> { 
               if (longPressRef.current) { 
                 clearTimeout(longPressRef.current); 
                 longPressRef.current=null 
               } 
+            }}
+            onTouchMove={()=> {
+              if (longPressRef.current) {
+                clearTimeout(longPressRef.current);
+                longPressRef.current = null;
+              }
             }}
           >
             {(selectMode && (hoveredCardId === s.id || selectedIds.has(s.id))) && (

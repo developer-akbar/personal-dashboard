@@ -286,6 +286,12 @@ select {
   pointer-events: auto;
 }
 
+/* AccountCard checkboxes - always visible when showCheckboxes is true */
+.card .checkbox[aria-label="Select account"] {
+  opacity: 1;
+  pointer-events: auto;
+}
+
 /* Electricity: default 2 columns; 3 only on very wide screens; 1 on small */
 .elec-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 @media (min-width: 1600px) {

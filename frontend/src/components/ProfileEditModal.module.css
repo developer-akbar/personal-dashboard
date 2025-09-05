@@ -133,6 +133,10 @@
   height: 20px;
 }
 
+.inputGroup.error .inputIcon {
+  transform: translateY(-90%);
+}
+
 .inputGroup input::placeholder {
   text-align: left;
 }
