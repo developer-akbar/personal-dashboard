@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react'
-import { validateFormData, formValidationRules, ValidationError } from '../utils/validation'
+import { validateFormData, formValidationRules, ValidationError, validatePassword } from '../utils/validation'
 import toast from 'react-hot-toast'
 
 export function useFormValidation(initialData = {}, rules = {}) {
@@ -168,25 +168,134 @@ export function useProfileValidation() {
 }
 
 export function usePasswordValidation() {
-  return useFormValidation(
-    { currentPassword: '', newPassword: '', confirmPassword: '' },
-    {
-      currentPassword: (password) => {
-        if (!password || typeof password !== 'string') {
-          throw new ValidationError('Current password is required', 'currentPassword', password)
-        }
-        return password
-      },
-      newPassword: validatePassword,
-      confirmPassword: (confirm, formData) => {
-        if (!confirm || typeof confirm !== 'string') {
-          throw new ValidationError('Please confirm your new password', 'confirmPassword', confirm)
-        }
-        if (confirm !== formData.newPassword) {
-          throw new ValidationError('Passwords do not match', 'confirmPassword', confirm)
-        }
-        return confirm
-      }
+  const [data, setData] = useState({
+    currentPassword: '',
+    newPassword: '',
+    confirmPassword: ''
+  })
+  const [errors, setErrors] = useState({})
+  const [isValidating, setIsValidating] = useState(false)
+
+  const updateField = useCallback((field, value) => {
+    setData(prev => ({ ...prev, [field]: value }))
+    
+    // Clear error for this field when user starts typing
+    if (errors[field]) {
+      setErrors(prev => {
+        const newErrors = { ...prev }
+        delete newErrors[field]
+        return newErrors
+      })
     }
-  )
+  }, [errors])
+
+  const validateField = useCallback((field, value) => {
+    try {
+      if (field === 'currentPassword') {
+        if (!value || typeof value !== 'string') {
+          throw new ValidationError('Current password is required', 'currentPassword', value)
+        }
+        return true
+      } else if (field === 'newPassword') {
+        validatePassword(value)
+        return true
+      } else if (field === 'confirmPassword') {
+        if (!value || typeof value !== 'string') {
+          throw new ValidationError('Please confirm your new password', 'confirmPassword', value)
+        }
+        if (value !== data.newPassword) {
+          throw new ValidationError('Passwords do not match', 'confirmPassword', value)
+        }
+        return true
+      }
+      return true
+    } catch (error) {
+      if (error instanceof ValidationError) {
+        setErrors(prev => ({ ...prev, [field]: error.message }))
+        return false
+      }
+      return false
+    }
+  }, [data.newPassword])
+
+  const validateForm = useCallback(async () => {
+    setIsValidating(true)
+    setErrors({})
+    
+    try {
+      // Validate current password
+      if (!data.currentPassword || typeof data.currentPassword !== 'string') {
+        throw new ValidationError('Current password is required', 'currentPassword', data.currentPassword)
+      }
+      
+      // Validate new password
+      const validatedNewPassword = validatePassword(data.newPassword)
+      
+      // Validate confirm password
+      if (!data.confirmPassword || typeof data.confirmPassword !== 'string') {
+        throw new ValidationError('Please confirm your new password', 'confirmPassword', data.confirmPassword)
+      }
+      if (data.confirmPassword !== data.newPassword) {
+        throw new ValidationError('Passwords do not match', 'confirmPassword', data.confirmPassword)
+      }
+      
+      setIsValidating(false)
+      return { 
+        isValid: true, 
+        data: {
+          currentPassword: data.currentPassword,
+          newPassword: validatedNewPassword,
+          confirmPassword: data.confirmPassword
+        }
+      }
+    } catch (error) {
+      setIsValidating(false)
+      
+      if (error instanceof ValidationError) {
+        setErrors({ [error.field]: error.message })
+        return { isValid: false, errors: { [error.field]: error.message } }
+      }
+      
+      // Handle unexpected errors
+      toast.error('Validation failed. Please check your input.')
+      return { isValid: false, errors: {} }
+    }
+  }, [data])
+
+  const resetForm = useCallback((newData = {}) => {
+    setData({
+      currentPassword: '',
+      newPassword: '',
+      confirmPassword: '',
+      ...newData
+    })
+    setErrors({})
+    setIsValidating(false)
+  }, [])
+
+  const setFieldError = useCallback((field, message) => {
+    setErrors(prev => ({ ...prev, [field]: message }))
+  }, [])
+
+  const clearErrors = useCallback(() => {
+    setErrors({})
+  }, [])
+
+  const hasErrors = Object.keys(errors).length > 0
+  const isFormValid = !hasErrors && data.currentPassword && data.newPassword && data.confirmPassword
+
+  return {
+    data,
+    errors,
+    isValidating,
+    hasErrors,
+    isFormValid,
+    updateField,
+    validateField,
+    validateForm,
+    resetForm,
+    setFieldError,
+    clearErrors,
+    setData
+  }
 }

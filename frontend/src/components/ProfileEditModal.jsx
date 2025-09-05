@@ -12,7 +12,7 @@ export default function ProfileEditModal({ open, onClose, onSubmit, initialData 
     validateField,
     validateForm,
     resetForm
-  } = useProfileValidation(initialData || {})
+  } = useProfileValidation()
   
   const [submitting, setSubmitting] = useState(false)
 

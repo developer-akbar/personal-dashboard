@@ -12,11 +12,7 @@ export default function PasswordChangeModal({ open, onClose, onSubmit }) {
     validateField,
     validateForm,
     resetForm
-  } = usePasswordValidation({
-    currentPassword: '',
-    newPassword: '',
-    confirmPassword: ''
-  })
+  } = usePasswordValidation()
   
   const [submitting, setSubmitting] = useState(false)
   const [showPasswords, setShowPasswords] = useState({

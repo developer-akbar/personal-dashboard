@@ -35,7 +35,8 @@ export default function Account(){
         avatarUrl: data.avatarUrl || ''
       })
     } catch (error) {
-      toast.error('Failed to load profile data')
+      console.error('Failed to load profile data:', error)
+      toast.error(error?.response?.data?.error || 'Failed to load profile data')
     } finally {
       setLoading(false)
     }
@@ -50,6 +51,7 @@ export default function Account(){
       const { useAuth } = await import('../store/useAuth')
       useAuth.getState().setUser(data)
     } catch (error) {
+      console.error('Failed to update profile:', error)
       toast.error(error?.response?.data?.error || 'Failed to update profile')
       throw error
     }
@@ -63,6 +65,7 @@ export default function Account(){
       })
       toast.success('Password changed successfully')
     } catch (error) {
+      console.error('Failed to change password:', error)
       toast.error(error?.response?.data?.error || 'Failed to change password')
       throw error
     }
@@ -90,7 +93,7 @@ export default function Account(){
           {/* Profile Header */}
           <div className={styles.profileHeader}>
             <div className={styles.avatarContainer}>
-              {userData.avatarUrl ? (
+              {userData?.avatarUrl ? (
                 <img 
                   src={userData.avatarUrl} 
                   alt="Profile" 
@@ -103,15 +106,15 @@ export default function Account(){
               ) : null}
               <div 
                 className={styles.avatarPlaceholder}
-                style={{ display: userData.avatarUrl ? 'none' : 'flex' }}
+                style={{ display: userData?.avatarUrl ? 'none' : 'flex' }}
               >
                 <FiUser />
               </div>
             </div>
             <div className={styles.profileInfo}>
-              <h2 className={styles.profileName}>{userData.name || 'No name set'}</h2>
-              <p className={styles.profileEmail}>{userData.email}</p>
-              {userData.phone && (
+              <h2 className={styles.profileName}>{userData?.name || 'No name set'}</h2>
+              <p className={styles.profileEmail}>{userData?.email || ''}</p>
+              {userData?.phone && (
                 <p className={styles.profilePhone}>{userData.phone}</p>
               )}
             </div>
@@ -167,28 +170,28 @@ export default function Account(){
                 <FiMail className={styles.infoIcon} />
                 <div>
                   <label>Email Address</label>
-                  <span>{userData.email}</span>
+                  <span>{userData?.email || ''}</span>
                 </div>
               </div>
               <div className={styles.infoItem}>
                 <FiUser className={styles.infoIcon} />
                 <div>
                   <label>Full Name</label>
-                  <span>{userData.name || 'Not set'}</span>
+                  <span>{userData?.name || 'Not set'}</span>
                 </div>
               </div>
               <div className={styles.infoItem}>
                 <FiPhone className={styles.infoIcon} />
                 <div>
                   <label>Mobile Number</label>
-                  <span>{userData.phone || 'Not set'}</span>
+                  <span>{userData?.phone || 'Not set'}</span>
                 </div>
               </div>
               <div className={styles.infoItem}>
                 <FiImage className={styles.infoIcon} />
                 <div>
                   <label>Avatar</label>
-                  <span>{userData.avatarUrl ? 'Custom avatar' : 'Default avatar'}</span>
+                  <span>{userData?.avatarUrl ? 'Custom avatar' : 'Default avatar'}</span>
                 </div>
               </div>
             </div>
