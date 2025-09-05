@@ -311,8 +311,8 @@ select {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 20px;
-  height: 20px;
+  width: 24px;
+  height: 24px;
   border-radius: 9999px;
   border: 1px solid var(--panel-border);
   background: var(--panel-bg);
@@ -320,7 +320,7 @@ select {
   opacity: .95;
   line-height: 1;
   padding: 0;
-  font-size: 12px;
+  font-size: 20px;
   font-weight: 600;
   min-width: unset;
   min-height: unset;
@@ -367,16 +367,6 @@ select {
     /* Removed padding and margin - grid gap suffices */
   }
   
-  /* Mobile search input clear button */
-  .clear-btn {
-    width: 16px;
-    height: 16px;
-    right: 8px;
-    font-size: 10px;
-    border: 1px solid var(--panel-border);
-    min-width: unset;
-    min-height: unset;
-  }
   
   /* Better form inputs on mobile */
   input, select, textarea {
