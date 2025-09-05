@@ -1,9 +1,11 @@
-import React from 'react'
+import React, { useState } from 'react'
 import toast from 'react-hot-toast'
-import { FiRefreshCcw, FiMoreVertical, FiStar } from 'react-icons/fi'
+import { FiRefreshCcw, FiMoreVertical, FiStar, FiInfo } from 'react-icons/fi'
 import { FaStar } from 'react-icons/fa'
 
 export default function ElectricityServiceCard({ item, onRefresh, onEdit, onDelete, highlight=false, domId, onTogglePin }){
+  const [showPaymentDetails, setShowPaymentDetails] = useState(false)
+  
   const onToggleMenu = (e)=>{
     e.stopPropagation()
     const menu = e.currentTarget.nextSibling
@@ -47,7 +49,7 @@ export default function ElectricityServiceCard({ item, onRefresh, onEdit, onDele
         <div>
           <span style={{opacity:.7}}>Due Date</span>{' '}
           <b>{item.lastDueDate? new Date(item.lastDueDate).toLocaleDateString(): '—'}</b>
-          {item.lastDueDate && (
+          {item.lastDueDate && !item.isPaid && (
             (()=>{
               const diffMs = new Date(item.lastDueDate).getTime() - Date.now()
               const days = Math.ceil(diffMs / (1000*60*60*24))
@@ -67,27 +69,56 @@ export default function ElectricityServiceCard({ item, onRefresh, onEdit, onDele
       </div>
       {/* Payment Information */}
       {item.isPaid && (
-        <div style={{background:'#f0fdf4', border:'1px solid #bbf7d0', borderRadius:8, padding:12, marginTop:8}}>
+        <div style={{marginTop:8}}>
           <div style={{display:'flex', alignItems:'center', gap:8, marginBottom:8}}>
-            <span style={{background:'#16a34a', color:'white', borderRadius:4, padding:'2px 6px', fontSize:11, fontWeight:600}}>PAID</span>
+            <button
+              onClick={() => setShowPaymentDetails(!showPaymentDetails)}
+              style={{
+                background:'#16a34a',
+                color:'white',
+                border:'none',
+                borderRadius:6,
+                padding:'6px 12px',
+                fontSize:12,
+                fontWeight:600,
+                cursor:'pointer',
+                display:'flex',
+                alignItems:'center',
+                gap:6
+              }}
+            >
+              PAID
+              <FiInfo size={14} />
+            </button>
             <span style={{fontSize:12, opacity:.8}}>Payment completed</span>
           </div>
-          <div style={{display:'grid', gridTemplateColumns:'repeat(2,minmax(0,1fr))', gap:8, fontSize:12}}>
-            <div>
-              <span style={{opacity:.7}}>Paid Date</span>{' '}
-              <b>{item.paidDate ? new Date(item.paidDate).toLocaleDateString() : '—'}</b>
-            </div>
-            <div>
-              <span style={{opacity:.7}}>Receipt No</span>{' '}
-              <b style={{fontSize:11, fontFamily:'monospace'}}>{item.receiptNumber || '—'}</b>
-            </div>
-            {item.paidAmount && (
-              <div style={{gridColumn:'1/-1'}}>
-                <span style={{opacity:.7}}>Paid Amount</span>{' '}
-                <b style={{color:'#16a34a'}}>₹ {Number(item.paidAmount).toLocaleString('en-IN')}</b>
+          
+          {showPaymentDetails && (
+            <div style={{
+              background:'var(--muted-bg)',
+              border:'1px solid var(--panel-border)',
+              borderRadius:8,
+              padding:12,
+              marginTop:8
+            }}>
+              <div style={{display:'grid', gridTemplateColumns:'repeat(2,minmax(0,1fr))', gap:8, fontSize:12}}>
+                <div>
+                  <span style={{opacity:.7}}>Paid Date</span>{' '}
+                  <b>{item.paidDate ? new Date(item.paidDate).toLocaleDateString() : '—'}</b>
+                </div>
+                <div>
+                  <span style={{opacity:.7}}>Receipt No</span>{' '}
+                  <b style={{fontSize:11, fontFamily:'monospace'}}>{item.receiptNumber || '—'}</b>
+                </div>
+                {item.paidAmount && (
+                  <div style={{gridColumn:'1/-1'}}>
+                    <span style={{opacity:.7}}>Paid Amount</span>{' '}
+                    <b style={{color:'#16a34a'}}>₹ {Number(item.paidAmount).toLocaleString('en-IN')}</b>
+                  </div>
+                )}
               </div>
-            )}
-          </div>
+            </div>
+          )}
         </div>
       )}
       {Array.isArray(item.lastThreeAmounts) && item.lastThreeAmounts.length>0 && (
