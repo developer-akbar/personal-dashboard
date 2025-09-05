@@ -11,7 +11,8 @@ let accessToken = (typeof window !== 'undefined' && localStorage.getItem('access
 
 // Track slow requests
 const slowRequestThreshold = 8000 // 8 seconds
-const slowRequestToasts = new Map()
+let slowRequestToastId = null
+let activeRequests = new Set()
 
 export function setAccessToken(token) {
   accessToken = token
@@ -25,27 +26,29 @@ api.interceptors.request.use((config) => {
   
   // Set up slow request detection
   config.metadata = { startTime: Date.now() }
+  activeRequests.add(config.metadata.startTime)
   
-  // Show slow request toast after threshold
+  // Show slow request toast after threshold (only once)
   const timeoutId = setTimeout(() => {
-    const toastId = toast.loading(
-      '🔄 Server is waking up from inactivity... This may take a moment.',
-      {
-        duration: 0, // Don't auto-dismiss
-        style: {
-          background: 'var(--warning-bg)',
-          color: 'var(--warning-text)',
-          border: '1px solid var(--warning-border)',
-          borderRadius: '8px',
-          padding: '12px 16px',
-          fontSize: '14px',
-          fontWeight: '500',
-          maxWidth: '400px',
-          boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
+    if (!slowRequestToastId) {
+      slowRequestToastId = toast.loading(
+        '🔄 Server is waking up from inactivity... This may take a moment.',
+        {
+          duration: 0, // Don't auto-dismiss
+          style: {
+            background: 'var(--warning-bg)',
+            color: 'var(--warning-text)',
+            border: '1px solid var(--warning-border)',
+            borderRadius: '8px',
+            padding: '12px 16px',
+            fontSize: '14px',
+            fontWeight: '500',
+            maxWidth: '400px',
+            boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
+          }
         }
-      }
-    )
-    slowRequestToasts.set(config.metadata.startTime, toastId)
+      )
+    }
   }, slowRequestThreshold)
   
   config.metadata.timeoutId = timeoutId
@@ -55,16 +58,19 @@ api.interceptors.request.use((config) => {
 
 api.interceptors.response.use(
   (res)=>{
-    // Clear slow request toast if it was shown
+    // Track completed requests
     if (res.config?.metadata?.startTime) {
-      const toastId = slowRequestToasts.get(res.config.metadata.startTime)
-      if (toastId) {
-        toast.dismiss(toastId)
-        slowRequestToasts.delete(res.config.metadata.startTime)
-      }
+      activeRequests.delete(res.config.metadata.startTime)
+      
       // Clear timeout if request completed before threshold
       if (res.config.metadata.timeoutId) {
         clearTimeout(res.config.metadata.timeoutId)
+      }
+      
+      // Dismiss slow request toast if all requests are complete
+      if (activeRequests.size === 0 && slowRequestToastId) {
+        toast.dismiss(slowRequestToastId)
+        slowRequestToastId = null
       }
     }
     
@@ -72,16 +78,19 @@ api.interceptors.response.use(
     return res
   },
   (err)=>{
-    // Clear slow request toast if it was shown
+    // Track completed requests (even failed ones)
     if (err?.config?.metadata?.startTime) {
-      const toastId = slowRequestToasts.get(err.config.metadata.startTime)
-      if (toastId) {
-        toast.dismiss(toastId)
-        slowRequestToasts.delete(err.config.metadata.startTime)
-      }
+      activeRequests.delete(err.config.metadata.startTime)
+      
       // Clear timeout if request failed before threshold
       if (err.config.metadata.timeoutId) {
         clearTimeout(err.config.metadata.timeoutId)
+      }
+      
+      // Dismiss slow request toast if all requests are complete
+      if (activeRequests.size === 0 && slowRequestToastId) {
+        toast.dismiss(slowRequestToastId)
+        slowRequestToastId = null
       }
     }
     
