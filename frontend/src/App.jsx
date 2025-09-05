@@ -11,6 +11,7 @@ import Settings from './pages/Settings'
 import Account from './pages/Account'
 import { useAuth } from './store/useAuth'
 import ErrorBoundary from './components/ErrorBoundary'
+import ConnectionStatus from './components/ConnectionStatus'
 
 function RequireAuth({ children }){
   const { user } = useAuth()
@@ -26,6 +27,7 @@ export default function App(){
   return (
     <ErrorBoundary>
       <HashRouter>
+        <ConnectionStatus />
         <Routes>
           <Route path="/" element={<Home/>} />
           <Route path="/login" element={<Login/>} />
