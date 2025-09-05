@@ -75,6 +75,12 @@ export async function fetchApspdclBill({ serviceNumber, interactive, storageStat
           dueDate: parseD(row.duedate),
           billedUnits: Number(row.billedUnits||0),
           billAmount: Number(String(row.billAmount||'0').replace(/,/g,'')),
+          // Bill breakup components
+          ec: Number(String(row.ec||'0').replace(/,/g,'')), // Energy Charges
+          fixchg: Number(String(row.fixchg||'0').replace(/,/g,'')), // Fixed Charges
+          cc: Number(String(row.cc||'0').replace(/,/g,'')), // Current Composition
+          ed: Number(String(row.ed||'0').replace(/,/g,'')), // Electricity Duty
+          fsa: Number(String(row.fsa||'0').replace(/,/g,'')), // Fuel Surcharge Adjustment
         })).filter(r=> r.closingDate)
 
         norm.sort((a,b)=> (b.closingDate||0) - (a.closingDate||0))
@@ -140,6 +146,30 @@ export async function fetchApspdclBill({ serviceNumber, interactive, storageStat
           }
         }
 
+        // Calculate bill breakup for latest bill
+        let billBreakup = null
+        if (latest) {
+          const ec = latest.ec || 0
+          const fixchg = latest.fixchg || 0
+          const cc = latest.cc || 0
+          const ed = latest.ed || 0
+          const fsa = latest.fsa || 0
+          const totalBill = latest.billAmount || 0
+          const currentMonthBill = totalBill - fsa // Total bill minus FSA (previous bills adjustment)
+          
+          billBreakup = {
+            ec,
+            fixchg,
+            cc,
+            ed,
+            fsa,
+            totalBill,
+            currentMonthBill
+          }
+          
+          console.log(`[APSPDCL] Bill breakup: EC=${ec}, FixChg=${fixchg}, CC=${cc}, ED=${ed}, FSA=${fsa}, Total=${totalBill}, CurrentMonth=${currentMonthBill}`)
+        }
+
         console.log(`[APSPDCL] Final status: ${status}, Amount: ${amount}, Payment: ${paymentStatus.isPaid}`)
 
         return {
@@ -157,11 +187,14 @@ export async function fetchApspdclBill({ serviceNumber, interactive, storageStat
           paidDate: paymentStatus.paidDate,
           receiptNumber: paymentStatus.receiptNumber,
           paidAmount: paymentStatus.paidAmount,
+          // Bill breakup information
+          billBreakup,
           debug: { 
             steps: ['api:publicbillhistory', 'api:publicpaymenthistory'], 
             billHistoryData: billData,
             paymentHistoryData: paymentData,
             paymentStatus,
+            billBreakup,
             monthsAll: norm.map(x=> x.closingDate && `${x.closingDate.getUTCFullYear()}-${x.closingDate.getUTCMonth()+1}`), 
             nowMonth:`${nowY}-${nowM+1}`, 
             filteredMonths: filtered.map(x=> `${x.closingDate.getUTCFullYear()}-${x.closingDate.getUTCMonth()+1}`), 

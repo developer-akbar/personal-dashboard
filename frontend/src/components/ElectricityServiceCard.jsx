@@ -5,6 +5,7 @@ import { FaStar } from 'react-icons/fa'
 
 export default function ElectricityServiceCard({ item, onRefresh, onEdit, onDelete, highlight=false, domId, onTogglePin }){
   const [showPaymentDetails, setShowPaymentDetails] = useState(false)
+  const [showBillBreakup, setShowBillBreakup] = useState(false)
   
   const onToggleMenu = (e)=>{
     e.stopPropagation()
@@ -70,7 +71,7 @@ export default function ElectricityServiceCard({ item, onRefresh, onEdit, onDele
       {/* Payment Information */}
       {item.isPaid && (
         <div style={{marginTop:8}}>
-          <div style={{display:'flex', alignItems:'center', gap:8, marginBottom:8}}>
+          <div style={{display:'flex', justifyContent:'flex-end', marginBottom:8}}>
             <button
               onClick={() => setShowPaymentDetails(!showPaymentDetails)}
               style={{
@@ -90,7 +91,6 @@ export default function ElectricityServiceCard({ item, onRefresh, onEdit, onDele
               PAID
               <FiInfo size={14} />
             </button>
-            <span style={{fontSize:12, opacity:.8}}>Payment completed</span>
           </div>
           
           {showPaymentDetails && (
@@ -121,6 +121,88 @@ export default function ElectricityServiceCard({ item, onRefresh, onEdit, onDele
           )}
         </div>
       )}
+      
+      {/* Bill Amount Breakup */}
+      {item.billBreakup && (
+        <div style={{marginTop:8}}>
+          <div style={{display:'flex', justifyContent:'flex-end', marginBottom:8}}>
+            <button
+              onClick={() => setShowBillBreakup(!showBillBreakup)}
+              style={{
+                background:'var(--primary-bg)',
+                color:'white',
+                border:'none',
+                borderRadius:6,
+                padding:'6px 12px',
+                fontSize:12,
+                fontWeight:600,
+                cursor:'pointer',
+                display:'flex',
+                alignItems:'center',
+                gap:6
+              }}
+            >
+              Bill Details
+              <FiInfo size={14} />
+            </button>
+          </div>
+          
+          {showBillBreakup && (
+            <div style={{
+              background:'var(--muted-bg)',
+              border:'1px solid var(--panel-border)',
+              borderRadius:8,
+              padding:12,
+              marginTop:8
+            }}>
+              {/* Current Month Bill vs Extra Charges */}
+              <div style={{marginBottom:12, padding:8, background:'var(--card-bg)', borderRadius:6, border:'1px solid var(--card-border)'}}>
+                <div style={{fontSize:13, fontWeight:600, marginBottom:6, color:'var(--text)'}}>Bill Summary</div>
+                <div style={{display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:4}}>
+                  <span style={{fontSize:12, opacity:.8}}>This month bill:</span>
+                  <b style={{color:'var(--primary-bg)'}}>₹ {Number(item.billBreakup.currentMonthBill || 0).toLocaleString('en-IN')}</b>
+                </div>
+                <div style={{display:'flex', justifyContent:'space-between', alignItems:'center'}}>
+                  <span style={{fontSize:12, opacity:.8}}>Extra Charges (FSA):</span>
+                  <b style={{color:'#f59e0b'}}>₹ {Number(item.billBreakup.fsa || 0).toLocaleString('en-IN')}</b>
+                </div>
+              </div>
+              
+              {/* Detailed Breakup */}
+              <div style={{fontSize:12}}>
+                <div style={{fontWeight:600, marginBottom:8, color:'var(--text)'}}>Amount Breakdown</div>
+                <div style={{display:'grid', gap:4}}>
+                  <div style={{display:'flex', justifyContent:'space-between'}}>
+                    <span style={{opacity:.7}}>Energy Charges (EC):</span>
+                    <b>₹ {Number(item.billBreakup.ec || 0).toLocaleString('en-IN')}</b>
+                  </div>
+                  <div style={{display:'flex', justifyContent:'space-between'}}>
+                    <span style={{opacity:.7}}>Fixed Charges (FixChg):</span>
+                    <b>₹ {Number(item.billBreakup.fixchg || 0).toLocaleString('en-IN')}</b>
+                  </div>
+                  <div style={{display:'flex', justifyContent:'space-between'}}>
+                    <span style={{opacity:.7}}>Current Composition (CC):</span>
+                    <b>₹ {Number(item.billBreakup.cc || 0).toLocaleString('en-IN')}</b>
+                  </div>
+                  <div style={{display:'flex', justifyContent:'space-between'}}>
+                    <span style={{opacity:.7}}>Electricity Duty (ED):</span>
+                    <b>₹ {Number(item.billBreakup.ed || 0).toLocaleString('en-IN')}</b>
+                  </div>
+                  <div style={{display:'flex', justifyContent:'space-between', borderTop:'1px solid var(--panel-border)', paddingTop:4, marginTop:4}}>
+                    <span style={{opacity:.7}}>Fuel Surcharge Adjustment (FSA):</span>
+                    <b style={{color:'#f59e0b'}}>₹ {Number(item.billBreakup.fsa || 0).toLocaleString('en-IN')}</b>
+                  </div>
+                  <div style={{display:'flex', justifyContent:'space-between', borderTop:'1px solid var(--primary-bg)', paddingTop:4, marginTop:4, fontWeight:600}}>
+                    <span>Total Bill:</span>
+                    <b style={{color:'var(--primary-bg)'}}>₹ {Number(item.billBreakup.totalBill || 0).toLocaleString('en-IN')}</b>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+      
       {Array.isArray(item.lastThreeAmounts) && item.lastThreeAmounts.length>0 && (
         <div style={{fontSize:12,opacity:.85}}>
           <span style={{opacity:.7}}>Last 3 bills:</span>{' '}

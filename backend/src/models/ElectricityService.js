@@ -24,6 +24,16 @@ const electricityServiceSchema = new mongoose.Schema(
     paidDate: { type: Date },
     receiptNumber: { type: String },
     paidAmount: { type: Number },
+    // Bill breakup information
+    billBreakup: { type: {
+      ec: Number, // Energy Charges
+      fixchg: Number, // Fixed Charges
+      cc: Number, // Current Composition
+      ed: Number, // Electricity Duty
+      fsa: Number, // Fuel Surcharge Adjustment
+      totalBill: Number, // Total bill amount
+      currentMonthBill: Number, // Total bill minus FSA
+    }, default: null },
     // Pinning
     pinned: { type: Boolean, default: false },
     pinnedAt: { type: Date },
