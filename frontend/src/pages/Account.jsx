@@ -101,7 +101,42 @@ export default function Account(){
         </div>
       ) : (
         <>
-          {/* Profile Header */}
+          {/* Account Information - Moved to Top */}
+          <div className={styles.infoSection}>
+            <h3>Account Information</h3>
+            <div className={styles.infoGrid}>
+              <div className={styles.infoItem}>
+                <FiMail className={styles.infoIcon} />
+                <div>
+                  <label>Email Address</label>
+                  <span>{userData?.email || ''}</span>
+                </div>
+              </div>
+              <div className={styles.infoItem}>
+                <FiUser className={styles.infoIcon} />
+                <div>
+                  <label>Full Name</label>
+                  <span>{userData?.name || 'Not set'}</span>
+                </div>
+              </div>
+              <div className={styles.infoItem}>
+                <FiPhone className={styles.infoIcon} />
+                <div>
+                  <label>Mobile Number</label>
+                  <span>{userData?.phone || 'Not set'}</span>
+                </div>
+              </div>
+              <div className={styles.infoItem}>
+                <FiImage className={styles.infoIcon} />
+                <div>
+                  <label>Avatar</label>
+                  <span>{userData?.avatarUrl ? 'Custom avatar' : 'Default avatar'}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Profile Header - Moved to Middle */}
           <div className={styles.profileHeader}>
             <div className={styles.avatarContainer}>
               {userData?.avatarUrl ? (
@@ -131,7 +166,7 @@ export default function Account(){
             </div>
           </div>
 
-          {/* Profile Actions */}
+          {/* Profile Actions - Moved to Bottom */}
           <div className={styles.actionsGrid}>
             <button 
               className={styles.actionCard}
@@ -171,41 +206,6 @@ export default function Account(){
                 <p>Log out of your account</p>
               </div>
             </button>
-          </div>
-
-          {/* Account Information */}
-          <div className={styles.infoSection}>
-            <h3>Account Information</h3>
-            <div className={styles.infoGrid}>
-              <div className={styles.infoItem}>
-                <FiMail className={styles.infoIcon} />
-                <div>
-                  <label>Email Address</label>
-                  <span>{userData?.email || ''}</span>
-                </div>
-              </div>
-              <div className={styles.infoItem}>
-                <FiUser className={styles.infoIcon} />
-                <div>
-                  <label>Full Name</label>
-                  <span>{userData?.name || 'Not set'}</span>
-                </div>
-              </div>
-              <div className={styles.infoItem}>
-                <FiPhone className={styles.infoIcon} />
-                <div>
-                  <label>Mobile Number</label>
-                  <span>{userData?.phone || 'Not set'}</span>
-                </div>
-              </div>
-              <div className={styles.infoItem}>
-                <FiImage className={styles.infoIcon} />
-                <div>
-                  <label>Avatar</label>
-                  <span>{userData?.avatarUrl ? 'Custom avatar' : 'Default avatar'}</span>
-                </div>
-              </div>
-            </div>
           </div>
         </>
       )}
