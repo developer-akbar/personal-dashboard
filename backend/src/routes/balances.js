@@ -4,7 +4,7 @@ import AmazonAccount from "../models/AmazonAccount.js";
 import Balance from "../models/Balance.js";
 import { decryptSecret } from "../utils/crypto.js";
 import { fetchAmazonPayBalance } from "../services/scraper.js";
-import rateLimit from 'express-rate-limit'
+import rateLimit, { ipKeyGenerator } from 'express-rate-limit'
 import { getAdminUsers, getAmazonRefreshCap, istDayKey, getAmazonRefreshWaitMs } from '../config/limits.js'
 
 const router = Router();
@@ -19,7 +19,7 @@ const refreshLimiter = rateLimit({
   max: AMAZON_REFRESH_RATE_LIMIT_PER_DAY,
   standardHeaders: true,
   legacyHeaders: false,
-  keyGenerator: (req)=> `${req.user?.id || req.ip}:${istDayKey()}`,
+  keyGenerator: (req)=> `${req.user?.id || ipKeyGenerator(req)}:${istDayKey()}`,
   skip: (req)=> ADMIN_USERS.includes((req.user?.email||'').toLowerCase()),
   handler: (_req, res)=> res.status(429).json({ error: `Rate limit exceeded (AMAZON_REFRESH_RATE_LIMIT_PER_DAY/day) for Non-Subscriber users. Please try tomorrow.` })
 })
