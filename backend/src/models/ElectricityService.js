@@ -19,6 +19,11 @@ const electricityServiceSchema = new mongoose.Schema(
     lastStatus: { type: String, enum: ["DUE", "PAID", "NO_DUES", "UNKNOWN"], default: "UNKNOWN" },
     lastFetchedAt: { type: Date },
     lastError: { type: String },
+    // Payment information
+    isPaid: { type: Boolean, default: false },
+    paidDate: { type: Date },
+    receiptNumber: { type: String },
+    paidAmount: { type: Number },
     // Pinning
     pinned: { type: Boolean, default: false },
     pinnedAt: { type: Date },

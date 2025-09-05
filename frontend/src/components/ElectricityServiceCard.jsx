@@ -65,6 +65,31 @@ export default function ElectricityServiceCard({ item, onRefresh, onEdit, onDele
         </div>
         <div><span style={{opacity:.7}}>Billed Units</span> <b>{item.lastBilledUnits!=null? Number(item.lastBilledUnits).toLocaleString('en-IN') : '—'}</b></div>
       </div>
+      {/* Payment Information */}
+      {item.isPaid && (
+        <div style={{background:'#f0fdf4', border:'1px solid #bbf7d0', borderRadius:8, padding:12, marginTop:8}}>
+          <div style={{display:'flex', alignItems:'center', gap:8, marginBottom:8}}>
+            <span style={{background:'#16a34a', color:'white', borderRadius:4, padding:'2px 6px', fontSize:11, fontWeight:600}}>PAID</span>
+            <span style={{fontSize:12, opacity:.8}}>Payment completed</span>
+          </div>
+          <div style={{display:'grid', gridTemplateColumns:'repeat(2,minmax(0,1fr))', gap:8, fontSize:12}}>
+            <div>
+              <span style={{opacity:.7}}>Paid Date</span>{' '}
+              <b>{item.paidDate ? new Date(item.paidDate).toLocaleDateString() : '—'}</b>
+            </div>
+            <div>
+              <span style={{opacity:.7}}>Receipt No</span>{' '}
+              <b style={{fontSize:11, fontFamily:'monospace'}}>{item.receiptNumber || '—'}</b>
+            </div>
+            {item.paidAmount && (
+              <div style={{gridColumn:'1/-1'}}>
+                <span style={{opacity:.7}}>Paid Amount</span>{' '}
+                <b style={{color:'#16a34a'}}>₹ {Number(item.paidAmount).toLocaleString('en-IN')}</b>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
       {Array.isArray(item.lastThreeAmounts) && item.lastThreeAmounts.length>0 && (
         <div style={{fontSize:12,opacity:.85}}>
           <span style={{opacity:.7}}>Last 3 bills:</span>{' '}
@@ -93,9 +118,9 @@ export default function ElectricityServiceCard({ item, onRefresh, onEdit, onDele
           }}>Pay Now</button>
         </div>
       )}
-      {item.lastStatus==='PAID' && (
+      {item.lastStatus==='PAID' && !item.isPaid && (
         <div style={{display:'flex',justifyContent:'flex-end'}}>
-          <span title="Bill paid" style={{background:'#16a34a', color:'#fff', padding:'8px 12px', borderRadius:8, fontWeight:700}}>Paid ₹ {Number(item.lastAmountDue||0).toLocaleString('en-IN')}</span>
+          <span title="Bill paid" style={{background:'#16a34a', color:'#fff', padding:'8px 12px', borderRadius:8, fontWeight:700}}>Paid</span>
         </div>
       )}
       {item.lastStatus==='NO_DUES' && (
