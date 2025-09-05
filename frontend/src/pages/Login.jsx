@@ -5,6 +5,7 @@ import toast from "react-hot-toast";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../store/useAuth";
 import ForgotPasswordModal from "../components/ForgotPasswordModal";
+import { FiEye, FiEyeOff } from "react-icons/fi";
 
 export default function Login() {
   const nav = useNavigate();
@@ -19,6 +20,7 @@ export default function Login() {
   const [password, setPassword] = useState("");
   const [captcha, setCaptcha] = useState("");
   const [showForgotPassword, setShowForgotPassword] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const widgetRef = useRef(null)
 
   useEffect(()=>{
@@ -86,14 +88,37 @@ export default function Login() {
           </div>
           <div className="form-row">
             <label htmlFor="password">Password</label>
-            <input
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              id="password"
-              required
-              type="password"
-              placeholder="••••••••"
-            />
+            <div style={{ position: 'relative' }}>
+              <input
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                id="password"
+                required
+                type={showPassword ? "text" : "password"}
+                placeholder="••••••••"
+                style={{ paddingRight: '40px' }}
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                style={{
+                  position: 'absolute',
+                  right: '12px',
+                  top: '50%',
+                  transform: 'translateY(-50%)',
+                  background: 'none',
+                  border: 'none',
+                  cursor: 'pointer',
+                  color: '#666',
+                  padding: '4px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center'
+                }}
+              >
+                {showPassword ? <FiEyeOff size={16} /> : <FiEye size={16} />}
+              </button>
+            </div>
           </div>
           <div ref={widgetRef} className="cf-turnstile"></div>
           {!import.meta.env.VITE_TURNSTILE_SITE_KEY && (

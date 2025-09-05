@@ -275,13 +275,13 @@ select {
   }
 }
 
-/* Selection UX for checkboxes */
-.card .checkbox {
+/* Selection UX for checkboxes - only for Electricity page */
+.elec-grid .card .checkbox {
   opacity: 0;
   pointer-events: none;
   transition: opacity 0.15s ease;
 }
-.select-mode .checkbox {
+.elec-grid.select-mode .card .checkbox {
   opacity: 1;
   pointer-events: auto;
 }

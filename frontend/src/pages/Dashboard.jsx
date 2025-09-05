@@ -1,6 +1,7 @@
 import React from "react";
 import { useEffect, useMemo, useState } from "react";
 import { FiPlus, FiRefreshCcw, FiFilter, FiHelpCircle } from "react-icons/fi";
+import { Link } from "react-router-dom";
 import api from '../api/client'
 import HeaderAvatar from "../components/HeaderAvatar";
 import { usePlan } from "../store/usePlan";
@@ -177,7 +178,11 @@ export default function Dashboard() {
   return (
     <div className={`container ${selectMode? 'select-mode' : ''}`} style={{minHeight:'calc(var(--vh, 1vh) * 100)', display:'flex', flexDirection:'column'}}>
       <header className="topbar">
-        <h2>Personal Dashboard</h2>
+        <h2>
+          <Link to="/" style={{ textDecoration: 'none', color: 'inherit' }}>
+            Personal Dashboard
+          </Link>
+        </h2>
         <div className="spacer" />
         <HeaderAvatar />
       </header>

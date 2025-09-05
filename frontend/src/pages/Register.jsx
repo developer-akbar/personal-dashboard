@@ -4,6 +4,7 @@ import { Toaster } from 'react-hot-toast'
 import toast from 'react-hot-toast'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../store/useAuth'
+import { FiEye, FiEyeOff } from "react-icons/fi";
 
 export default function Register(){
   const nav = useNavigate()
@@ -13,6 +14,8 @@ export default function Register(){
   const [phone,setPhone]=useState('')
   const [password,setPassword]=useState('')
   const [captcha,setCaptcha]=useState('')
+  const [showPassword, setShowPassword] = useState(false)
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const widgetRef = useRef(null)
 
   useEffect(()=>{
@@ -59,8 +62,69 @@ export default function Register(){
           <label>Name<input value={name} onChange={e=>setName(e.target.value)} required type="text" placeholder="Your name"/></label>
           <label>Email<input value={email} onChange={e=>setEmail(e.target.value)} required type="email" placeholder="you@example.com"/></label>
           <label>Mobile Number<input value={phone} onChange={e=>setPhone(e.target.value)} type="tel" placeholder="+91 9876543210"/></label>
-          <label>Password<input value={password} onChange={e=>setPassword(e.target.value)} required type="password" placeholder="At least 6 characters"/></label>
-          <label>Confirm Password<input name="confirm" required type="password" placeholder="Re-enter password"/></label>
+          <label>Password
+            <div style={{ position: 'relative' }}>
+              <input 
+                value={password} 
+                onChange={e=>setPassword(e.target.value)} 
+                required 
+                type={showPassword ? "text" : "password"} 
+                placeholder="At least 6 characters"
+                style={{ paddingRight: '40px' }}
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                style={{
+                  position: 'absolute',
+                  right: '12px',
+                  top: '50%',
+                  transform: 'translateY(-50%)',
+                  background: 'none',
+                  border: 'none',
+                  cursor: 'pointer',
+                  color: '#666',
+                  padding: '4px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center'
+                }}
+              >
+                {showPassword ? <FiEyeOff size={16} /> : <FiEye size={16} />}
+              </button>
+            </div>
+          </label>
+          <label>Confirm Password
+            <div style={{ position: 'relative' }}>
+              <input 
+                name="confirm" 
+                required 
+                type={showConfirmPassword ? "text" : "password"} 
+                placeholder="Re-enter password"
+                style={{ paddingRight: '40px' }}
+              />
+              <button
+                type="button"
+                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                style={{
+                  position: 'absolute',
+                  right: '12px',
+                  top: '50%',
+                  transform: 'translateY(-50%)',
+                  background: 'none',
+                  border: 'none',
+                  cursor: 'pointer',
+                  color: '#666',
+                  padding: '4px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center'
+                }}
+              >
+                {showConfirmPassword ? <FiEyeOff size={16} /> : <FiEye size={16} />}
+              </button>
+            </div>
+          </label>
           <div ref={widgetRef} className="cf-turnstile"></div>
           {!import.meta.env.VITE_TURNSTILE_SITE_KEY && (
             <small style={{opacity:.7}}>Captcha disabled (no site key configured)</small>
