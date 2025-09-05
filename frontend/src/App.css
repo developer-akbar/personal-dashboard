@@ -29,6 +29,10 @@ body {
   --profile-menu-bg: #0b0b0b;
   --avatar-bg: #2a2a2a;
   --avatar-border: #444;
+  /* Warning colors (dark) */
+  --warning-bg: #1a1a0a;
+  --warning-text: #fbbf24;
+  --warning-border: #f59e0b;
   /* Flash colors (dark) */
   --flash-glow: rgba(56, 189, 248, 1.0); /* brighter glow */
   --flash-ring: rgba(56, 189, 248, 0.65); /* stronger ring */
@@ -55,6 +59,10 @@ body {
   --profile-menu-bg: #ffffff;
   --avatar-bg: #e5e7eb;
   --avatar-border: #94a3b8;
+  /* Warning colors (light) */
+  --warning-bg: #fef3cd;
+  --warning-text: #92400e;
+  --warning-border: #f59e0b;
   /* Flash colors (light) */
   --flash-glow: rgba(79, 70, 229, 0.9);
   --flash-ring: rgba(79, 70, 229, 0.55);
