@@ -1,17 +1,16 @@
 import React from 'react'
 import { Link } from 'react-router-dom'
 import AppFooter from '../components/AppFooter'
+import GlobalHeader from '../components/GlobalHeader'
 import { useAuth } from '../store/useAuth'
 
 export default function Home(){
   const { user } = useAuth()
   return (
     <div className="container" style={{minHeight:'100vh', display:'flex', flexDirection:'column'}}>
-      <header className="topbar">
-        <h2 style={{margin:0}}>Personal Dashboard</h2>
-        <div className="spacer" />
+      <GlobalHeader>
         {!user && <Link to="/login" className="primary" style={{textDecoration:'none',padding:'8px 12px',borderRadius:8}}>Sign in</Link>}
-      </header>
+      </GlobalHeader>
 
       <section className="panel" style={{display:'grid',gridTemplateColumns:'1fr',gap:12}}>
         <h3 style={{margin:'0 0 8px 0'}}>See your balances and bills in one place</h3>

@@ -6,6 +6,7 @@ import { useAuth } from '../store/useAuth'
 import toast from 'react-hot-toast'
 import ProfileEditModal from '../components/ProfileEditModal'
 import PasswordChangeModal from '../components/PasswordChangeModal'
+import GlobalHeader from '../components/GlobalHeader'
 import styles from './Account.module.css'
 
 export default function Account(){
@@ -89,10 +90,7 @@ export default function Account(){
 
   return (
     <div className="container">
-      <header className="topbar">
-        <button className="muted" onClick={()=>{ try{ if (window.history.length > 1) window.history.back(); else window.location.hash = '#/' }catch{ window.location.hash = '#/' } }}>←</button>
-        <h3>Account Settings</h3>
-      </header>
+      <GlobalHeader title="Account Settings" showBackButton={true} />
 
       {loading ? (
         <div className={styles.loadingContainer}>

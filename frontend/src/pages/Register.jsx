@@ -70,7 +70,7 @@ export default function Register(){
                 required 
                 type={showPassword ? "text" : "password"} 
                 placeholder="At least 6 characters"
-                style={{ paddingRight: '40px' }}
+                style={{ paddingRight: '40px', width: '100%' }}
               />
               <button
                 type="button"
@@ -101,7 +101,7 @@ export default function Register(){
                 required 
                 type={showConfirmPassword ? "text" : "password"} 
                 placeholder="Re-enter password"
-                style={{ paddingRight: '40px' }}
+                style={{ paddingRight: '40px', width: '100%' }}
               />
               <button
                 type="button"
