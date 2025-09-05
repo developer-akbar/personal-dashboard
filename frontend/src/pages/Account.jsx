@@ -156,13 +156,6 @@ export default function Account(){
                   <span>{userData?.phone || 'Not set'}</span>
                 </div>
               </div>
-              <div className={styles.infoItem}>
-                <FiImage className={styles.infoIcon} />
-                <div>
-                  <label>Avatar</label>
-                  <span>{userData?.avatarUrl ? 'Custom avatar' : 'Default avatar'}</span>
-                </div>
-              </div>
             </div>
           </div>
 

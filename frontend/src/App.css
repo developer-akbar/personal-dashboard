@@ -360,8 +360,7 @@ select {
   
   /* Improved card interactions */
   .card-wrapper {
-    padding: 16px;
-    margin-bottom: 12px;
+    /* Removed padding and margin - grid gap suffices */
   }
   
   /* Better form inputs on mobile */
