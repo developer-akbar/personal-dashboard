@@ -131,7 +131,7 @@
 }
 
 .inputGroup input::placeholder {
-  text-align: center;
+  text-align: left;
 }
 
 .inputGroup input {

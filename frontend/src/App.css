@@ -322,6 +322,8 @@ select {
   padding: 0;
   font-size: 12px;
   font-weight: 600;
+  min-width: unset;
+  min-height: unset;
 }
 .clear-btn:hover { opacity: 1; }
 
@@ -367,11 +369,13 @@ select {
   
   /* Mobile search input clear button */
   .clear-btn {
-    width: 18px;
-    height: 18px;
-    right: 6px;
-    font-size: 11px;
+    width: 16px;
+    height: 16px;
+    right: 8px;
+    font-size: 10px;
     border: 1px solid var(--panel-border);
+    min-width: unset;
+    min-height: unset;
   }
   
   /* Better form inputs on mobile */
