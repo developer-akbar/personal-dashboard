@@ -211,11 +211,14 @@ select {
 }
 
 .avatar {
-  width: 3rem;
-  height: 3rem;
-  border-radius: 999px;
-  border: 2px solid var(--avatar-border);
-  background: var(--avatar-bg);
+  width: 55px;
+  height: 55px;
+  border-radius: 50%;
+  border: 3px solid transparent;
+  background: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%);
+  background-clip: padding-box;
+  padding: 3px;
+  position: relative;
   display: inline-flex;
   align-items: center;
   justify-content: center;

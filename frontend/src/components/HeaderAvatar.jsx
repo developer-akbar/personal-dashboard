@@ -21,11 +21,36 @@ export default function HeaderAvatar() {
   const letter = (user?.name || user?.email || "?").slice(0, 1).toUpperCase();
   return (
     <div ref={ref} style={{ position: "relative" }}>
-      <button className="muted avatar" onClick={() => setOpen((v) => !v)} style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
+      <button className="muted avatar" onClick={() => setOpen((v) => !v)}>
         {user?.avatarUrl && !imgError ? (
-          <img src={user.avatarUrl} alt="Avatar" onError={()=> setImgError(true)} style={{ width: '100%', height: '100%', borderRadius: '50%', objectFit: 'cover' }} />
+          <img 
+            src={user.avatarUrl} 
+            alt="Avatar" 
+            onError={()=> setImgError(true)} 
+            style={{ 
+              width: '50px', 
+              height: '50px', 
+              borderRadius: '50%', 
+              objectFit: 'cover',
+              border: '2px solid var(--panel-bg)'
+            }} 
+          />
         ) : (
-          <span style={{ fontSize: "1rem" }}>{letter}</span>
+          <div style={{ 
+            width: '50px', 
+            height: '50px', 
+            borderRadius: '50%', 
+            backgroundColor: 'var(--avatar-bg)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            fontSize: '1.2rem',
+            fontWeight: '700',
+            color: 'var(--text)',
+            border: '2px solid var(--panel-bg)'
+          }}>
+            {letter}
+          </div>
         )}
       </button>
       {open && (
