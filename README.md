@@ -8,6 +8,9 @@ See Amazon Pay balances and APSPDCL electricity bills in one place.
   - Secure auth (bcrypt + JWT; 12h access), refresh endpoint
   - AES‑256‑GCM for encrypted Amazon credentials and session storageState
   - Cloudflare Turnstile CAPTCHA (opt-in via env), strict CSP, CORS
+  - Forgot password with OTP via email/SMS
+  - Unique mobile number validation during registration
+  - Password strength validation and show/hide toggles
 
 - Amazon Dashboard
   - Add/manage multiple Amazon accounts (amazon.in only)
@@ -16,6 +19,7 @@ See Amazon Pay balances and APSPDCL electricity bills in one place.
   - Rewards tab: fetch and display grouped rewards with details
   - Status badges, error tooltips, pin/star, tags, sort/filter/search
   - CSV export (buttons hidden by default), keyboard shortcuts (a/r)
+  - Role-based access control (admin/subscriber restrictions)
 
 - Electricity Dashboard (APSPDCL)
   - Services CRUD with validation (13 digits and APSPDCL pre-check)
@@ -24,21 +28,41 @@ See Amazon Pay balances and APSPDCL electricity bills in one place.
   - Trash: soft delete, restore, and permanent delete
   - Duplicate-in-Trash guidance: toast to navigate/restore
   - Search, sort (Amount desc/Label A–Z/Last refreshed), and status filters (Active tab)
-  - “Search Total (₹)” pill for filtered results
+  - "Search Total (₹)" pill for filtered results
   - Pay Now: copies Service Number first (toast), then opens APSPDCL
   - Last 3 bills (excludes current month), billed units, due highlight
   - Selection checkboxes with Selected Total
 
+- User Profile & Account Management
+  - Complete profile management with avatar support
+  - Edit profile information (name, email, phone, avatar URL)
+  - Change password with current password verification
+  - Instagram-style avatar borders with gradient effects
+  - Modal-based editing for better UX
+
 - UX, Theming, and Accessibility
-  - Homepage, light/dark/system theme with persisted preference
+  - Global header component with consistent navigation
+  - Homepage with educational purpose statement
+  - Light/dark/system theme with persisted preference
   - Improved card visuals; consistent buttons/icons; loading toasts persist until API resolves
   - Flash + scroll to newly added service
   - Time‑ago labels next to Last refreshed
   - Mobile-friendly: numeric keypad for Service Number input; no spinners
+  - Loading skeletons for better perceived performance
+  - Error boundaries for graceful error handling
+  - Input validation with real-time feedback
+
+- Mobile & Responsive Design
+  - Optimized touch targets (44px minimum)
+  - Long-press detection for mobile interactions
+  - Responsive grid layouts and modal designs
+  - Mobile-specific styling and interactions
+  - Improved search input clear buttons
 
 - Observability & Health
   - Footer health indicator (backend up, DB status)
   - Debug panel (toggleable) and helpful toast flows
+  - Comprehensive error handling and user feedback
 
 ### Tech Stack
 

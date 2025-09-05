@@ -17,8 +17,9 @@ export default function Home(){
         <p>Track Amazon Pay wallet balances and APSPDCL electricity bills with simple, privacy-friendly workflows.</p>
         <ul style={{margin:0,paddingLeft:'1.1rem'}}>
           <li>One-time local session seeding for Amazon (your device; your control)</li>
-          <li>Refresh on demand; recent results cached to reduce load</li>
-          <li>Clean, mobile-friendly UI with light/dark themes</li>
+          <li>Real-time refresh with smart caching and rate limiting</li>
+          <li>Mobile-optimized UI with global navigation and responsive design</li>
+          <li>Secure profile management with forgot password and OTP support</li>
         </ul>
         <div>
           <Link to="/login" className="primary" style={{textDecoration:'none',padding:'10px 14px',borderRadius:10}}>Get started</Link>
@@ -50,7 +51,7 @@ export default function Home(){
           <div>
             <h4 style={{marginTop:0}}>Amazon Pay</h4>
             <p style={{margin:'6px 0'}}>Connect multiple Amazon accounts and view balances at a glance. Rewards view included.</p>
-            <p style={{margin:'6px 0'}}>Refresh single/all, see totals and rewards. Pin, tag, and filter for focus.</p>
+            <p style={{margin:'6px 0'}}>Role-based access control with admin/subscriber restrictions for account management.</p>
           </div>
         </article>
         <article className="panel" style={{display:'flex', flexDirection:'column', gap:10, alignItems:'center'}}>
@@ -58,12 +59,12 @@ export default function Home(){
           <div>
             <h4 style={{marginTop:0}}>Electricity (APSPDCL)</h4>
             <p style={{margin:'6px 0'}}>Monitor dues, billed units, and last three bills with one click refresh.</p>
-            <p style={{margin:'6px 0'}}>Validated 13‑digit Service Number, refresh locks, admin bypass. Trash/Restore included.</p>
+            <p style={{margin:'6px 0'}}>Mobile-optimized with long-press selection and responsive design.</p>
           </div>
         </article>
         <article className="panel">
-          <h4 style={{marginTop:0}}>Privacy & Security</h4>
-          <p>Credentials are encrypted. Sessions are local-seeded by you. No third-party sharing.</p>
+          <h4 style={{marginTop:0}}>Modern UX Features</h4>
+          <p>Loading skeletons, error boundaries, input validation, and Instagram-style avatar borders for a polished experience.</p>
         </article>
       </section>
 
