@@ -3,6 +3,7 @@ import bcrypt from "bcryptjs";
 import User from "../models/User.js";
 import { signAccessToken, signRefreshToken, verifyRefreshToken } from "../utils/jwt.js";
 import { sendEmail, sendSMS } from "../utils/notifications.js";
+import { determineUserType } from "../utils/userType.js";
 
 const router = Router();
 
@@ -38,9 +39,28 @@ router.post("/register", async (req, res, next) => {
     const passwordHash = await bcrypt.hash(password, 12);
     const user = await User.create({ name, email, username, phone, avatarUrl, passwordHash });
 
+    // Determine user type and update user
+    const { userType, subscription } = determineUserType(user);
+    user.userType = userType;
+    user.subscription = subscription;
+    await user.save();
+
     const access = signAccessToken({ sub: String(user._id), email: user.email, name: user.name });
     const refresh = signRefreshToken({ sub: String(user._id), email: user.email, name: user.name });
-    res.json({ accessToken: access, refreshToken: refresh, user: { id: user._id, email: user.email, name: user.name, username: user.username, phone: user.phone, avatarUrl: user.avatarUrl } });
+    res.json({ 
+      accessToken: access, 
+      refreshToken: refresh, 
+      user: { 
+        id: user._id, 
+        email: user.email, 
+        name: user.name, 
+        username: user.username, 
+        phone: user.phone, 
+        avatarUrl: user.avatarUrl,
+        userType: user.userType,
+        subscription: user.subscription
+      } 
+    });
   } catch (e) {
     next(e);
   }
@@ -56,9 +76,31 @@ router.post("/login", async (req, res, next) => {
     if (!user) return res.status(401).json({ error: "Invalid credentials" });
     const ok = await user.comparePassword(password);
     if (!ok) return res.status(401).json({ error: "Invalid credentials" });
+    
+    // Determine user type and update if needed
+    const { userType, subscription } = determineUserType(user);
+    if (user.userType !== userType || user.subscription !== subscription) {
+      user.userType = userType;
+      user.subscription = subscription;
+      await user.save();
+    }
+    
     const access = signAccessToken({ sub: String(user._id), email: user.email, name: user.name });
     const refresh = signRefreshToken({ sub: String(user._id), email: user.email, name: user.name });
-    res.json({ accessToken: access, refreshToken: refresh, user: { id: user._id, email: user.email, name: user.name, username: user.username, phone: user.phone, avatarUrl: user.avatarUrl } });
+    res.json({ 
+      accessToken: access, 
+      refreshToken: refresh, 
+      user: { 
+        id: user._id, 
+        email: user.email, 
+        name: user.name, 
+        username: user.username, 
+        phone: user.phone, 
+        avatarUrl: user.avatarUrl,
+        userType: user.userType,
+        subscription: user.subscription
+      } 
+    });
   } catch (e) {
     next(e);
   }

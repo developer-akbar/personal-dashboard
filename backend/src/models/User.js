@@ -17,6 +17,8 @@ const userSchema = new mongoose.Schema(
       default: {},
     },
     refreshSchedule: { type: String, enum: ['off','daily','weekly'], default: 'off' },
+    userType: { type: String, enum: ['Free', 'Plus', 'Silver', 'Gold', 'Diamond', 'Admin'], default: 'Free' },
+    subscription: { type: String, enum: ['Free', 'Plus', 'Silver', 'Gold', 'Diamond', 'Admin'], default: 'Free' },
     otpCode: { type: String },
     otpExpires: { type: Date },
   },

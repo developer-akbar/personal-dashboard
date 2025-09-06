@@ -6,6 +6,7 @@ import { useAuth } from '../store/useAuth'
 import toast from 'react-hot-toast'
 import ProfileEditModal from '../components/ProfileEditModal'
 import PasswordChangeModal from '../components/PasswordChangeModal'
+import UpgradePlansModal from '../components/UpgradePlansModal'
 import GlobalHeader from '../components/GlobalHeader'
 import styles from './Account.module.css'
 
@@ -21,6 +22,7 @@ export default function Account(){
   })
   const [showProfileModal, setShowProfileModal] = useState(false)
   const [showPasswordModal, setShowPasswordModal] = useState(false)
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false)
   const [loading, setLoading] = useState(false)
 
   useEffect(() => {
@@ -179,6 +181,24 @@ export default function Account(){
             </div>
           </div>
 
+          {/* Upgrade Section for Non-Subscribers */}
+          {userData?.userType === 'Non Subscriber' && (
+            <div className={styles.upgradeSection}>
+              <div className={styles.upgradeCard}>
+                <div className={styles.upgradeContent}>
+                  <h3>Upgrade Your Plan</h3>
+                  <p>Get more cards and daily refreshes with our premium plans</p>
+                  <button 
+                    className={styles.upgradeButton}
+                    onClick={() => setShowUpgradeModal(true)}
+                  >
+                    View Plans & Pricing
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Profile Actions - At Bottom */}
           <div className={styles.actionsGrid}>
             <button 
@@ -235,6 +255,12 @@ export default function Account(){
         open={showPasswordModal}
         onClose={() => setShowPasswordModal(false)}
         onSubmit={handlePasswordChange}
+      />
+
+      <UpgradePlansModal
+        open={showUpgradeModal}
+        onClose={() => setShowUpgradeModal(false)}
+        currentPlan={userData?.subscription || 'Free'}
       />
     </div>
   )
