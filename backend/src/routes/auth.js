@@ -298,11 +298,17 @@ router.post("/test-sms", async (req, res, next) => {
     }
 
     console.log('🧪 Test SMS endpoint called');
+    console.log('📱 Phone number formatting test:');
+    console.log('- Input:', phone);
+    
+    // Test the formatting function
+    const { sendSMS } = await import('../utils/notifications.js');
     const result = await sendSMS({ to: phone, message });
     
     res.json({ 
       success: true, 
       message: 'SMS test completed',
+      inputNumber: phone,
       result 
     });
   } catch (e) {
