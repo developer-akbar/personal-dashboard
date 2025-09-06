@@ -6,7 +6,16 @@ export function determineUserType(user) {
   
   const email = user.email?.toLowerCase()
   
+  console.log('🔍 User Type Detection Debug:')
+  console.log('- User email:', user.email)
+  console.log('- Lowercase email:', email)
+  console.log('- Admin users list:', adminUsers)
+  console.log('- Subscribed users list:', subscribedUsers)
+  console.log('- Is admin?', adminUsers.includes(email))
+  console.log('- Is subscribed?', subscribedUsers.includes(email))
+  
   if (adminUsers.includes(email)) {
+    console.log('✅ User detected as Admin')
     return {
       userType: 'Admin',
       subscription: 'Admin'
@@ -14,12 +23,14 @@ export function determineUserType(user) {
   }
   
   if (subscribedUsers.includes(email)) {
+    console.log('✅ User detected as Subscriber')
     return {
       userType: 'Subscriber',
       subscription: 'Plus' // Default subscription for subscribed users
     }
   }
   
+  console.log('❌ User detected as Non Subscriber')
   return {
     userType: 'Non Subscriber',
     subscription: 'Free'

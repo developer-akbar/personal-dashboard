@@ -37,33 +37,46 @@ export async function sendEmail({ to, subject, html, text }) {
   }
 }
 
-// Send SMS (placeholder - integrate with SMS service like Twilio, AWS SNS, etc.)
+// Send SMS using Twilio
 export async function sendSMS({ to, message }) {
   try {
-    // For development, just log the SMS
-    if (process.env.NODE_ENV === 'development') {
-      console.log('SMS would be sent to:', to);
+    console.log('📱 SMS Request Debug:');
+    console.log('- To:', to);
+    console.log('- Message:', message);
+    console.log('- Twilio Account SID:', process.env.TWILIO_ACCOUNT_SID ? 'Set' : 'Not set');
+    console.log('- Twilio Auth Token:', process.env.TWILIO_AUTH_TOKEN ? 'Set' : 'Not set');
+    console.log('- Twilio Phone Number:', process.env.TWILIO_PHONE_NUMBER ? 'Set' : 'Not set');
+
+    // Check if Twilio is configured
+    if (!process.env.TWILIO_ACCOUNT_SID || !process.env.TWILIO_AUTH_TOKEN || !process.env.TWILIO_PHONE_NUMBER) {
+      console.log('❌ Twilio not configured, SMS would be sent to:', to);
       console.log('Message:', message);
-      return { success: true, message: 'SMS logged (development mode)' };
+      return { success: true, message: 'SMS logged (Twilio not configured)' };
     }
 
-    // TODO: Integrate with actual SMS service
-    // Example with Twilio:
-    // const twilio = require('twilio');
-    // const client = twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN);
-    // const result = await client.messages.create({
-    //   body: message,
-    //   from: process.env.TWILIO_PHONE_NUMBER,
-    //   to: to
-    // });
-    // return { success: true, messageId: result.sid };
-
-    console.log('SMS service not configured, SMS would be sent to:', to);
-    console.log('Message:', message);
-    return { success: true, message: 'SMS logged (service not configured)' };
+    // Import Twilio dynamically
+    const { default: twilio } = await import('twilio');
+    
+    const client = twilio(process.env.TWILIO_ACCOUNT_SID, process.env.TWILIO_AUTH_TOKEN);
+    
+    console.log('🚀 Sending SMS via Twilio...');
+    const result = await client.messages.create({
+      body: message,
+      from: process.env.TWILIO_PHONE_NUMBER,
+      to: to
+    });
+    
+    console.log('✅ SMS sent successfully:', result.sid);
+    return { success: true, messageId: result.sid };
   } catch (error) {
-    console.error('SMS sending failed:', error);
-    throw new Error('Failed to send SMS');
+    console.error('❌ SMS sending failed:', error);
+    console.error('Error details:', {
+      message: error.message,
+      code: error.code,
+      status: error.status,
+      moreInfo: error.moreInfo
+    });
+    throw new Error(`Failed to send SMS: ${error.message}`);
   }
 }
 

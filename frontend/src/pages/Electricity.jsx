@@ -35,6 +35,7 @@ export default function Electricity(){
   const [showFilters, setShowFilters] = useState(false)
   const [activeTab, setActiveTab] = useState('active') // active | trash
   const [highlightId, setHighlightId] = useState(null)
+  const [isRefreshingAll, setIsRefreshingAll] = useState(false)
   // moved info panel to Home page
 
   useEffect(()=>{
@@ -140,11 +141,29 @@ export default function Electricity(){
           <span className="pill" title="Daily refresh limit for non-subscribers" style={{opacity:.85}}>Limit: {usePlan.getState().electricityRefreshPerDay}/day</span>
         ) } return null })()}
         {services.length >= 2 && (
-        <button className="primary" onClick={async()=>{ 
-          if (!isToastReady) return
-          await toast.promise(refreshAll(), { loading:'Queued…', success:'Done', error:(e)=> e?.response?.data?.error || 'Failed' }, { success:{ duration:2500 }, error:{ duration:2500 } }) 
-        }} style={{display:'inline-flex',alignItems:'center',gap:6}} disabled={false}>
-          <FiRefreshCcw className={services.some(s=> s.loading)? 'spin':''}/> Refresh All
+        <button 
+          className="primary" 
+          onClick={async()=>{ 
+            if (!isToastReady || isRefreshingAll) return
+            setIsRefreshingAll(true)
+            try {
+              await toast.promise(refreshAll(), { 
+                loading:'Refreshing all services…', 
+                success:'All services refreshed', 
+                error:(e)=> e?.response?.data?.error || 'Refresh failed' 
+              }, { 
+                success:{ duration:2500 }, 
+                error:{ duration:2500 } 
+              })
+            } finally {
+              setIsRefreshingAll(false)
+            }
+          }} 
+          style={{display:'inline-flex',alignItems:'center',gap:6}} 
+          disabled={isRefreshingAll}
+        >
+          <FiRefreshCcw className={isRefreshingAll ? 'spin' : ''}/> 
+          {isRefreshingAll ? 'Refreshing...' : 'Refresh All'}
         </button>
         )}
       </div>

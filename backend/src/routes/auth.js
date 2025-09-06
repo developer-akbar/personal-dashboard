@@ -288,5 +288,32 @@ router.post("/change-password", async (req, res, next) => {
   }
 });
 
+// Test SMS endpoint for debugging
+router.post("/test-sms", async (req, res, next) => {
+  try {
+    const { phone, message } = req.body || {};
+    
+    if (!phone || !message) {
+      return res.status(400).json({ error: "Phone number and message required" });
+    }
+
+    console.log('🧪 Test SMS endpoint called');
+    const result = await sendSMS({ to: phone, message });
+    
+    res.json({ 
+      success: true, 
+      message: 'SMS test completed',
+      result 
+    });
+  } catch (e) {
+    console.error('Test SMS failed:', e);
+    res.status(500).json({ 
+      success: false, 
+      error: e.message,
+      details: e.toString()
+    });
+  }
+});
+
 export default router;
 
