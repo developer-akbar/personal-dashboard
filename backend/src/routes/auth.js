@@ -321,5 +321,42 @@ router.post("/test-sms", async (req, res, next) => {
   }
 });
 
+// Test Email endpoint for debugging
+router.post("/test-email", async (req, res, next) => {
+  try {
+    const { to, subject, message } = req.body || {};
+    
+    if (!to || !subject || !message) {
+      return res.status(400).json({ error: "To, subject, and message required" });
+    }
+
+    console.log('🧪 Test Email endpoint called');
+    console.log('📧 Email sending test:');
+    console.log('- To:', to);
+    console.log('- Subject:', subject);
+    
+    const { sendEmail } = await import('../utils/notifications.js');
+    const result = await sendEmail({ 
+      to, 
+      subject, 
+      html: `<p>${message}</p><p><em>This is a test email from Personal Dashboard.</em></p>`,
+      text: message
+    });
+    
+    res.json({ 
+      success: true, 
+      message: 'Email test completed',
+      result 
+    });
+  } catch (e) {
+    console.error('Test Email failed:', e);
+    res.status(500).json({ 
+      success: false, 
+      error: e.message,
+      details: e.toString()
+    });
+  }
+});
+
 export default router;
 

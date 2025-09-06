@@ -14,13 +14,22 @@ const emailTransporter = nodemailer.createTransport({
 // Send email
 export async function sendEmail({ to, subject, html, text }) {
   try {
+    console.log('📧 Email Request Debug:');
+    console.log('- To:', to);
+    console.log('- Subject:', subject);
+    console.log('- SMTP Host:', process.env.SMTP_HOST || 'smtp.gmail.com');
+    console.log('- SMTP Port:', process.env.SMTP_PORT || 587);
+    console.log('- SMTP User:', process.env.SMTP_USER ? 'Set' : 'Not set');
+    console.log('- SMTP Pass:', process.env.SMTP_PASS ? 'Set' : 'Not set');
+
     if (!process.env.SMTP_USER || !process.env.SMTP_PASS) {
-      console.log('SMTP not configured, email would be sent to:', to);
+      console.log('❌ SMTP not configured, email would be sent to:', to);
       console.log('Subject:', subject);
       console.log('Content:', html || text);
       return { success: true, message: 'Email logged (SMTP not configured)' };
     }
 
+    console.log('🚀 Sending email via SMTP...');
     const info = await emailTransporter.sendMail({
       from: `"Personal Dashboard" <${process.env.SMTP_USER}>`,
       to,
@@ -29,11 +38,16 @@ export async function sendEmail({ to, subject, html, text }) {
       text,
     });
 
-    console.log('Email sent:', info.messageId);
+    console.log('✅ Email sent successfully:', info.messageId);
     return { success: true, messageId: info.messageId };
   } catch (error) {
-    console.error('Email sending failed:', error);
-    throw new Error('Failed to send email');
+    console.error('❌ Email sending failed:', error);
+    console.error('Error details:', {
+      message: error.message,
+      code: error.code,
+      response: error.response
+    });
+    throw new Error(`Failed to send email: ${error.message}`);
   }
 }
 
