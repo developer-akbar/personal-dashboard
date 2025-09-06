@@ -88,7 +88,7 @@ async function cleanupDuplicateBalances() {
 }
 
 async function cleanupDuplicateElectricityServices() {
-  console.log("\n🧹 Cleaning up duplicate electricity service data...");
+  console.log("\n🧹 Analyzing electricity service data...");
   
   try {
     // Get all users
@@ -96,7 +96,8 @@ async function cleanupDuplicateElectricityServices() {
     console.log(`📊 Found ${users.length} users`);
 
     let totalProcessed = 0;
-    let totalSkipped = 0;
+    let totalWithData = 0;
+    let totalWithoutData = 0;
 
     for (const user of users) {
       console.log(`\n👤 Processing user: ${user.email}`);
@@ -110,27 +111,30 @@ async function cleanupDuplicateElectricityServices() {
       console.log(`  ⚡ Found ${services.length} electricity services`);
 
       for (const service of services) {
-        // Check if this service has multiple records (shouldn't happen with current logic)
-        // But let's verify the data structure
-        const serviceData = {
-          serviceNumber: service.serviceNumber,
-          lastFetchedAt: service.lastFetchedAt,
-          lastAmountDue: service.lastAmountDue,
-          lastStatus: service.lastStatus
-        };
+        const hasData = service.lastFetchedAt && service.lastAmountDue !== undefined;
         
-        console.log(`    ⚡ Service ${service.serviceNumber}: Last fetched ${service.lastFetchedAt}, Amount: ${service.lastAmountDue}, Status: ${service.lastStatus}`);
+        if (hasData) {
+          totalWithData++;
+          console.log(`    ✅ Service ${service.serviceNumber}: Has data (Last: ${service.lastFetchedAt}, Amount: ${service.lastAmountDue}, Status: ${service.lastStatus})`);
+        } else {
+          totalWithoutData++;
+          console.log(`    ⚠️  Service ${service.serviceNumber}: No refresh data yet`);
+        }
+        
         totalProcessed++;
       }
     }
 
-    console.log(`\n📊 Electricity services summary:`);
-    console.log(`  ✅ Processed: ${totalProcessed} services`);
-    console.log(`  ℹ️  Note: Electricity services already use single document per service (no duplicates expected)`);
+    console.log(`\n📊 Electricity services analysis:`);
+    console.log(`  ✅ Total services: ${totalProcessed}`);
+    console.log(`  📊 Services with data: ${totalWithData}`);
+    console.log(`  ⚠️  Services without data: ${totalWithoutData}`);
+    console.log(`  ℹ️  Note: Electricity services use single document per service (already optimized)`);
+    console.log(`  ℹ️  No cleanup needed - they update existing documents on refresh`);
     
-    return { processed: totalProcessed };
+    return { processed: totalProcessed, withData: totalWithData, withoutData: totalWithoutData };
   } catch (error) {
-    console.error("❌ Error processing electricity services:", error);
+    console.error("❌ Error analyzing electricity services:", error);
     throw error;
   }
 }
@@ -177,6 +181,28 @@ async function showDataSummary() {
       console.log(`  📈 Max balance records per account: ${stats.maxBalancesPerAccount}`);
     }
     
+    // Show electricity service statistics
+    const electricityStats = await ElectricityService.aggregate([
+      { $match: { isDeleted: { $ne: true } } },
+      {
+        $group: {
+          _id: null,
+          totalServices: { $sum: 1 },
+          servicesWithData: { $sum: { $cond: [{ $ne: ["$lastFetchedAt", null] }, 1, 0] } },
+          servicesWithoutData: { $sum: { $cond: [{ $eq: ["$lastFetchedAt", null] }, 1, 0] } }
+        }
+      }
+    ]);
+    
+    if (electricityStats.length > 0) {
+      const stats = electricityStats[0];
+      console.log(`\n⚡ Electricity services analysis:`);
+      console.log(`  📊 Total services: ${stats.totalServices}`);
+      console.log(`  ✅ Services with refresh data: ${stats.servicesWithData}`);
+      console.log(`  ⚠️  Services without refresh data: ${stats.servicesWithoutData}`);
+      console.log(`  ℹ️  Note: Each service uses single document (already optimized)`);
+    }
+    
   } catch (error) {
     console.error("❌ Error getting data summary:", error);
   }
@@ -199,14 +225,14 @@ async function main() {
     // Clean up duplicate balances
     const balanceResult = await cleanupDuplicateBalances();
     
-    // Process electricity services (should already be clean)
+    // Analyze electricity services (already optimized)
     const electricityResult = await cleanupDuplicateElectricityServices();
     
     // Show final summary
     console.log("\n🎉 Cleanup completed successfully!");
     console.log(`📊 Final results:`);
     console.log(`  💰 Balance records: Kept ${balanceResult.kept}, Deleted ${balanceResult.deleted}`);
-    console.log(`  ⚡ Electricity services: Processed ${electricityResult.processed}`);
+    console.log(`  ⚡ Electricity services: ${electricityResult.processed} total, ${electricityResult.withData} with data, ${electricityResult.withoutData} without data`);
     
     console.log("\n✅ Migration completed! Your database is now optimized.");
     console.log("🔄 Future refreshes will update existing records instead of creating new ones.");
