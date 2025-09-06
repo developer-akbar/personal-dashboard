@@ -152,28 +152,65 @@ export async function sendSMSViaMSG91({ to, message }) {
     // Remove +91 prefix for MSG91 (it expects 10-digit numbers)
     const phoneNumber = formattedNumber.replace('+91', '');
     
-    const url = 'https://api.msg91.com/api/v5/flow/';
-    const payload = {
-      flow_id: process.env.MSG91_FLOW_ID || 'default_flow',
-      sender: process.env.MSG91_SENDER_ID || 'PERSDB',
+    // Use the correct MSG91 API endpoint for simple SMS
+    const url = 'https://api.msg91.com/api/sendhttp.php';
+    const params = new URLSearchParams({
+      authkey: process.env.MSG91_AUTH_KEY,
       mobiles: phoneNumber,
       message: message,
-      route: process.env.MSG91_ROUTE || '4'
-    };
+      sender: process.env.MSG91_SENDER_ID || 'PERSDB',
+      route: process.env.MSG91_ROUTE || '4',
+      country: '91'
+    });
 
     console.log('🚀 Sending SMS via MSG91...');
-    console.log('Payload:', payload);
+    console.log('URL:', url);
+    console.log('Params:', params.toString());
     
-    const response = await axios.post(url, payload, {
-      headers: {
-        'Content-Type': 'application/json',
-        'authkey': process.env.MSG91_AUTH_KEY
-      },
-      timeout: 10000
-    });
-    
-    console.log('✅ MSG91 SMS sent successfully:', response.data);
-    return { success: true, messageId: response.data.messageId || 'MSG91_SENT' };
+    try {
+      // Try the simple HTTP API first
+      const response = await axios.get(`${url}?${params.toString()}`, {
+        timeout: 10000
+      });
+      
+      console.log('✅ MSG91 SMS sent successfully (HTTP API):', response.data);
+      
+      // Check if response indicates success
+      if (response.data && typeof response.data === 'string' && response.data.includes('SMS sent successfully')) {
+        return { success: true, messageId: 'MSG91_HTTP_SENT' };
+      } else if (response.data && typeof response.data === 'string' && response.data.length > 10) {
+        // If we get a long string, it might be a message ID
+        return { success: true, messageId: response.data };
+      } else {
+        throw new Error('Unexpected response from MSG91 HTTP API');
+      }
+    } catch (httpError) {
+      console.log('⚠️ HTTP API failed, trying JSON API...', httpError.message);
+      
+      // Fallback to JSON API
+      const jsonUrl = 'https://api.msg91.com/api/v5/flow/';
+      const jsonPayload = {
+        flow_id: process.env.MSG91_FLOW_ID || 'default_flow',
+        sender: process.env.MSG91_SENDER_ID || 'PERSDB',
+        mobiles: phoneNumber,
+        message: message,
+        route: process.env.MSG91_ROUTE || '4'
+      };
+
+      console.log('🔄 Trying MSG91 JSON API...');
+      console.log('JSON Payload:', jsonPayload);
+      
+      const jsonResponse = await axios.post(jsonUrl, jsonPayload, {
+        headers: {
+          'Content-Type': 'application/json',
+          'authkey': process.env.MSG91_AUTH_KEY
+        },
+        timeout: 10000
+      });
+      
+      console.log('✅ MSG91 SMS sent successfully (JSON API):', jsonResponse.data);
+      return { success: true, messageId: jsonResponse.data.messageId || 'MSG91_JSON_SENT' };
+    }
   } catch (error) {
     console.error('❌ MSG91 SMS sending failed:', error);
     console.error('Error details:', {
