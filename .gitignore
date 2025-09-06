@@ -176,3 +176,8 @@ frontend/.env
 core
 core.*
 *.core
+
+# Local development scripts
+setup-local.sh
+setup-dev.sh
+dev-setup.sh
