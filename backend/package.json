@@ -6,7 +6,10 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node src/server.js",
     "dev": "nodemon src/server.js",
-    "postinstall": "PLAYWRIGHT_BROWSERS_PATH=0 npx playwright install chromium-headless-shell"
+    "postinstall": "if [ \"$NODE_ENV\" = \"production\" ]; then PLAYWRIGHT_BROWSERS_PATH=0 npx playwright install chromium-headless-shell; else echo 'Skipping Playwright installation for local development'; fi",
+    "install-playwright": "PLAYWRIGHT_BROWSERS_PATH=0 npx playwright install chromium-headless-shell",
+    "install-all": "npm install && npm run install-playwright",
+    "migrate:cleanup-duplicates": "node src/scripts/cleanup-duplicate-data.js"
   },
   "keywords": [],
   "author": "",
