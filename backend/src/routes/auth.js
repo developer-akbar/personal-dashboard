@@ -10,14 +10,24 @@ const router = Router();
 async function verifyTurnstile(token) {
   try{
     const secret = process.env.TURNSTILE_SECRET
-    if (!secret) return true // if not configured, skip
+    const isDevelopment = process.env.NODE_ENV === 'development' || process.env.NODE_ENV !== 'production'
+    
+    // Skip CAPTCHA verification in development/local environment
+    if (!secret || isDevelopment) {
+      console.log('CAPTCHA verification skipped in development environment')
+      return true
+    }
+    
     const r = await fetch('https://challenges.cloudflare.com/turnstile/v0/siteverify', {
       method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
       body: new URLSearchParams({ secret, response: token || '' }).toString()
     })
     const json = await r.json()
     return !!json.success
-  }catch{ return false }
+  }catch{ 
+    console.log('CAPTCHA verification failed, allowing in development')
+    return process.env.NODE_ENV === 'development' || process.env.NODE_ENV !== 'production'
+  }
 }
 
 router.post("/register", async (req, res, next) => {
