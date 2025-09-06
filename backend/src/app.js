@@ -14,6 +14,7 @@ import rewardsRoutes from "./routes/rewards.js";
 import userRoutes from "./routes/users.js";
 import electricityRoutes from "./routes/electricity.js";
 import metaRoutes from "./routes/meta.js";
+import otpRoutes from "./routes/otp.js";
 import { errorHandler } from "./middleware/error.js";
 import mongoose from 'mongoose'
 
@@ -101,6 +102,7 @@ app.use("/api/rewards", rewardsRoutes);
 app.use("/api/users", userRoutes);
 app.use("/api/electricity", electricityRoutes);
 app.use("/api/meta", metaRoutes);
+app.use("/api/otp", otpRoutes);
 
 app.use(errorHandler);
 
