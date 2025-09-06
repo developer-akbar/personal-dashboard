@@ -32,6 +32,7 @@
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.18.0",
     "morgan": "^1.10.1",
+    "msg91": "^2.2.8",
     "nanoid": "^5.1.5",
     "nodemailer": "^6.9.8",
     "p-retry": "^7.0.0",
