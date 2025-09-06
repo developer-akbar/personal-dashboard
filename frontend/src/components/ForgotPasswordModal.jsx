@@ -45,6 +45,12 @@ export default function ForgotPasswordModal({ open, onClose, onSuccess }) {
       return
     }
 
+    // Validate Indian mobile number
+    if (!/^[6-9]\d{9}$/.test(phone.trim())) {
+      toast.error('Enter a valid 10-digit Indian mobile number (starting with 6-9)')
+      return
+    }
+
     setLoading(true)
     try {
       await api.post('/auth/forgot-password', { phone: phone.trim() })
@@ -212,8 +218,12 @@ export default function ForgotPasswordModal({ open, onClose, onSuccess }) {
                     <input
                       type="tel"
                       value={phone}
-                      onChange={(e) => setPhone(e.target.value)}
-                      placeholder="Enter your mobile number"
+                      onChange={(e) => {
+                        const value = e.target.value.replace(/\D/g, '').slice(0, 10)
+                        setPhone(value)
+                      }}
+                      placeholder="9876543210"
+                      maxLength="10"
                       required
                     />
                   </div>
