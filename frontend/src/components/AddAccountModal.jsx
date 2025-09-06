@@ -2,6 +2,7 @@ import React from 'react'
 import { useEffect, useState } from 'react'
 import styles from './AddAccountModal.module.css'
 import { useAccountValidation } from '../hooks/useFormValidation'
+import { FiEye, FiEyeOff } from 'react-icons/fi'
 
 const REGIONS = ['amazon.in']
 
@@ -22,6 +23,7 @@ export default function AddAccountModal({ open, onClose, onSubmit, initial }) {
   })
   
   const [submitting, setSubmitting] = useState(false)
+  const [showPassword, setShowPassword] = useState(false)
 
   // Reset fields when opening for a different account
   useEffect(()=>{
@@ -80,14 +82,24 @@ export default function AddAccountModal({ open, onClose, onSubmit, initial }) {
           </label>
           <label>
             Password
-            <input 
-              value={data.password} 
-              onChange={e=>updateField('password', e.target.value)}
-              onBlur={e=>validateField('password', e.target.value)}
-              type="password" 
-              placeholder={initial? '(leave blank to keep unchanged)': ''} 
-              required={!initial} 
-            />
+            <div className={styles.passwordInput}>
+              <input 
+                value={data.password} 
+                onChange={e=>updateField('password', e.target.value)}
+                onBlur={e=>validateField('password', e.target.value)}
+                type={showPassword ? "text" : "password"} 
+                placeholder={initial? '(leave blank to keep unchanged)': ''} 
+                required={!initial}
+                style={{ paddingRight: '40px' }}
+              />
+              <button
+                type="button"
+                className={styles.eyeButton}
+                onClick={() => setShowPassword(!showPassword)}
+              >
+                {showPassword ? <FiEyeOff /> : <FiEye />}
+              </button>
+            </div>
             {errors.password && <span className={styles.error}>{errors.password}</span>}
           </label>
           <label>

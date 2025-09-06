@@ -1,6 +1,5 @@
 import React from 'react'
 import { useEffect, useRef, useState } from 'react'
-import { Toaster } from 'react-hot-toast'
 import toast from 'react-hot-toast'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../store/useAuth'
@@ -133,7 +132,6 @@ export default function Register(){
         </form>
         <p style={{opacity:.8,marginTop:8}}>Have an account? <Link to="/login">Sign in</Link></p>
       </div>
-      <Toaster/>
     </div>
   )
 }

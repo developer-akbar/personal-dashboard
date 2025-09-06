@@ -14,3 +14,32 @@ input.error,select.error{border-color:var(--danger-bg)}
 .primary:disabled{opacity:0.5;cursor:not-allowed}
 .error{color:var(--danger-bg);font-size:11px;margin-top:2px;display:block}
 
+.passwordInput {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.eyeButton {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  color: var(--muted-text);
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2;
+}
+
+.eyeButton:hover {
+  color: var(--text);
+  background: var(--muted-bg);
+}
+
