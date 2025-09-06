@@ -33,7 +33,7 @@ export default function Account(){
         email: user.email || '',
         phone: user.phone || '',
         avatarUrl: user.avatarUrl || '',
-        userType: user.userType || 'Non Subscriber',
+        userType: user.userType || 'Free',
         subscription: user.subscription || 'Free'
       })
     }
@@ -51,7 +51,7 @@ export default function Account(){
         email: data.email || '',
         phone: data.phone || '',
         avatarUrl: data.avatarUrl || '',
-        userType: data.userType || 'Non Subscriber',
+        userType: data.userType || 'Free',
         subscription: data.subscription || 'Free'
       })
     } catch (error) {
@@ -171,7 +171,9 @@ export default function Account(){
                            userData?.subscription === 'Free' ? '#6b7280' : '#16a34a',
                     fontWeight: '600'
                   }}>
-                    {userData?.userType || 'Non Subscriber'} 
+                    {userData?.userType === 'Admin' ? 'Admin' : 
+                     userData?.subscription === 'Free' ? 'Free User' : 
+                     userData?.subscription || 'Free User'} 
                     {userData?.subscription && userData.subscription !== 'Free' && 
                       ` (${userData.subscription})`
                     }
@@ -181,8 +183,8 @@ export default function Account(){
             </div>
           </div>
 
-          {/* Upgrade Section for Non-Subscribers */}
-          {userData?.userType === 'Non Subscriber' && (
+          {/* Upgrade Section for Free Users */}
+          {userData?.userType === 'Free' && userData?.subscription === 'Free' && (
             <div className={styles.upgradeSection}>
               <div className={styles.upgradeCard}>
                 <div className={styles.upgradeContent}>

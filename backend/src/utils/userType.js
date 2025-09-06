@@ -25,14 +25,14 @@ export function determineUserType(user) {
   if (subscribedUsers.includes(email)) {
     console.log('✅ User detected as Subscriber')
     return {
-      userType: 'Subscriber',
+      userType: 'Free', // Use 'Free' instead of 'Subscriber' to match enum
       subscription: 'Plus' // Default subscription for subscribed users
     }
   }
   
-  console.log('❌ User detected as Non Subscriber')
+  console.log('❌ User detected as Free user')
   return {
-    userType: 'Non Subscriber',
+    userType: 'Free',
     subscription: 'Free'
   }
 }

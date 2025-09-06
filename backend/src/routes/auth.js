@@ -37,13 +37,20 @@ router.post("/register", async (req, res, next) => {
     }
 
     const passwordHash = await bcrypt.hash(password, 12);
-    const user = await User.create({ name, email, username, phone, avatarUrl, passwordHash });
-
-    // Determine user type and update user
-    const { userType, subscription } = determineUserType(user);
-    user.userType = userType;
-    user.subscription = subscription;
-    await user.save();
+    
+    // Determine user type before creating user
+    const { userType, subscription } = determineUserType({ email });
+    
+    const user = await User.create({ 
+      name, 
+      email, 
+      username, 
+      phone, 
+      avatarUrl, 
+      passwordHash,
+      userType,
+      subscription
+    });
 
     const access = signAccessToken({ sub: String(user._id), email: user.email, name: user.name });
     const refresh = signRefreshToken({ sub: String(user._id), email: user.email, name: user.name });
@@ -62,6 +69,25 @@ router.post("/register", async (req, res, next) => {
       } 
     });
   } catch (e) {
+    console.error('Registration error:', e);
+    
+    // Handle specific MongoDB validation errors
+    if (e.name === 'ValidationError') {
+      const errors = Object.values(e.errors).map(err => err.message);
+      return res.status(400).json({ 
+        error: 'Validation failed', 
+        details: errors.join(', ') 
+      });
+    }
+    
+    // Handle duplicate key errors
+    if (e.code === 11000) {
+      const field = Object.keys(e.keyPattern)[0];
+      return res.status(409).json({ 
+        error: `${field} already exists` 
+      });
+    }
+    
     next(e);
   }
 });
