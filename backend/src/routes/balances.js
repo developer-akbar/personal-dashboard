@@ -28,7 +28,12 @@ router.get("/history/:accountId", async (req, res, next) => {
   try {
     const account = await AmazonAccount.findOne({ _id: req.params.accountId, userId: req.user.id });
     if (!account) return res.status(404).json({ error: "Account not found" });
-    const history = await Balance.find({ accountId: account._id }).sort({ createdAt: -1 }).limit(200);
+    
+    // Since we now use upsert, there should only be one balance record per account
+    const balance = await Balance.findOne({ accountId: account._id });
+    
+    // Return as array for compatibility with frontend
+    const history = balance ? [balance] : [];
     res.json(history);
   } catch (e) {
     next(e);
@@ -68,8 +73,18 @@ router.post("/refresh/:accountId", refreshLimiter, async (req, res, next) => {
     if (storageState) account.storageState = storageState;
     await account.save();
 
-    const snap = await Balance.create({ accountId: account._id, amount, currency });
-    res.json({ amount, currency, timestamp: snap.createdAt, debug });
+    // Use upsert to replace existing balance data instead of creating new documents
+    const snap = await Balance.findOneAndUpdate(
+      { accountId: account._id },
+      { 
+        accountId: account._id, 
+        amount, 
+        currency,
+        refreshedAt: new Date()
+      },
+      { upsert: true, new: true }
+    );
+    res.json({ amount, currency, timestamp: snap.refreshedAt, debug });
   } catch (e) {
     try {
       const account = await AmazonAccount.findOne({ _id: req.params.accountId, userId: req.user.id });
@@ -115,8 +130,18 @@ router.post("/refresh-all", refreshLimiter, async (req, res, next) => {
           account.refreshInProgress = false
           if (storageState) account.storageState = storageState;
           await account.save();
-          const snap = await Balance.create({ accountId: account._id, amount, currency });
-          return { accountId: account._id, amount, currency, index: i + idx + 1, total: accounts.length, timestamp: snap.createdAt };
+          // Use upsert to replace existing balance data instead of creating new documents
+          const snap = await Balance.findOneAndUpdate(
+            { accountId: account._id },
+            { 
+              accountId: account._id, 
+              amount, 
+              currency,
+              refreshedAt: new Date()
+            },
+            { upsert: true, new: true }
+          );
+          return { accountId: account._id, amount, currency, index: i + idx + 1, total: accounts.length, timestamp: snap.refreshedAt };
         }catch(err){
           try{ account.refreshInProgress = false; await account.save() }catch{}
           throw err
