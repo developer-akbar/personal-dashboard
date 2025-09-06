@@ -2,7 +2,7 @@ import { Router } from "express";
 import bcrypt from "bcryptjs";
 import User from "../models/User.js";
 import { signAccessToken, signRefreshToken, verifyRefreshToken } from "../utils/jwt.js";
-import { sendEmail, sendSMS } from "../utils/notifications.js";
+import { sendEmail, sendSMS, sendSMSSmart } from "../utils/notifications.js";
 import { determineUserType } from "../utils/userType.js";
 
 const router = Router();
@@ -189,7 +189,7 @@ router.post("/forgot-password", async (req, res, next) => {
         `
       });
     } else if (phone) {
-      await sendSMS({
+      await sendSMSSmart({
         to: phone,
         message: `Your password reset code is: ${otpCode}. This code will expire in 10 minutes.`
       });
@@ -327,9 +327,9 @@ router.post("/test-sms", async (req, res, next) => {
     console.log('📱 Phone number formatting test:');
     console.log('- Input:', phone);
     
-    // Test the formatting function
-    const { sendSMS } = await import('../utils/notifications.js');
-    const result = await sendSMS({ to: phone, message });
+    // Test the smart SMS function
+    const { sendSMSSmart } = await import('../utils/notifications.js');
+    const result = await sendSMSSmart({ to: phone, message });
     
     res.json({ 
       success: true, 

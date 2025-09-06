@@ -1,4 +1,5 @@
 import nodemailer from 'nodemailer';
+import axios from 'axios';
 
 // Email configuration
 const emailTransporter = nodemailer.createTransport({
@@ -123,6 +124,126 @@ export async function sendSMS({ to, message }) {
       status: error.status,
       moreInfo: error.moreInfo
     });
+    throw new Error(`Failed to send SMS: ${error.message}`);
+  }
+}
+
+// Send SMS using MSG91
+export async function sendSMSViaMSG91({ to, message }) {
+  try {
+    // Format the phone number for Indian numbers
+    const formattedNumber = formatIndianPhoneNumber(to);
+    
+    console.log('📱 MSG91 SMS Request Debug:');
+    console.log('- Original number:', to);
+    console.log('- Formatted number:', formattedNumber);
+    console.log('- Message:', message);
+    console.log('- MSG91 Auth Key:', process.env.MSG91_AUTH_KEY ? 'Set' : 'Not set');
+    console.log('- MSG91 Sender ID:', process.env.MSG91_SENDER_ID || 'Not set');
+    console.log('- MSG91 Route:', process.env.MSG91_ROUTE || '4');
+
+    // Check if MSG91 is configured
+    if (!process.env.MSG91_AUTH_KEY) {
+      console.log('❌ MSG91 not configured, SMS would be sent to:', formattedNumber);
+      console.log('Message:', message);
+      return { success: true, message: 'SMS logged (MSG91 not configured)' };
+    }
+
+    // Remove +91 prefix for MSG91 (it expects 10-digit numbers)
+    const phoneNumber = formattedNumber.replace('+91', '');
+    
+    // Use the correct MSG91 API endpoint for simple SMS
+    const url = 'https://api.msg91.com/api/sendhttp.php';
+    const params = new URLSearchParams({
+      authkey: process.env.MSG91_AUTH_KEY,
+      mobiles: phoneNumber,
+      message: message,
+      sender: process.env.MSG91_SENDER_ID || 'PERSDB',
+      route: process.env.MSG91_ROUTE || '4',
+      country: '91'
+    });
+
+    console.log('🚀 Sending SMS via MSG91...');
+    console.log('URL:', url);
+    console.log('Params:', params.toString());
+    
+    try {
+      // Try the simple HTTP API first
+      const response = await axios.get(`${url}?${params.toString()}`, {
+        timeout: 10000
+      });
+      
+      console.log('✅ MSG91 SMS sent successfully (HTTP API):', response.data);
+      
+      // Check if response indicates success
+      if (response.data && typeof response.data === 'string' && response.data.includes('SMS sent successfully')) {
+        return { success: true, messageId: 'MSG91_HTTP_SENT' };
+      } else if (response.data && typeof response.data === 'string' && response.data.length > 10) {
+        // If we get a long string, it might be a message ID
+        return { success: true, messageId: response.data };
+      } else {
+        throw new Error('Unexpected response from MSG91 HTTP API');
+      }
+    } catch (httpError) {
+      console.log('⚠️ HTTP API failed, trying JSON API...', httpError.message);
+      
+      // Fallback to JSON API
+      const jsonUrl = 'https://api.msg91.com/api/v5/flow/';
+      const jsonPayload = {
+        flow_id: process.env.MSG91_FLOW_ID || 'default_flow',
+        sender: process.env.MSG91_SENDER_ID || 'PERSDB',
+        mobiles: phoneNumber,
+        message: message,
+        route: process.env.MSG91_ROUTE || '4'
+      };
+
+      console.log('🔄 Trying MSG91 JSON API...');
+      console.log('JSON Payload:', jsonPayload);
+      
+      const jsonResponse = await axios.post(jsonUrl, jsonPayload, {
+        headers: {
+          'Content-Type': 'application/json',
+          'authkey': process.env.MSG91_AUTH_KEY
+        },
+        timeout: 10000
+      });
+      
+      console.log('✅ MSG91 SMS sent successfully (JSON API):', jsonResponse.data);
+      return { success: true, messageId: jsonResponse.data.messageId || 'MSG91_JSON_SENT' };
+    }
+  } catch (error) {
+    console.error('❌ MSG91 SMS sending failed:', error);
+    console.error('Error details:', {
+      message: error.message,
+      response: error.response?.data,
+      status: error.response?.status
+    });
+    throw new Error(`Failed to send SMS via MSG91: ${error.message}`);
+  }
+}
+
+// Smart SMS sending - tries MSG91 first, falls back to Twilio
+export async function sendSMSSmart({ to, message }) {
+  try {
+    // Try MSG91 first (better for Indian numbers)
+    if (process.env.MSG91_AUTH_KEY) {
+      console.log('🔄 Trying MSG91 first...');
+      return await sendSMSViaMSG91({ to, message });
+    }
+    
+    // Fall back to Twilio if MSG91 not configured
+    if (process.env.TWILIO_ACCOUNT_SID && process.env.TWILIO_AUTH_TOKEN && process.env.TWILIO_PHONE_NUMBER) {
+      console.log('🔄 Falling back to Twilio...');
+      return await sendSMS({ to, message });
+    }
+    
+    // If neither is configured, log the message
+    console.log('❌ No SMS provider configured, logging message:');
+    console.log('To:', to);
+    console.log('Message:', message);
+    return { success: true, message: 'SMS logged (no provider configured)' };
+  } catch (error) {
+    console.error('❌ Smart SMS sending failed:', error);
     throw new Error(`Failed to send SMS: ${error.message}`);
   }
 }
