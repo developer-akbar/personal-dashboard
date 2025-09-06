@@ -1,6 +1,5 @@
 import React from "react";
 import { useEffect, useRef, useState } from "react";
-import { Toaster } from "react-hot-toast";
 import toast from "react-hot-toast";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "../store/useAuth";
@@ -158,7 +157,6 @@ export default function Login() {
         }}
       />
       
-      <Toaster />
     </div>
   );
 }

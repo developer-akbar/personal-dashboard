@@ -3,6 +3,7 @@ import bcrypt from "bcryptjs";
 import User from "../models/User.js";
 import { signAccessToken, signRefreshToken, verifyRefreshToken } from "../utils/jwt.js";
 import { sendEmail, sendSMS } from "../utils/notifications.js";
+import { determineUserType } from "../utils/userType.js";
 
 const router = Router();
 
@@ -36,12 +37,57 @@ router.post("/register", async (req, res, next) => {
     }
 
     const passwordHash = await bcrypt.hash(password, 12);
-    const user = await User.create({ name, email, username, phone, avatarUrl, passwordHash });
+    
+    // Determine user type before creating user
+    const { userType, subscription } = determineUserType({ email });
+    
+    const user = await User.create({ 
+      name, 
+      email, 
+      username, 
+      phone, 
+      avatarUrl, 
+      passwordHash,
+      userType,
+      subscription
+    });
 
     const access = signAccessToken({ sub: String(user._id), email: user.email, name: user.name });
     const refresh = signRefreshToken({ sub: String(user._id), email: user.email, name: user.name });
-    res.json({ accessToken: access, refreshToken: refresh, user: { id: user._id, email: user.email, name: user.name, username: user.username, phone: user.phone, avatarUrl: user.avatarUrl } });
+    res.json({ 
+      accessToken: access, 
+      refreshToken: refresh, 
+      user: { 
+        id: user._id, 
+        email: user.email, 
+        name: user.name, 
+        username: user.username, 
+        phone: user.phone, 
+        avatarUrl: user.avatarUrl,
+        userType: user.userType,
+        subscription: user.subscription
+      } 
+    });
   } catch (e) {
+    console.error('Registration error:', e);
+    
+    // Handle specific MongoDB validation errors
+    if (e.name === 'ValidationError') {
+      const errors = Object.values(e.errors).map(err => err.message);
+      return res.status(400).json({ 
+        error: 'Validation failed', 
+        details: errors.join(', ') 
+      });
+    }
+    
+    // Handle duplicate key errors
+    if (e.code === 11000) {
+      const field = Object.keys(e.keyPattern)[0];
+      return res.status(409).json({ 
+        error: `${field} already exists` 
+      });
+    }
+    
     next(e);
   }
 });
@@ -56,9 +102,31 @@ router.post("/login", async (req, res, next) => {
     if (!user) return res.status(401).json({ error: "Invalid credentials" });
     const ok = await user.comparePassword(password);
     if (!ok) return res.status(401).json({ error: "Invalid credentials" });
+    
+    // Determine user type and update if needed
+    const { userType, subscription } = determineUserType(user);
+    if (user.userType !== userType || user.subscription !== subscription) {
+      user.userType = userType;
+      user.subscription = subscription;
+      await user.save();
+    }
+    
     const access = signAccessToken({ sub: String(user._id), email: user.email, name: user.name });
     const refresh = signRefreshToken({ sub: String(user._id), email: user.email, name: user.name });
-    res.json({ accessToken: access, refreshToken: refresh, user: { id: user._id, email: user.email, name: user.name, username: user.username, phone: user.phone, avatarUrl: user.avatarUrl } });
+    res.json({ 
+      accessToken: access, 
+      refreshToken: refresh, 
+      user: { 
+        id: user._id, 
+        email: user.email, 
+        name: user.name, 
+        username: user.username, 
+        phone: user.phone, 
+        avatarUrl: user.avatarUrl,
+        userType: user.userType,
+        subscription: user.subscription
+      } 
+    });
   } catch (e) {
     next(e);
   }
@@ -243,6 +311,76 @@ router.post("/change-password", async (req, res, next) => {
     res.json({ message: "Password changed successfully" });
   } catch (e) {
     next(e);
+  }
+});
+
+// Test SMS endpoint for debugging
+router.post("/test-sms", async (req, res, next) => {
+  try {
+    const { phone, message } = req.body || {};
+    
+    if (!phone || !message) {
+      return res.status(400).json({ error: "Phone number and message required" });
+    }
+
+    console.log('🧪 Test SMS endpoint called');
+    console.log('📱 Phone number formatting test:');
+    console.log('- Input:', phone);
+    
+    // Test the formatting function
+    const { sendSMS } = await import('../utils/notifications.js');
+    const result = await sendSMS({ to: phone, message });
+    
+    res.json({ 
+      success: true, 
+      message: 'SMS test completed',
+      inputNumber: phone,
+      result 
+    });
+  } catch (e) {
+    console.error('Test SMS failed:', e);
+    res.status(500).json({ 
+      success: false, 
+      error: e.message,
+      details: e.toString()
+    });
+  }
+});
+
+// Test Email endpoint for debugging
+router.post("/test-email", async (req, res, next) => {
+  try {
+    const { to, subject, message } = req.body || {};
+    
+    if (!to || !subject || !message) {
+      return res.status(400).json({ error: "To, subject, and message required" });
+    }
+
+    console.log('🧪 Test Email endpoint called');
+    console.log('📧 Email sending test:');
+    console.log('- To:', to);
+    console.log('- Subject:', subject);
+    
+    const { sendEmail } = await import('../utils/notifications.js');
+    const result = await sendEmail({ 
+      to, 
+      subject, 
+      html: `<p>${message}</p><p><em>This is a test email from Personal Dashboard.</em></p>`,
+      text: message
+    });
+    
+    res.json({ 
+      success: true, 
+      message: 'Email test completed',
+      result 
+    });
+  } catch (e) {
+    console.error('Test Email failed:', e);
+    res.status(500).json({ 
+      success: false, 
+      error: e.message,
+      details: e.toString()
+    });
   }
 });
 

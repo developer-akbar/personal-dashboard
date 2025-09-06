@@ -1,9 +1,15 @@
-import React from 'react'
+import React, { useState } from 'react'
 import toast from 'react-hot-toast'
-import { FiRefreshCcw, FiMoreVertical, FiStar } from 'react-icons/fi'
+import { FiRefreshCcw, FiMoreVertical, FiStar, FiInfo } from 'react-icons/fi'
 import { FaStar } from 'react-icons/fa'
 
 export default function ElectricityServiceCard({ item, onRefresh, onEdit, onDelete, highlight=false, domId, onTogglePin }){
+  const [showPaymentDetails, setShowPaymentDetails] = useState(false)
+  const [showBillBreakup, setShowBillBreakup] = useState(false)
+  
+  // Debug logging
+  console.log('ElectricityServiceCard render for service:', item.serviceNumber, 'billBreakup:', item.billBreakup)
+  
   const onToggleMenu = (e)=>{
     e.stopPropagation()
     const menu = e.currentTarget.nextSibling
@@ -47,7 +53,7 @@ export default function ElectricityServiceCard({ item, onRefresh, onEdit, onDele
         <div>
           <span style={{opacity:.7}}>Due Date</span>{' '}
           <b>{item.lastDueDate? new Date(item.lastDueDate).toLocaleDateString(): '—'}</b>
-          {item.lastDueDate && (
+          {item.lastDueDate && !item.isPaid && (
             (()=>{
               const diffMs = new Date(item.lastDueDate).getTime() - Date.now()
               const days = Math.ceil(diffMs / (1000*60*60*24))
@@ -59,12 +65,166 @@ export default function ElectricityServiceCard({ item, onRefresh, onEdit, onDele
         </div>
         <div>
           <span style={{opacity:.7}}>Amount Due</span>{' '}
-          <b style={{fontSize:16, color:item.lastStatus==='DUE'?'#0ea5e9':'#94a3b8'}}>
-            {item.lastStatus==='DUE' ? `₹ ${Number(item.lastAmountDue||0).toLocaleString('en-IN')}` : '₹ 0'}
-          </b>
+          <div style={{display:'flex', alignItems:'center', gap:6}}>
+            <b style={{fontSize:16, color:item.lastStatus==='DUE'?'#0ea5e9':'#94a3b8'}}>
+              {item.lastStatus==='DUE' ? `₹ ${Number(item.lastAmountDue||0).toLocaleString('en-IN')}` : '₹ 0'}
+            </b>
+            {item.billBreakup && (
+              <button
+                onClick={() => {
+                  console.log('Bill breakup clicked for service:', item.serviceNumber, 'Current state:', showBillBreakup)
+                  setShowBillBreakup(!showBillBreakup)
+                }}
+                style={{
+                  background:'transparent',
+                  border:'none',
+                  color:'var(--text)',
+                  cursor:'pointer',
+                  padding:2,
+                  borderRadius:4,
+                  display:'flex',
+                  alignItems:'center',
+                  opacity:0.7
+                }}
+                title="Show bill breakdown"
+              >
+                <FiInfo size={14} />
+              </button>
+            )}
+          </div>
         </div>
         <div><span style={{opacity:.7}}>Billed Units</span> <b>{item.lastBilledUnits!=null? Number(item.lastBilledUnits).toLocaleString('en-IN') : '—'}</b></div>
       </div>
+      {/* Payment Information */}
+      {item.isPaid && (
+        <div style={{marginTop:8}}>
+          <div style={{display:'flex', justifyContent:'flex-end', marginBottom:8}}>
+            <button
+              onClick={() => setShowPaymentDetails(!showPaymentDetails)}
+              style={{
+                background:'#16a34a',
+                color:'white',
+                border:'none',
+                borderRadius:6,
+                padding:'6px 12px',
+                fontSize:12,
+                fontWeight:600,
+                cursor:'pointer',
+                display:'flex',
+                alignItems:'center',
+                gap:6
+              }}
+            >
+              PAID ₹ {Number(item.paidAmount || item.lastAmountDue || 0).toLocaleString('en-IN')}
+              <FiInfo size={14} />
+            </button>
+          </div>
+          
+          {showPaymentDetails && (
+            <div style={{
+              background:'var(--muted-bg)',
+              border:'1px solid var(--panel-border)',
+              borderRadius:8,
+              padding:12,
+              marginTop:8
+            }}>
+              <div style={{display:'grid', gridTemplateColumns:'repeat(2,minmax(0,1fr))', gap:8, fontSize:12}}>
+                <div>
+                  <span style={{opacity:.7}}>Paid Date</span>{' '}
+                  <b>{item.paidDate ? new Date(item.paidDate).toLocaleDateString() : '—'}</b>
+                </div>
+                <div>
+                  <span style={{opacity:.7}}>Receipt No</span>{' '}
+                  <b style={{fontSize:11, fontFamily:'monospace'}}>{item.receiptNumber || '—'}</b>
+                </div>
+                {item.paidAmount && (
+                  <div style={{gridColumn:'1/-1'}}>
+                    <div style={{display:'flex', alignItems:'center', gap:6}}>
+                      <span style={{opacity:.7}}>Paid Amount</span>{' '}
+                      <b style={{color:'#16a34a'}}>₹ {Number(item.paidAmount).toLocaleString('en-IN')}</b>
+                      {item.billBreakup && (
+                        <button
+                          onClick={() => setShowBillBreakup(!showBillBreakup)}
+                          style={{
+                            background:'transparent',
+                            border:'none',
+                            color:'var(--text)',
+                            cursor:'pointer',
+                            padding:2,
+                            borderRadius:4,
+                            display:'flex',
+                            alignItems:'center',
+                            opacity:0.7
+                          }}
+                          title="Show bill breakdown"
+                        >
+                          <FiInfo size={14} />
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+      
+      {/* Bill Amount Breakup - shown when toggled */}
+      {showBillBreakup && item.billBreakup && (
+        <div style={{
+          background:'var(--muted-bg)',
+          border:'1px solid var(--panel-border)',
+          borderRadius:8,
+          padding:12,
+          marginTop:8
+        }}>
+          {/* Current Month Bill vs Extra Charges */}
+          <div style={{marginBottom:12, padding:8, background:'var(--card-bg)', borderRadius:6, border:'1px solid var(--card-border)'}}>
+            <div style={{fontSize:13, fontWeight:600, marginBottom:6, color:'var(--text)'}}>Bill Summary</div>
+            <div style={{display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:4}}>
+              <span style={{fontSize:12, opacity:.8}}>This month bill:</span>
+              <b style={{color:'var(--primary-bg)'}}>₹ {Math.floor(item.billBreakup.currentMonthBill || 0).toLocaleString('en-IN')}</b>
+            </div>
+            <div style={{display:'flex', justifyContent:'space-between', alignItems:'center'}}>
+              <span style={{fontSize:12, opacity:.8}}>Extra Charges (FSA):</span>
+              <b style={{color:'#f59e0b'}}>₹ {Math.floor(item.billBreakup.fsa || 0).toLocaleString('en-IN')}</b>
+            </div>
+          </div>
+          
+          {/* Detailed Breakup */}
+          <div style={{fontSize:12}}>
+            <div style={{fontWeight:600, marginBottom:8, color:'var(--text)'}}>Amount Breakdown</div>
+            <div style={{display:'grid', gap:4}}>
+              <div style={{display:'flex', justifyContent:'space-between'}}>
+                <span style={{opacity:.7}}>Energy Charges (EC):</span>
+                <b>₹ {Math.floor(item.billBreakup.ec || 0).toLocaleString('en-IN')}</b>
+              </div>
+              <div style={{display:'flex', justifyContent:'space-between'}}>
+                <span style={{opacity:.7}}>Fixed Charges (FixChg):</span>
+                <b>₹ {Math.floor(item.billBreakup.fixchg || 0).toLocaleString('en-IN')}</b>
+              </div>
+              <div style={{display:'flex', justifyContent:'space-between'}}>
+                <span style={{opacity:.7}}>Current Composition (CC):</span>
+                <b>₹ {Math.floor(item.billBreakup.cc || 0).toLocaleString('en-IN')}</b>
+              </div>
+              <div style={{display:'flex', justifyContent:'space-between'}}>
+                <span style={{opacity:.7}}>Electricity Duty (ED):</span>
+                <b>₹ {Math.floor(item.billBreakup.ed || 0).toLocaleString('en-IN')}</b>
+              </div>
+              <div style={{display:'flex', justifyContent:'space-between', borderTop:'1px solid var(--panel-border)', paddingTop:4, marginTop:4}}>
+                <span style={{opacity:.7}}>Fuel Surcharge Adjustment (FSA):</span>
+                <b style={{color:'#f59e0b'}}>₹ {Math.floor(item.billBreakup.fsa || 0).toLocaleString('en-IN')}</b>
+              </div>
+              <div style={{display:'flex', justifyContent:'space-between', borderTop:'1px solid var(--primary-bg)', paddingTop:4, marginTop:4, fontWeight:600}}>
+                <span>Total Bill:</span>
+                <b style={{color:'var(--primary-bg)'}}>₹ {Math.floor(item.billBreakup.totalBill || 0).toLocaleString('en-IN')}</b>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+      
       {Array.isArray(item.lastThreeAmounts) && item.lastThreeAmounts.length>0 && (
         <div style={{fontSize:12,opacity:.85}}>
           <span style={{opacity:.7}}>Last 3 bills:</span>{' '}
@@ -93,9 +253,9 @@ export default function ElectricityServiceCard({ item, onRefresh, onEdit, onDele
           }}>Pay Now</button>
         </div>
       )}
-      {item.lastStatus==='PAID' && (
+      {item.lastStatus==='PAID' && !item.isPaid && (
         <div style={{display:'flex',justifyContent:'flex-end'}}>
-          <span title="Bill paid" style={{background:'#16a34a', color:'#fff', padding:'8px 12px', borderRadius:8, fontWeight:700}}>Paid ₹ {Number(item.lastAmountDue||0).toLocaleString('en-IN')}</span>
+          <span title="Bill paid" style={{background:'#16a34a', color:'#fff', padding:'8px 12px', borderRadius:8, fontWeight:700}}>Paid</span>
         </div>
       )}
       {item.lastStatus==='NO_DUES' && (

@@ -19,6 +19,21 @@ const electricityServiceSchema = new mongoose.Schema(
     lastStatus: { type: String, enum: ["DUE", "PAID", "NO_DUES", "UNKNOWN"], default: "UNKNOWN" },
     lastFetchedAt: { type: Date },
     lastError: { type: String },
+    // Payment information
+    isPaid: { type: Boolean, default: false },
+    paidDate: { type: Date },
+    receiptNumber: { type: String },
+    paidAmount: { type: Number },
+    // Bill breakup information
+    billBreakup: { type: {
+      ec: Number, // Energy Charges
+      fixchg: Number, // Fixed Charges
+      cc: Number, // Current Composition
+      ed: Number, // Electricity Duty
+      fsa: Number, // Fuel Surcharge Adjustment
+      totalBill: Number, // Total bill amount
+      currentMonthBill: Number, // Total bill minus FSA
+    }, default: null },
     // Pinning
     pinned: { type: Boolean, default: false },
     pinnedAt: { type: Date },

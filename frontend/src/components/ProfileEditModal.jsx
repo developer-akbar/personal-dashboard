@@ -24,7 +24,14 @@ export default function ProfileEditModal({ open, onClose, onSubmit, initialData 
   }, [open, initialData])
 
   const handleInputChange = (field, value) => {
-    setFormData(prev => ({ ...prev, [field]: value }))
+    // Handle phone number input - only allow digits and limit to 10
+    if (field === 'phone') {
+      const cleanValue = value.replace(/\D/g, '').slice(0, 10)
+      setFormData(prev => ({ ...prev, [field]: cleanValue }))
+    } else {
+      setFormData(prev => ({ ...prev, [field]: value }))
+    }
+    
     // Clear error when user starts typing
     if (errors[field]) {
       setErrors(prev => {
@@ -50,8 +57,8 @@ export default function ProfileEditModal({ open, onClose, onSubmit, initialData 
       newErrors.email = 'Please enter a valid email address'
     }
     
-    if (formData.phone && !/^\+?[\d\s\-\(\)]{10,15}$/.test(formData.phone.trim())) {
-      newErrors.phone = 'Please enter a valid phone number'
+    if (formData.phone && !/^[6-9]\d{9}$/.test(formData.phone.trim())) {
+      newErrors.phone = 'Enter a valid 10-digit Indian mobile number (starting with 6-9)'
     }
     
     if (formData.avatarUrl && !/^https?:\/\/.+/.test(formData.avatarUrl.trim())) {
@@ -165,7 +172,8 @@ export default function ProfileEditModal({ open, onClose, onSubmit, initialData 
                 type="tel"
                 value={formData.phone}
                 onChange={(e) => handleInputChange('phone', e.target.value)}
-                placeholder="Enter your mobile number"
+                placeholder="9876543210"
+                maxLength="10"
               />
               {errors.phone && <span className={styles.error}>{errors.phone}</span>}
             </label>

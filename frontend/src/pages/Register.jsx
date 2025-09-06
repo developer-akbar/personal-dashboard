@@ -1,6 +1,5 @@
 import React from 'react'
 import { useEffect, useRef, useState } from 'react'
-import { Toaster } from 'react-hot-toast'
 import toast from 'react-hot-toast'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../store/useAuth'
@@ -17,6 +16,12 @@ export default function Register(){
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const widgetRef = useRef(null)
+
+  // Handle phone number input - only allow digits and limit to 10
+  const handlePhoneChange = (e) => {
+    const value = e.target.value.replace(/\D/g, '').slice(0, 10)
+    setPhone(value)
+  }
 
   useEffect(()=>{
     const siteKey = import.meta.env.VITE_TURNSTILE_SITE_KEY
@@ -42,6 +47,12 @@ export default function Register(){
     e.preventDefault()
     const emailOk = /.+@.+\..+/.test(email)
     if(!emailOk) return toast.error('Enter a valid email', { duration: 2000 })
+    
+    // Mobile number validation for Indian numbers
+    if(phone && !/^[6-9]\d{9}$/.test(phone)) {
+      return toast.error('Enter a valid 10-digit Indian mobile number (starting with 6-9)', { duration: 2000 })
+    }
+    
     if(password.length < 6) return toast.error('Password must be at least 6 characters', { duration: 2000 })
     const confirm = e.target?.confirm?.value
     if(confirm !== password) return toast.error('Passwords do not match', { duration: 2000 })
@@ -61,7 +72,7 @@ export default function Register(){
         <form onSubmit={onSubmit} style={{display:'flex',flexDirection:'column',gap:12}}>
           <label>Name<input value={name} onChange={e=>setName(e.target.value)} required type="text" placeholder="Your name"/></label>
           <label>Email<input value={email} onChange={e=>setEmail(e.target.value)} required type="email" placeholder="you@example.com"/></label>
-          <label>Mobile Number<input value={phone} onChange={e=>setPhone(e.target.value)} type="tel" placeholder="+91 9876543210"/></label>
+          <label>Mobile Number<input value={phone} onChange={handlePhoneChange} type="tel" placeholder="9876543210" maxLength="10"/></label>
           <label>Password
             <div style={{ position: 'relative' }}>
               <input 
@@ -133,7 +144,6 @@ export default function Register(){
         </form>
         <p style={{opacity:.8,marginTop:8}}>Have an account? <Link to="/login">Sign in</Link></p>
       </div>
-      <Toaster/>
     </div>
   )
 }

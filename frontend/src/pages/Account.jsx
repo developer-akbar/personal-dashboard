@@ -6,6 +6,7 @@ import { useAuth } from '../store/useAuth'
 import toast from 'react-hot-toast'
 import ProfileEditModal from '../components/ProfileEditModal'
 import PasswordChangeModal from '../components/PasswordChangeModal'
+import UpgradePlansModal from '../components/UpgradePlansModal'
 import GlobalHeader from '../components/GlobalHeader'
 import styles from './Account.module.css'
 
@@ -15,10 +16,13 @@ export default function Account(){
     name: '',
     email: '',
     phone: '',
-    avatarUrl: ''
+    avatarUrl: '',
+    userType: '',
+    subscription: ''
   })
   const [showProfileModal, setShowProfileModal] = useState(false)
   const [showPasswordModal, setShowPasswordModal] = useState(false)
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false)
   const [loading, setLoading] = useState(false)
 
   useEffect(() => {
@@ -28,7 +32,9 @@ export default function Account(){
         name: user.name || '',
         email: user.email || '',
         phone: user.phone || '',
-        avatarUrl: user.avatarUrl || ''
+        avatarUrl: user.avatarUrl || '',
+        userType: user.userType || 'Free',
+        subscription: user.subscription || 'Free'
       })
     }
     
@@ -44,7 +50,9 @@ export default function Account(){
         name: data.name || '',
         email: data.email || '',
         phone: data.phone || '',
-        avatarUrl: data.avatarUrl || ''
+        avatarUrl: data.avatarUrl || '',
+        userType: data.userType || 'Free',
+        subscription: data.subscription || 'Free'
       })
     } catch (error) {
       console.error('Failed to load profile data:', error)
@@ -154,8 +162,44 @@ export default function Account(){
                   <span>{userData?.phone || 'Not set'}</span>
                 </div>
               </div>
+              <div className={styles.infoItem}>
+                <FiUser className={styles.infoIcon} />
+                <div>
+                  <label>User Type</label>
+                  <span style={{ 
+                    color: userData?.userType === 'Admin' ? '#ef4444' : 
+                           userData?.subscription === 'Free' ? '#6b7280' : '#16a34a',
+                    fontWeight: '600'
+                  }}>
+                    {userData?.userType === 'Admin' ? 'Admin' : 
+                     userData?.subscription === 'Free' ? 'Free User' : 
+                     userData?.subscription || 'Free User'} 
+                    {userData?.subscription && userData.subscription !== 'Free' && 
+                      ` (${userData.subscription})`
+                    }
+                  </span>
+                </div>
+              </div>
             </div>
           </div>
+
+          {/* Upgrade Section for Free Users */}
+          {userData?.userType === 'Free' && userData?.subscription === 'Free' && (
+            <div className={styles.upgradeSection}>
+              <div className={styles.upgradeCard}>
+                <div className={styles.upgradeContent}>
+                  <h3>Upgrade Your Plan</h3>
+                  <p>Get more cards and daily refreshes with our premium plans</p>
+                  <button 
+                    className={styles.upgradeButton}
+                    onClick={() => setShowUpgradeModal(true)}
+                  >
+                    View Plans & Pricing
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
 
           {/* Profile Actions - At Bottom */}
           <div className={styles.actionsGrid}>
@@ -213,6 +257,12 @@ export default function Account(){
         open={showPasswordModal}
         onClose={() => setShowPasswordModal(false)}
         onSubmit={handlePasswordChange}
+      />
+
+      <UpgradePlansModal
+        open={showUpgradeModal}
+        onClose={() => setShowUpgradeModal(false)}
+        currentPlan={userData?.subscription || 'Free'}
       />
     </div>
   )

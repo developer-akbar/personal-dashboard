@@ -15,21 +15,81 @@ export async function fetchApspdclBill({ serviceNumber, interactive, storageStat
   page.setDefaultTimeout(90000)
   const debug = { steps: [], snippet: null }
   try{
-    // Direct API (bill history) first: faster and avoids CAPTCHA
+    // Enhanced API approach: Call both bill history and payment history APIs
     try{
-      const curl = `curl -s -X POST 'https://apspdcl.in/ConsumerDashboard/public/publicbillhistory' -H 'Content-Type: application/x-www-form-urlencoded; charset=UTF-8' --data 'uscno=${serviceNumber}'`
-      try{ console.log(`[APSPDCL] ${curl}`) }catch{}
-      const resp = await fetch('https://apspdcl.in/ConsumerDashboard/public/publicbillhistory', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8' },
-        body: `uscno=${encodeURIComponent(String(serviceNumber))}`,
-      })
-      if (resp.ok){
-        const json = await resp.json()
-        try{ console.log(`[APSPDCL] response: ${JSON.stringify(json)}`) }catch{}
-        if (Array.isArray(json?.data) && json.data.length){
-          // Map and pick latest by closingDate
-          const parseD = (s)=>{
+      console.log(`[APSPDCL] Fetching bill data for service: ${serviceNumber}`)
+      
+      // Call both APIs in parallel
+      const [billHistoryResp, paymentHistoryResp] = await Promise.allSettled([
+        fetch('https://apspdcl.in/ConsumerDashboard/public/publicbillhistory', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8' },
+          body: `uscno=${encodeURIComponent(String(serviceNumber))}`,
+        }),
+        fetch('https://apspdcl.in/ConsumerDashboard/public/publicpaymenthistory', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8' },
+          body: `uscno=${encodeURIComponent(String(serviceNumber))}`,
+        })
+      ])
+
+      console.log(`[APSPDCL] Bill history API status: ${billHistoryResp.status}`)
+      console.log(`[APSPDCL] Payment history API status: ${paymentHistoryResp.status}`)
+
+      let billData = null
+      let paymentData = null
+
+      // Process bill history response
+      if (billHistoryResp.status === 'fulfilled' && billHistoryResp.value.ok) {
+        const billJson = await billHistoryResp.value.json()
+        console.log(`[APSPDCL] Bill history response: ${JSON.stringify(billJson)}`)
+        billData = billJson
+      }
+
+      // Process payment history response
+      if (paymentHistoryResp.status === 'fulfilled' && paymentHistoryResp.value.ok) {
+        const paymentJson = await paymentHistoryResp.value.json()
+        console.log(`[APSPDCL] Payment history response: ${JSON.stringify(paymentJson)}`)
+        paymentData = paymentJson
+      }
+
+      if (billData && Array.isArray(billData?.data) && billData.data.length) {
+        // Parse bill history data
+        const parseD = (s)=>{
+          if (!s) return null;
+          const parts = String(s).trim().split(/[-/]/);
+          if (parts.length===3){
+            const [dd, mon, yy] = parts;
+            const months = { JAN:0,FEB:1,MAR:2,APR:3,MAY:4,JUN:5,JUL:6,AUG:7,SEP:8,OCT:9,NOV:10,DEC:11 };
+            const m = months[(mon||'').toUpperCase()] ?? null;
+            const year = yy.length===2 ? 2000 + Number(yy) : Number(yy);
+            const day = Number(dd);
+            if (m!=null && !Number.isNaN(year) && !Number.isNaN(day)) return new Date(Date.UTC(year, m, day));
+          }
+          const p = Date.parse(String(s).replace(/-/g,' '));
+          return Number.isNaN(p)? null : new Date(p)
+        }
+
+        const norm = billData.data.map(row=> ({
+          closingDate: parseD(row.closingDate),
+          dueDate: parseD(row.duedate),
+          billedUnits: Number(row.billedUnits||0),
+          billAmount: Number(String(row.billAmount||'0').replace(/,/g,'')),
+          // Bill breakup components
+          ec: Number(String(row.ec||'0').replace(/,/g,'')), // Energy Charges
+          fixchg: Number(String(row.fixchg||'0').replace(/,/g,'')), // Fixed Charges
+          cc: Number(String(row.cc||'0').replace(/,/g,'')), // Current Composition
+          ed: Number(String(row.ed||'0').replace(/,/g,'')), // Electricity Duty
+          fsa: Number(String(row.fsa||'0').replace(/,/g,'')), // Fuel Surcharge Adjustment
+        })).filter(r=> r.closingDate)
+
+        norm.sort((a,b)=> (b.closingDate||0) - (a.closingDate||0))
+        const latest = norm[0]
+
+        // Process payment history to determine payment status
+        let paymentStatus = { isPaid: false, paidDate: null, receiptNumber: null }
+        if (paymentData && Array.isArray(paymentData?.data) && paymentData.data.length) {
+          const parsePaymentDate = (s) => {
             if (!s) return null;
             const parts = String(s).trim().split(/[-/]/);
             if (parts.length===3){
@@ -40,40 +100,111 @@ export async function fetchApspdclBill({ serviceNumber, interactive, storageStat
               const day = Number(dd);
               if (m!=null && !Number.isNaN(year) && !Number.isNaN(day)) return new Date(Date.UTC(year, m, day));
             }
-            const p = Date.parse(String(s).replace(/-/g,' '));
-            return Number.isNaN(p)? null : new Date(p)
+            return null
           }
-          const norm = json.data.map(row=> ({
-            closingDate: parseD(row.closingDate),
-            dueDate: parseD(row.duedate),
-            billedUnits: Number(row.billedUnits||0),
-            billAmount: Number(String(row.billAmount||'0').replace(/,/g,'')),
-          })).filter(r=> r.closingDate)
-          norm.sort((a,b)=> (b.closingDate||0) - (a.closingDate||0))
-          const latest = norm[0]
-          // Exclude entries that belong to the current calendar month (UTC)
+
+          // Check if current month bill is paid
           const now = new Date()
-          const nowY = now.getUTCFullYear(), nowM = now.getUTCMonth()
-          const filtered = norm.filter(x => !(x.closingDate && x.closingDate.getUTCFullYear()===nowY && x.closingDate.getUTCMonth()===nowM))
-          const lastThree = filtered.slice(0,3).map(x=> ({ closingDate: x.closingDate, billAmount: x.billAmount }))
-          const hasCurrentMonth = norm.some(x=> x.closingDate && x.closingDate.getUTCFullYear()===nowY && x.closingDate.getUTCMonth()===nowM)
-          const amount = latest?.billAmount || 0
-          const status = hasCurrentMonth ? (amount>0 ? 'DUE' : 'NO_DUES') : 'NO_DUES'
-          return {
-            serviceNumber,
-            customerName: null, // not available from this endpoint
-            billDate: latest?.closingDate || null,
-            dueDate: latest?.dueDate || null,
-            amountDue: amount,
-            billedUnits: latest?.billedUnits || 0,
-            lastThreeAmounts: lastThree,
-            status,
-            payUrl: 'https://payments.billdesk.com/MercOnline/SPDCLController',
-            debug: { steps: ['api:publicbillhistory'], curl, monthsAll: norm.map(x=> x.closingDate && `${x.closingDate.getUTCFullYear()}-${x.closingDate.getUTCMonth()+1}`), nowMonth:`${nowY}-${nowM+1}`, filteredMonths: filtered.map(x=> `${x.closingDate.getUTCFullYear()}-${x.closingDate.getUTCMonth()+1}`), snippet: JSON.stringify(norm.slice(0,3)), raw: json }
+          const currentYear = now.getUTCFullYear()
+          const currentMonth = now.getUTCMonth()
+
+          const currentMonthPayment = paymentData.data.find(payment => {
+            const paymentDate = parsePaymentDate(payment.prdate)
+            if (!paymentDate) return false
+            return paymentDate.getUTCFullYear() === currentYear && 
+                   paymentDate.getUTCMonth() === currentMonth
+          })
+
+          if (currentMonthPayment) {
+            paymentStatus = {
+              isPaid: true,
+              paidDate: parsePaymentDate(currentMonthPayment.prdate),
+              receiptNumber: currentMonthPayment.prno,
+              paidAmount: Number(String(currentMonthPayment.billamt||'0').replace(/,/g,''))
+            }
+            console.log(`[APSPDCL] Current month payment found: ${JSON.stringify(paymentStatus)}`)
+          }
+        }
+
+        // Exclude entries that belong to the current calendar month (UTC)
+        const now = new Date()
+        const nowY = now.getUTCFullYear(), nowM = now.getUTCMonth()
+        const filtered = norm.filter(x => !(x.closingDate && x.closingDate.getUTCFullYear()===nowY && x.closingDate.getUTCMonth()===nowM))
+        const lastThree = filtered.slice(0,3).map(x=> ({ closingDate: x.closingDate, billAmount: x.billAmount }))
+        const hasCurrentMonth = norm.some(x=> x.closingDate && x.closingDate.getUTCFullYear()===nowY && x.closingDate.getUTCMonth()===nowM)
+        
+        // Determine status based on payment information
+        let amount = latest?.billAmount || 0
+        let status = 'NO_DUES'
+        
+        if (hasCurrentMonth) {
+          if (paymentStatus.isPaid) {
+            status = 'PAID'
+            amount = 0 // No dues if paid
+          } else {
+            status = 'DUE'
+          }
+        }
+
+        // Calculate bill breakup for latest bill
+        let billBreakup = null
+        if (latest) {
+          const ec = latest.ec || 0
+          const fixchg = latest.fixchg || 0
+          const cc = latest.cc || 0
+          const ed = latest.ed || 0
+          const fsa = latest.fsa || 0
+          const totalBill = latest.billAmount || 0
+          const currentMonthBill = totalBill - fsa // Total bill minus FSA (previous bills adjustment)
+          
+          billBreakup = {
+            ec,
+            fixchg,
+            cc,
+            ed,
+            fsa,
+            totalBill,
+            currentMonthBill
+          }
+          
+          console.log(`[APSPDCL] Bill breakup: EC=${ec}, FixChg=${fixchg}, CC=${cc}, ED=${ed}, FSA=${fsa}, Total=${totalBill}, CurrentMonth=${currentMonthBill}`)
+        }
+
+        console.log(`[APSPDCL] Final status: ${status}, Amount: ${amount}, Payment: ${paymentStatus.isPaid}`)
+
+        return {
+          serviceNumber,
+          customerName: null, // not available from this endpoint
+          billDate: latest?.closingDate || null,
+          dueDate: latest?.dueDate || null,
+          amountDue: amount,
+          billedUnits: latest?.billedUnits || 0,
+          lastThreeAmounts: lastThree,
+          status,
+          payUrl: 'https://payments.billdesk.com/MercOnline/SPDCLController',
+          // Enhanced payment information
+          isPaid: paymentStatus.isPaid,
+          paidDate: paymentStatus.paidDate,
+          receiptNumber: paymentStatus.receiptNumber,
+          paidAmount: paymentStatus.paidAmount,
+          // Bill breakup information
+          billBreakup,
+          debug: { 
+            steps: ['api:publicbillhistory', 'api:publicpaymenthistory'], 
+            billHistoryData: billData,
+            paymentHistoryData: paymentData,
+            paymentStatus,
+            billBreakup,
+            monthsAll: norm.map(x=> x.closingDate && `${x.closingDate.getUTCFullYear()}-${x.closingDate.getUTCMonth()+1}`), 
+            nowMonth:`${nowY}-${nowM+1}`, 
+            filteredMonths: filtered.map(x=> `${x.closingDate.getUTCFullYear()}-${x.closingDate.getUTCMonth()+1}`), 
+            snippet: JSON.stringify(norm.slice(0,3))
           }
         }
       }
-    }catch{}
+    }catch(error){
+      console.error(`[APSPDCL] API error: ${error.message}`)
+    }
 
     await page.goto('https://payments.billdesk.com/MercOnline/SPDCLController', { waitUntil:'domcontentloaded' })
     debug.steps.push('open entry')

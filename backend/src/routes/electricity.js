@@ -56,6 +56,13 @@ router.get('/services', async (req,res,next)=>{
       lastError: s.lastError,
       pinned: !!s.pinned,
       pinnedAt: s.pinnedAt || null,
+      // Enhanced payment information
+      isPaid: s.isPaid || false,
+      paidDate: s.paidDate || null,
+      receiptNumber: s.receiptNumber || null,
+      paidAmount: s.paidAmount || null,
+      // Bill breakup information
+      billBreakup: s.billBreakup || null,
     })))
   }catch(e){ next(e) }
 })
@@ -209,6 +216,13 @@ router.post('/services/:id/refresh', elecLimiter, async (req,res,next)=>{
     svc.lastThreeAmounts = Array.isArray(result.lastThreeAmounts)? result.lastThreeAmounts : []
     svc.lastStatus = result.status
     svc.lastFetchedAt = new Date()
+    // Enhanced payment information
+    svc.isPaid = result.isPaid || false
+    svc.paidDate = result.paidDate || null
+    svc.receiptNumber = result.receiptNumber || null
+    svc.paidAmount = result.paidAmount || null
+    // Bill breakup information
+    svc.billBreakup = result.billBreakup || null
     if (!isAdmin) svc.nextAllowedAt = new Date(Date.now() + cooldownMs) // only on success
     svc.lastError = null
     svc.refreshInProgress = false
@@ -257,6 +271,13 @@ router.post('/services/refresh-all', elecLimiter, async (req,res,next)=>{
           svc.lastThreeAmounts = Array.isArray(result.lastThreeAmounts)? result.lastThreeAmounts : []
           svc.lastStatus = result.status
           svc.lastFetchedAt = new Date()
+          // Enhanced payment information
+          svc.isPaid = result.isPaid || false
+          svc.paidDate = result.paidDate || null
+          svc.receiptNumber = result.receiptNumber || null
+          svc.paidAmount = result.paidAmount || null
+          // Bill breakup information
+          svc.billBreakup = result.billBreakup || null
           if (!isAdmin) svc.nextAllowedAt = new Date(Date.now() + getElectricityRefreshWaitMs()) // only on success
           svc.lastError = null
           svc.refreshInProgress = false

@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { FiX, FiMail, FiPhone, FiArrowLeft, FiCheck } from 'react-icons/fi'
+import { FiX, FiMail, FiPhone, FiArrowLeft, FiCheck, FiEye, FiEyeOff } from 'react-icons/fi'
 import api from '../api/client'
 import toast from 'react-hot-toast'
 import styles from './ForgotPasswordModal.module.css'
@@ -11,6 +11,8 @@ export default function ForgotPasswordModal({ open, onClose, onSuccess }) {
   const [otp, setOtp] = useState('')
   const [newPassword, setNewPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
+  const [showNewPassword, setShowNewPassword] = useState(false)
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [loading, setLoading] = useState(false)
   const [otpSent, setOtpSent] = useState(false)
   const [otpMethod, setOtpMethod] = useState('email') // 'email' or 'sms'
@@ -40,6 +42,12 @@ export default function ForgotPasswordModal({ open, onClose, onSuccess }) {
     e.preventDefault()
     if (!phone.trim()) {
       toast.error('Please enter your mobile number')
+      return
+    }
+
+    // Validate Indian mobile number
+    if (!/^[6-9]\d{9}$/.test(phone.trim())) {
+      toast.error('Enter a valid 10-digit Indian mobile number (starting with 6-9)')
       return
     }
 
@@ -120,6 +128,8 @@ export default function ForgotPasswordModal({ open, onClose, onSuccess }) {
     setOtp('')
     setNewPassword('')
     setConfirmPassword('')
+    setShowNewPassword(false)
+    setShowConfirmPassword(false)
     setOtpSent(false)
     setOtpMethod('email')
     onClose()
@@ -208,8 +218,12 @@ export default function ForgotPasswordModal({ open, onClose, onSuccess }) {
                     <input
                       type="tel"
                       value={phone}
-                      onChange={(e) => setPhone(e.target.value)}
-                      placeholder="Enter your mobile number"
+                      onChange={(e) => {
+                        const value = e.target.value.replace(/\D/g, '').slice(0, 10)
+                        setPhone(value)
+                      }}
+                      placeholder="9876543210"
+                      maxLength="10"
                       required
                     />
                   </div>
@@ -273,23 +287,39 @@ export default function ForgotPasswordModal({ open, onClose, onSuccess }) {
               <form onSubmit={handlePasswordSubmit} className={styles.form}>
                 <div className={styles.inputGroup}>
                   <input
-                    type="password"
+                    type={showNewPassword ? "text" : "password"}
                     value={newPassword}
                     onChange={(e) => setNewPassword(e.target.value)}
                     placeholder="Enter new password"
                     required
                     minLength={8}
+                    style={{ paddingRight: '40px' }}
                   />
+                  <button
+                    type="button"
+                    className={styles.eyeButton}
+                    onClick={() => setShowNewPassword(!showNewPassword)}
+                  >
+                    {showNewPassword ? <FiEyeOff /> : <FiEye />}
+                  </button>
                 </div>
                 <div className={styles.inputGroup}>
                   <input
-                    type="password"
+                    type={showConfirmPassword ? "text" : "password"}
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
                     placeholder="Confirm new password"
                     required
                     minLength={8}
+                    style={{ paddingRight: '40px' }}
                   />
+                  <button
+                    type="button"
+                    className={styles.eyeButton}
+                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                  >
+                    {showConfirmPassword ? <FiEyeOff /> : <FiEye />}
+                  </button>
                 </div>
                 <button type="submit" className={styles.submitButton} disabled={loading}>
                   {loading ? 'Resetting...' : 'Reset Password'}
