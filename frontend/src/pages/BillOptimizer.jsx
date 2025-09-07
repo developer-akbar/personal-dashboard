@@ -36,8 +36,8 @@ export default function BillOptimizer() {
     setLoading(true)
     try {
       const [billsResponse, walletsResponse] = await Promise.all([
-        api.get('/bill-optimizer/unpaid-bills'),
-        api.get('/bill-optimizer/wallet-amounts')
+        api.get('/api/bill-optimizer/unpaid-bills'),
+        api.get('/api/bill-optimizer/wallet-amounts')
       ])
 
       const bills = billsResponse.data.bills || []
@@ -93,7 +93,7 @@ export default function BillOptimizer() {
 
   const fetchSavedStrategies = async () => {
     try {
-      const response = await api.get('/bill-optimizer/strategies')
+      const response = await api.get('/api/bill-optimizer/strategies')
       setSavedStrategies(response.data.strategies || [])
     } catch (error) {
       console.error('Failed to fetch strategies:', error)
@@ -139,7 +139,7 @@ export default function BillOptimizer() {
         };
       })
 
-      const response = await api.post('/bill-optimizer/optimize', {
+      const response = await api.post('/api/bill-optimizer/optimize', {
         bills: billsForAPI,
         wallets: walletsForAPI,
         strategy,
@@ -159,7 +159,7 @@ export default function BillOptimizer() {
   const handleRecalculate = async (strategyId, strategy = 'default') => {
     setLoading(true)
     try {
-      const response = await api.post(`/bill-optimizer/strategies/${strategyId}/recalculate`, {
+      const response = await api.post(`/api/bill-optimizer/strategies/${strategyId}/recalculate`, {
         strategy
       })
 
@@ -184,7 +184,7 @@ export default function BillOptimizer() {
     }
 
     try {
-      await api.delete(`/bill-optimizer/strategies/${strategyId}`)
+      await api.delete(`/api/bill-optimizer/strategies/${strategyId}`)
       toast.success('🗑️ Strategy deleted successfully!', {
         duration: 3000,
         icon: '✅'
@@ -200,7 +200,7 @@ export default function BillOptimizer() {
 
   const loadStrategy = async (strategyId) => {
     try {
-      const response = await api.get(`/bill-optimizer/strategies/${strategyId}`)
+      const response = await api.get(`/api/bill-optimizer/strategies/${strategyId}`)
       const strategy = response.data.strategy
       
       setOptimizationResult({
@@ -645,7 +645,7 @@ export default function BillOptimizer() {
                               wallets: selectedWallets.length ? selectedWallets : wallets,
                               optimizationResult: optimizationResult.result
                             }
-                            await api.post('/bill-optimizer/strategies', payload)
+                            await api.post('/api/bill-optimizer/strategies', payload)
                             toast.success('Strategy saved!')
                             fetchSavedStrategies()
                           } catch (e) {
