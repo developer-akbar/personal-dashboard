@@ -259,7 +259,7 @@ export default function ElectricityServiceCard({ item, onRefresh, onEdit, onDele
             })
             .map((x,i)=> (
             <span key={i} style={{marginRight:8}}>
-              {x.closingDate? new Date(x.closingDate).toLocaleDateString('en-US', { month: 'short', year: '2-digit' }): '—'}: <b>₹ {Number(x.billAmount||0).toLocaleString('en-IN')}</b>
+              {x.closingDate? new Date(x.closingDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }).replace(' ', '-').replace(',', ''): '—'}: <b>₹ {Number(x.billAmount||0).toLocaleString('en-IN')}</b>
             </span>
           ))}
         </div>

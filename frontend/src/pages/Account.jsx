@@ -167,14 +167,14 @@ export default function Account(){
                 <div>
                   <label>User Type</label>
                   <span style={{ 
-                    color: userData?.userType === 'Admin' ? '#ef4444' : 
+                    color: userData?.userType === 'Admin' || userData?.subscription === 'Admin' ? '#ef4444' : 
                            userData?.subscription === 'Free' ? '#6b7280' : '#16a34a',
                     fontWeight: '600'
                   }}>
-                    {userData?.userType === 'Admin' ? 'Admin' : 
+                    {userData?.userType === 'Admin' || userData?.subscription === 'Admin' ? 'Admin' : 
                      userData?.subscription === 'Free' ? 'Free User' : 
                      userData?.subscription || 'Free User'} 
-                    {userData?.subscription && userData.subscription !== 'Free' && 
+                    {userData?.subscription && userData.subscription !== 'Free' && userData.subscription !== 'Admin' && 
                       ` (${userData.subscription})`
                     }
                   </span>
@@ -184,7 +184,7 @@ export default function Account(){
           </div>
 
           {/* Upgrade Section for Free Users */}
-          {userData?.userType === 'Free' && userData?.subscription === 'Free' && (
+          {(userData?.userType === 'Free' || userData?.userType === '') && userData?.subscription === 'Free' && (
             <div className={styles.upgradeSection}>
               <div className={styles.upgradeCard}>
                 <div className={styles.upgradeContent}>
