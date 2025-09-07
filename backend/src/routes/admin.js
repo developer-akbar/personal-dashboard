@@ -3,8 +3,30 @@ import User from "../models/User.js";
 import AmazonAccount from "../models/AmazonAccount.js";
 import ElectricityService from "../models/ElectricityService.js";
 import Balance from "../models/Balance.js";
+import { verifyAccessToken } from "../utils/jwt.js";
 
 const router = Router();
+
+// JWT Authentication middleware
+const authenticateToken = async (req, res, next) => {
+  try {
+    const authHeader = req.headers['authorization'];
+    const token = authHeader && authHeader.split(' ')[1]; // Bearer TOKEN
+
+    if (!token) {
+      console.log('❌ No token provided');
+      return res.status(401).json({ error: "Access token required" });
+    }
+
+    const payload = verifyAccessToken(token);
+    req.user = payload;
+    console.log('✅ Token verified:', { sub: payload.sub, email: payload.email });
+    next();
+  } catch (error) {
+    console.log('❌ Token verification failed:', error.message);
+    return res.status(401).json({ error: "Invalid or expired token" });
+  }
+};
 
 // Middleware to check if user is admin
 const requireAdmin = async (req, res, next) => {
@@ -53,9 +75,26 @@ router.get("/test", (req, res) => {
   });
 });
 
-// Apply admin middleware to all routes except test
+// Health check endpoint (no auth required)
+router.get("/health", (req, res) => {
+  res.json({ 
+    status: "ok", 
+    message: "Admin API is running",
+    timestamp: new Date().toISOString()
+  });
+});
+
+// Apply authentication middleware to all routes except test and health
 router.use((req, res, next) => {
-  if (req.path === '/test') {
+  if (req.path === '/test' || req.path === '/health') {
+    return next();
+  }
+  return authenticateToken(req, res, next);
+});
+
+// Apply admin middleware to all routes except test and health
+router.use((req, res, next) => {
+  if (req.path === '/test' || req.path === '/health') {
     return next();
   }
   return requireAdmin(req, res, next);
