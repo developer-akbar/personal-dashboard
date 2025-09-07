@@ -141,7 +141,7 @@ export default function AdminAnalytics() {
 
   return (
     <div className="container">
-      <GlobalHeader title="Admin Analytics" showBackButton={true} />
+      <GlobalHeader />
       <GlobalTabs />
       <SwipeableContent>
 

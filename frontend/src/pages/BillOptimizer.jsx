@@ -315,7 +315,7 @@ export default function BillOptimizer() {
 
   return (
     <div className="container">
-      <GlobalHeader title="Bill Optimizer" showBackButton={true} />
+      <GlobalHeader />
       <GlobalTabs />
       <SwipeableContent>
 

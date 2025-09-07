@@ -1,8 +1,15 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import HeaderAvatar from './HeaderAvatar';
 
 export default function GlobalHeader({ title = "Personal Dashboard", showBackButton = false, onBackClick, children }) {
+  const location = useLocation();
+  
+  // For Bill Optimizer and Analytics tabs, show just the project title
+  const isTabPage = location.pathname === '/bill-optimizer' || location.pathname === '/admin';
+  const displayTitle = isTabPage ? "Personal Dashboard" : title;
+  const showBack = showBackButton && !isTabPage;
+
   const handleBackClick = () => {
     if (onBackClick) {
       onBackClick();
@@ -21,14 +28,14 @@ export default function GlobalHeader({ title = "Personal Dashboard", showBackBut
 
   return (
     <header className="topbar">
-      {showBackButton && (
+      {showBack && (
         <button className="muted" onClick={handleBackClick}>
           ←
         </button>
       )}
       <h2 style={{ margin: 0 }}>
         <Link to="/" style={{ textDecoration: 'none', color: 'inherit' }}>
-          {title}
+          {displayTitle}
         </Link>
       </h2>
       <div className="spacer" />
