@@ -49,15 +49,18 @@ export default function BillOptimizer() {
             
             return {
               ...bill,
-              originalAmount: Math.round(bill.amount * 100) / 100, // Round original amount
-              fee: Math.round(fee * 100) / 100, // Round fee
-              gstOnFee: Math.round(gstOnFee * 100) / 100, // Round GST
-              amount: Math.round(totalAmount * 100) / 100 // Round total amount to 2 decimal places
+              originalAmount: Math.round(bill.amount), // Round original amount to 0 decimals
+              fee: Math.round(fee), // Round fee to 0 decimals
+              gstOnFee: Math.round(gstOnFee), // Round GST to 0 decimals
+              amount: Math.round(totalAmount) // Round total amount to 0 decimals
             }
           })
 
-      // Filter out wallets with 0 balance
-      const walletsWithBalance = wallets.filter(wallet => wallet.amount > 0)
+      // Filter out wallets with 0 balance and round amounts
+      const walletsWithBalance = wallets.filter(wallet => wallet.amount > 0).map(wallet => ({
+        ...wallet,
+        amount: Math.round(wallet.amount) // Round wallet amount to 0 decimals
+      }))
 
           setBills(billsWithFees)
           setWallets(walletsWithBalance)
@@ -357,7 +360,7 @@ export default function BillOptimizer() {
 
         <div className={styles.summaryCard}>
           <div className={styles.summaryIcon}>
-            <FiDollarSign />
+            ₹
           </div>
           <div className={styles.summaryContent}>
             <h3>₹ {totalWalletAmount.toLocaleString('en-IN')}</h3>
