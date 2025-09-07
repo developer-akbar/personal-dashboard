@@ -180,7 +180,6 @@ export default function Electricity(){
         <div className="pill">Total Pending: ₹ {Number(summary.totalPending||0).toLocaleString('en-IN')}</div>
         <div className="pill">Pending Bills: {summary.pendingCount}</div>
         <div className="pill">Paid Bills: {summary.paidCount}</div>
-        <div className="pill">Yet to be Paid: {summary.noDuesCount}</div>
         {query && (
           <div className="pill">Search Total: ₹ {Number(sortedFiltered.reduce((sum,s)=> sum + Number(s.lastAmountDue||0), 0)).toLocaleString('en-IN')}</div>
         )}

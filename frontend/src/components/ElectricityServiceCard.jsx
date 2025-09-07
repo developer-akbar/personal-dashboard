@@ -6,6 +6,7 @@ import { FaStar } from 'react-icons/fa'
 export default function ElectricityServiceCard({ item, onRefresh, onEdit, onDelete, highlight=false, domId, onTogglePin }){
   const [showPaymentDetails, setShowPaymentDetails] = useState(false)
   const [showBillBreakup, setShowBillBreakup] = useState(false)
+  const [isRefreshing, setIsRefreshing] = useState(false)
   
   // Debug logging
   console.log('ElectricityServiceCard render for service:', item.serviceNumber, 'billBreakup:', item.billBreakup)
@@ -20,6 +21,16 @@ export default function ElectricityServiceCard({ item, onRefresh, onEdit, onDele
         if (menu && !menu.contains(ev.target) && ev.target !== e.currentTarget){ menu.style.display='none'; document.removeEventListener('click', onDoc) }
       }
       if (!showing) document.addEventListener('click', onDoc)
+    }
+  }
+
+  const handleRefresh = async () => {
+    if (isRefreshing) return // Prevent double clicks
+    setIsRefreshing(true)
+    try {
+      await onRefresh()
+    } finally {
+      setIsRefreshing(false)
     }
   }
   return (
@@ -37,7 +48,18 @@ export default function ElectricityServiceCard({ item, onRefresh, onEdit, onDele
           <button className="muted" onClick={()=> onTogglePin?.(item, !item.pinned)} aria-label={item.pinned? 'Unpin':'Pin'} title={item.pinned? 'Unpin':'Pin'} style={{background:'transparent', border:0, cursor:'pointer'}}>
             {item.pinned ? <FaStar color="#fbbf24" /> : <FiStar style={{ color: '#888' }}/>} 
           </button>
-          <button className="muted" onClick={onRefresh} aria-label="Refresh"><FiRefreshCcw/></button>
+          <button 
+            className="muted" 
+            onClick={handleRefresh} 
+            aria-label="Refresh"
+            disabled={isRefreshing}
+            style={{ 
+              opacity: isRefreshing ? 0.6 : 1,
+              cursor: isRefreshing ? 'not-allowed' : 'pointer'
+            }}
+          >
+            <FiRefreshCcw className={isRefreshing ? 'spin' : ''} />
+          </button>
           <div style={{position:'relative'}}>
             <div onClick={onToggleMenu} style={{cursor:'pointer', padding:'4px 8px'}}><FiMoreVertical/></div>
             <div className="panel" style={{position:'absolute',right:0,top:'120%',minWidth:160,zIndex:10,display:'none'}} onClick={(e)=> e.stopPropagation()}>
@@ -237,7 +259,7 @@ export default function ElectricityServiceCard({ item, onRefresh, onEdit, onDele
             })
             .map((x,i)=> (
             <span key={i} style={{marginRight:8}}>
-              {x.closingDate? new Date(x.closingDate).toLocaleDateString(): '—'}: <b>₹ {Number(x.billAmount||0).toLocaleString('en-IN')}</b>
+              {x.closingDate? new Date(x.closingDate).toLocaleDateString('en-US', { month: 'short', year: '2-digit' }): '—'}: <b>₹ {Number(x.billAmount||0).toLocaleString('en-IN')}</b>
             </span>
           ))}
         </div>
