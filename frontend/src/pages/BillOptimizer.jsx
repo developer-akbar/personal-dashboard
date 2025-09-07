@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { FiRefreshCcw, FiTrash2, FiSettings, FiTrendingUp, FiDollarSign, FiCreditCard, FiSave, FiRotateCcw } from 'react-icons/fi'
+import { FiRefreshCcw, FiTrash2, FiSettings, FiTrendingUp, FiDollarSign, FiCreditCard, FiSave, FiRotateCcw, FiInfo } from 'react-icons/fi'
 import api from '../api/client'
 import toast from 'react-hot-toast'
 import GlobalHeader from '../components/GlobalHeader'
@@ -20,6 +20,10 @@ export default function BillOptimizer() {
   const [showDescription, setShowDescription] = useState(false) // For collapsible description
   const [checkedBills, setCheckedBills] = useState(new Set()) // Track checked bills
   const [checkedWallets, setCheckedWallets] = useState(new Set()) // Track checked wallets
+  const [allBillsSelected, setAllBillsSelected] = useState(true) // Select all bills
+  const [allWalletsSelected, setAllWalletsSelected] = useState(true) // Select all wallets
+  const [showBillsInfo, setShowBillsInfo] = useState(false) // Toggle bills info
+  const [showWalletsInfo, setShowWalletsInfo] = useState(false) // Toggle wallets info
 
   useEffect(() => {
     fetchData()
@@ -250,6 +254,40 @@ export default function BillOptimizer() {
     setWalletsInput(walletsString)
   }
 
+  // Handle select all bills
+  const handleSelectAllBills = (checked) => {
+    if (checked) {
+      const allBillsSet = new Set(bills.map((_, index) => index))
+      setCheckedBills(allBillsSet)
+      setAllBillsSelected(true)
+      
+      // Update bills input field
+      const billsString = bills.map(bill => bill.amount).join(', ')
+      setBillsInput(billsString)
+    } else {
+      setCheckedBills(new Set())
+      setAllBillsSelected(false)
+      setBillsInput('')
+    }
+  }
+
+  // Handle select all wallets
+  const handleSelectAllWallets = (checked) => {
+    if (checked) {
+      const allWalletsSet = new Set(wallets.map((_, index) => index))
+      setCheckedWallets(allWalletsSet)
+      setAllWalletsSelected(true)
+      
+      // Update wallets input field
+      const walletsString = wallets.map(wallet => wallet.amount).join(', ')
+      setWalletsInput(walletsString)
+    } else {
+      setCheckedWallets(new Set())
+      setAllWalletsSelected(false)
+      setWalletsInput('')
+    }
+  }
+
   const toggleBillSelection = (bill) => {
     setSelectedBills(prev => 
       prev.find(b => b.id === bill.id) 
@@ -284,7 +322,7 @@ export default function BillOptimizer() {
             onClick={() => setShowDescription(!showDescription)}
             title={showDescription ? "Hide description" : "Show description"}
           >
-            <FiSettings />
+            <FiInfo />
           </button>
         </div>
         
@@ -312,9 +350,8 @@ export default function BillOptimizer() {
             <FiCreditCard />
           </div>
           <div className={styles.summaryContent}>
-            <h3>{billCount}</h3>
-            <p>Bill Amounts</p>
-            <span className={styles.amount}>₹ {totalBillAmount.toLocaleString('en-IN')}</span>
+            <h3>₹ {totalBillAmount.toLocaleString('en-IN')}</h3>
+            <p>{billCount} Bill Amounts</p>
           </div>
         </div>
 
@@ -323,9 +360,8 @@ export default function BillOptimizer() {
             <FiDollarSign />
           </div>
           <div className={styles.summaryContent}>
-            <h3>{walletCount}</h3>
-            <p>Wallet Balances</p>
-            <span className={styles.amount}>₹ {totalWalletAmount.toLocaleString('en-IN')}</span>
+            <h3>₹ {totalWalletAmount.toLocaleString('en-IN')}</h3>
+            <p>{walletCount} Wallet Balances</p>
           </div>
         </div>
 
@@ -383,7 +419,17 @@ export default function BillOptimizer() {
       {/* Bills and Wallets Selection */}
       <div className={styles.selectionSection}>
         <div className={styles.selectionGroup}>
-          <h3>📋 Select Bills to Include</h3>
+          <div className={styles.selectionHeader}>
+            <h3>📋 Select Bills to Include</h3>
+            <label className={styles.selectAllLabel}>
+              <input
+                type="checkbox"
+                checked={allBillsSelected}
+                onChange={(e) => handleSelectAllBills(e.target.checked)}
+              />
+              <span>Select All</span>
+            </label>
+          </div>
           <div className={styles.checkboxList}>
             {bills.map((bill, index) => (
               <label key={index} className={styles.checkboxItem}>
@@ -405,7 +451,17 @@ export default function BillOptimizer() {
         </div>
 
         <div className={styles.selectionGroup}>
-          <h3>💰 Select Wallets to Include</h3>
+          <div className={styles.selectionHeader}>
+            <h3>💰 Select Wallets to Include</h3>
+            <label className={styles.selectAllLabel}>
+              <input
+                type="checkbox"
+                checked={allWalletsSelected}
+                onChange={(e) => handleSelectAllWallets(e.target.checked)}
+              />
+              <span>Select All</span>
+            </label>
+          </div>
           <div className={styles.checkboxList}>
             {wallets.map((wallet, index) => (
               <label key={index} className={styles.checkboxItem}>
@@ -431,7 +487,17 @@ export default function BillOptimizer() {
         <form>
           <div className={styles.formFields}>
             <div className={styles.formField}>
-              <label htmlFor="billsInput">Bills (comma-separated)</label>
+              <div className={styles.fieldHeader}>
+                <label htmlFor="billsInput">Bills (comma-separated)</label>
+                <button 
+                  type="button"
+                  className={styles.infoToggle}
+                  onClick={() => setShowBillsInfo(!showBillsInfo)}
+                  title={showBillsInfo ? "Hide info" : "Show info"}
+                >
+                  <FiInfo />
+                </button>
+              </div>
               <textarea
                 id="billsInput"
                 value={billsInput}
@@ -441,13 +507,25 @@ export default function BillOptimizer() {
                 rows={3}
                 required
               />
-              <div className={styles.inputInfo}>
-                <small>💡 Bills include 1% fee + 18% GST on fee. Original amounts: {bills.map(bill => `₹${bill.originalAmount}`).join(', ')}</small>
-              </div>
+              {showBillsInfo && (
+                <div className={styles.inputInfo}>
+                  <small>💡 Bills include 1% fee + 18% GST on fee. Original amounts: {bills.map(bill => `₹${bill.originalAmount}`).join(', ')}</small>
+                </div>
+              )}
             </div>
 
             <div className={styles.formField}>
-              <label htmlFor="walletsInput">Wallet balances (comma-separated)</label>
+              <div className={styles.fieldHeader}>
+                <label htmlFor="walletsInput">Wallet balances (comma-separated)</label>
+                <button 
+                  type="button"
+                  className={styles.infoToggle}
+                  onClick={() => setShowWalletsInfo(!showWalletsInfo)}
+                  title={showWalletsInfo ? "Hide info" : "Show info"}
+                >
+                  <FiInfo />
+                </button>
+              </div>
               <textarea
                 id="walletsInput"
                 value={walletsInput}
@@ -457,9 +535,11 @@ export default function BillOptimizer() {
                 rows={3}
                 required
               />
-              <div className={styles.inputInfo}>
-                <small>💡 Only wallets with balance &gt; ₹0 are shown</small>
-              </div>
+              {showWalletsInfo && (
+                <div className={styles.inputInfo}>
+                  <small>💡 Only wallets with balance &gt; ₹0 are shown</small>
+                </div>
+              )}
             </div>
 
             <div className={styles.formField}>
