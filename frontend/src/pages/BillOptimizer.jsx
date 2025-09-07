@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { FiRefreshCcw, FiTrash2, FiCalculator, FiTrendingUp, FiDollarSign, FiCreditCard, FiSave, FiRotateCcw } from 'react-icons/fi'
+import { FiRefreshCcw, FiTrash2, FiSettings, FiTrendingUp, FiDollarSign, FiCreditCard, FiSave, FiRotateCcw } from 'react-icons/fi'
 import api from '../api/client'
 import toast from 'react-hot-toast'
 import GlobalHeader from '../components/GlobalHeader'
@@ -275,7 +275,7 @@ export default function BillOptimizer() {
           onClick={() => handleOptimize('default')}
           disabled={loading || !billsInput.trim() || !walletsInput.trim()}
         >
-          <FiCalculator /> Optimize Payments
+          <FiSettings /> Optimize Payments
         </button>
         
         <button 
@@ -345,7 +345,7 @@ export default function BillOptimizer() {
             rows={3}
           />
           <div className={styles.inputInfo}>
-            <small>💡 Only wallets with balance > ₹0 are shown</small>
+            <small>💡 Only wallets with balance &gt; ₹0 are shown</small>
           </div>
         </div>
       </div>
