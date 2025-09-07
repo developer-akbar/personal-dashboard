@@ -44,12 +44,58 @@ const useSwipeNavigation = (tabs, isAdmin = false) => {
     navigate(newPath);
   }, [navigate, getTabOrder, getCurrentTabIndex]);
 
+  // Check if the target element or its parents have horizontal scrolling
+  const hasHorizontalScroll = useCallback((element) => {
+    if (!element) return false;
+    
+    // Check for common horizontally scrollable elements
+    const scrollableTags = ['table', 'tbody', 'thead', 'tr', 'td', 'th'];
+    const scrollableClasses = ['table', 'table-container', 'scrollable', 'overflow-x'];
+    
+    // Check if element is a scrollable table element
+    if (scrollableTags.includes(element.tagName?.toLowerCase())) {
+      return true;
+    }
+    
+    // Check if element has scrollable classes
+    if (element.className && scrollableClasses.some(cls => element.className.includes(cls))) {
+      return true;
+    }
+    
+    // Check if element has horizontal scroll
+    if (element.scrollWidth > element.clientWidth) {
+      return true;
+    }
+    
+    // Check parent elements up to 3 levels
+    let parent = element.parentElement;
+    for (let i = 0; i < 3 && parent; i++) {
+      if (scrollableTags.includes(parent.tagName?.toLowerCase())) {
+        return true;
+      }
+      if (parent.className && scrollableClasses.some(cls => parent.className.includes(cls))) {
+        return true;
+      }
+      if (parent.scrollWidth > parent.clientWidth) {
+        return true;
+      }
+      parent = parent.parentElement;
+    }
+    
+    return false;
+  }, []);
+
   // Handle touch start
   const handleTouchStart = useCallback((e) => {
+    // Check if the touch target has horizontal scrolling
+    if (hasHorizontalScroll(e.target)) {
+      return; // Don't start swipe detection for horizontally scrollable elements
+    }
+    
     touchStartX.current = e.touches[0].clientX;
     touchStartY.current = e.touches[0].clientY;
     setIsSwipeActive(true);
-  }, []);
+  }, [hasHorizontalScroll]);
 
   // Handle touch move
   const handleTouchMove = useCallback((e) => {

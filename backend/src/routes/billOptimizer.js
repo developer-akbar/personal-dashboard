@@ -54,6 +54,7 @@ const requireAdmin = async (req, res, next) => {
 
 // Test endpoint (no auth required for debugging)
 router.get("/test", (req, res) => {
+  console.log('🔍 Bill Optimizer test endpoint hit!');
   res.json({ 
     message: "Bill Optimizer API is working", 
     timestamp: new Date().toISOString(),
@@ -66,6 +67,15 @@ router.get("/test", (req, res) => {
       "POST /strategies/:id/recalculate",
       "DELETE /strategies/:id"
     ]
+  });
+});
+
+// Root endpoint test
+router.get("/", (req, res) => {
+  console.log('🔍 Bill Optimizer root endpoint hit!');
+  res.json({ 
+    message: "Bill Optimizer root endpoint working", 
+    timestamp: new Date().toISOString()
   });
 });
 

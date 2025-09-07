@@ -25,7 +25,12 @@ const SwipeableContent = ({ children, className = '', style = {} }) => {
         userSelect: 'none', // Prevent text selection during swipe
         minHeight: '100%'
       }}
-      onTouchStart={handleTouchStart}
+      onTouchStart={(e) => {
+        // Only apply swipe detection to the main container, not child elements
+        if (e.target === e.currentTarget) {
+          handleTouchStart(e);
+        }
+      }}
       onTouchMove={handleTouchMove}
       onTouchEnd={handleTouchEnd}
       onTouchCancel={handleTouchCancel}
