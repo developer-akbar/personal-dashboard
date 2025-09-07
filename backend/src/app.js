@@ -106,7 +106,9 @@ app.use("/api/electricity", electricityRoutes);
 app.use("/api/meta", metaRoutes);
 app.use("/api/otp", otpRoutes);
 app.use("/api/admin", adminRoutes);
+console.log('🔍 Mounting bill optimizer routes...');
 app.use("/api/bill-optimizer", billOptimizerRoutes);
+console.log('✅ Bill optimizer routes mounted');
 
 app.use(errorHandler);
 

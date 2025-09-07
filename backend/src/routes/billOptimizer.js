@@ -6,7 +6,9 @@ import Balance from "../models/Balance.js";
 import { verifyAccessToken } from "../utils/jwt.js";
 import { optimizeBillPayments, optimizeMinimizeLeftover, calculateOptimizationMetrics } from "../utils/billOptimizer.js";
 
+console.log('🔍 Loading bill optimizer routes...');
 const router = Router();
+console.log('✅ Bill optimizer router created');
 
 // JWT Authentication middleware
 const authenticateToken = async (req, res, next) => {
@@ -54,7 +56,12 @@ const requireAdmin = async (req, res, next) => {
 
 // Test endpoint (no auth required for debugging)
 router.get("/test", (req, res) => {
-  console.log('🔍 Bill Optimizer test endpoint hit!');
+  console.log('🔍 Bill Optimizer test endpoint hit!', { 
+    method: req.method, 
+    path: req.path, 
+    url: req.url,
+    headers: req.headers
+  });
   res.json({ 
     message: "Bill Optimizer API is working", 
     timestamp: new Date().toISOString(),
@@ -72,7 +79,11 @@ router.get("/test", (req, res) => {
 
 // Root endpoint test
 router.get("/", (req, res) => {
-  console.log('🔍 Bill Optimizer root endpoint hit!');
+  console.log('🔍 Bill Optimizer root endpoint hit!', { 
+    method: req.method, 
+    path: req.path, 
+    url: req.url 
+  });
   res.json({ 
     message: "Bill Optimizer root endpoint working", 
     timestamp: new Date().toISOString()
