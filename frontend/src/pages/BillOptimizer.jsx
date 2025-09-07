@@ -314,7 +314,7 @@ export default function BillOptimizer() {
 
   return (
     <div className="container">
-      <GlobalHeader title="Bill Payment Optimizer" showBackButton={true} />
+      <GlobalHeader title="Bill Optimizer" showBackButton={true} />
 
       {/* Header with Collapsible Description */}
       <div className={styles.headerSection}>
