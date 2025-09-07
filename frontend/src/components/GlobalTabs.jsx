@@ -18,7 +18,7 @@ export default function GlobalTabs(){
       {isAdminUser && (
         <>
           <Link to="/bill-optimizer" role="tab" aria-selected={isBillOptimizer} className={`tab-link ${isBillOptimizer? 'primary':'muted'}`} style={{flex:1, textAlign:'center', display:'flex', alignItems:'center', justifyContent:'center'}}>Bill Optimizer</Link>
-          <Link to="/admin" role="tab" aria-selected={isAdmin} className={`tab-link ${isAdmin? 'primary':'muted'}`} style={{flex:1, textAlign:'center', display:'flex', alignItems:'center', justifyContent:'center', background: isAdmin? 'var(--warning-bg)' : undefined, color: isAdmin? 'var(--warning-text)' : undefined, borderColor: 'var(--warning-border)'}}>Analytics</Link>
+          <Link to="/admin" role="tab" aria-selected={isAdmin} className={`tab-link ${isAdmin? 'primary':'muted'}`} style={{flex:1, textAlign:'center', display:'flex', alignItems:'center', justifyContent:'center', border: '2px solid var(--warning-border)', background: isAdmin? 'var(--warning-bg)' : undefined, color: isAdmin? 'var(--warning-text)' : undefined}}>Analytics</Link>
         </>
       )}
     </div>

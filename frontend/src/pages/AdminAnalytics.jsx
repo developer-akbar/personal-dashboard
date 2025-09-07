@@ -4,6 +4,7 @@ import { FiBarChart3, FiPieChart, FiActivity } from 'react-icons/fi'
 import api from '../api/client'
 import toast from 'react-hot-toast'
 import GlobalHeader from '../components/GlobalHeader'
+import GlobalTabs from '../components/GlobalTabs'
 import styles from './AdminAnalytics.module.css'
 
 export default function AdminAnalytics() {
@@ -123,6 +124,7 @@ export default function AdminAnalytics() {
     return (
       <div className="container">
         <GlobalHeader title="Admin Analytics" showBackButton={true} />
+        <GlobalTabs />
         <div className={styles.loadingContainer}>
           <div className={styles.spinner}></div>
           <p>Loading analytics...</p>
@@ -134,6 +136,7 @@ export default function AdminAnalytics() {
   return (
     <div className="container">
       <GlobalHeader title="Admin Analytics" showBackButton={true} />
+      <GlobalTabs />
 
       {/* Quick Actions */}
       <div className={styles.quickActions}>

@@ -3,6 +3,7 @@ import { FiRefreshCcw, FiTrash2, FiSettings, FiTrendingUp, FiDollarSign, FiCredi
 import api from '../api/client'
 import toast from 'react-hot-toast'
 import GlobalHeader from '../components/GlobalHeader'
+import GlobalTabs from '../components/GlobalTabs'
 import styles from './BillOptimizer.module.css'
 
 export default function BillOptimizer() {
@@ -314,6 +315,7 @@ export default function BillOptimizer() {
   return (
     <div className="container">
       <GlobalHeader title="Bill Optimizer" showBackButton={true} />
+      <GlobalTabs />
 
       {/* Header with Collapsible Description */}
       <div className={styles.headerSection}>
