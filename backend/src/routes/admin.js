@@ -96,17 +96,23 @@ router.get("/health", (req, res) => {
 
 // Apply authentication middleware to all routes except test, health, and analytics-test
 router.use((req, res, next) => {
+  console.log('🔍 Admin middleware check:', { path: req.path, method: req.method });
   if (req.path === '/test' || req.path === '/health' || req.path === '/analytics-test') {
+    console.log('✅ Skipping auth for:', req.path);
     return next();
   }
+  console.log('🔐 Applying auth middleware for:', req.path);
   return authenticateToken(req, res, next);
 });
 
 // Apply admin middleware to all routes except test, health, and analytics-test
 router.use((req, res, next) => {
+  console.log('🔍 Admin role check:', { path: req.path, method: req.method });
   if (req.path === '/test' || req.path === '/health' || req.path === '/analytics-test') {
+    console.log('✅ Skipping admin check for:', req.path);
     return next();
   }
+  console.log('👑 Applying admin check for:', req.path);
   return requireAdmin(req, res, next);
 });
 

@@ -35,7 +35,13 @@ export default function AdminAnalytics() {
   const fetchAnalytics = async () => {
     setLoading(true)
     try {
+      // First test if the endpoint is accessible
+      console.log('🔍 Testing analytics endpoint...')
+      const testResponse = await api.get('/api/admin/analytics-test')
+      console.log('✅ Analytics test endpoint response:', testResponse.data)
+      
       const { data } = await api.get('/api/admin/analytics')
+      console.log('✅ Analytics data received:', data)
       setAnalytics(data)
     } catch (error) {
       console.error('Failed to fetch analytics:', error)
