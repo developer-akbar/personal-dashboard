@@ -1,8 +1,15 @@
 import axios from 'axios'
 import toast from 'react-hot-toast'
 
+// Ensure baseURL doesn't have double /api
+const getBaseURL = () => {
+  const envUrl = import.meta.env.VITE_API_URL || 'http://localhost:4000'
+  // Remove trailing /api if it exists to avoid double /api in requests
+  return envUrl.replace(/\/api\/?$/, '')
+}
+
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:4000',
+  baseURL: getBaseURL(),
   withCredentials: false,
   timeout: 60000, // Reduced to 60 seconds
 })
@@ -185,7 +192,7 @@ api.interceptors.response.use(
 // Connection health check
 export async function checkConnectionHealth() {
   try {
-    const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:4000'}/health`, {
+    const response = await fetch(`${getBaseURL()}/health`, {
       method: 'GET',
       timeout: 10000,
     })
