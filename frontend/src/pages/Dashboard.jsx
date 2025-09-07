@@ -6,6 +6,7 @@ import GlobalHeader from "../components/GlobalHeader";
 import { usePlan } from "../store/usePlan";
 import AppFooter from "../components/AppFooter";
 import GlobalTabs from "../components/GlobalTabs";
+import SwipeableContent from "../components/SwipeableContent";
 // import GlobalDebug from "../components/GlobalDebug";
 import toast from 'react-hot-toast'
 // DnD removed per request to ensure buttons work reliably
@@ -178,6 +179,7 @@ export default function Dashboard() {
     <div className={`container ${selectMode? 'select-mode' : ''}`} style={{minHeight:'calc(var(--vh, 1vh) * 100)', display:'flex', flexDirection:'column'}}>
       <GlobalHeader />
       <GlobalTabs/>
+      <SwipeableContent>
       <div style={{display:'flex',justifyContent:'space-between',alignItems:'center',margin:'6px 0'}}>
         <small style={{opacity:.8}}>Backend: <b style={{color: health.ok? '#10b981':'#ef4444'}}>{health.ok? 'up':'down'}</b> • DB: <b>{health.db}</b></small>
         <span />
@@ -482,6 +484,7 @@ export default function Dashboard() {
       <div style={{marginTop:'auto'}}>
         <AppFooter/>
       </div>
+      </SwipeableContent>
     </div>
   );
 }

@@ -5,6 +5,7 @@ import api from '../api/client'
 import toast from 'react-hot-toast'
 import GlobalHeader from '../components/GlobalHeader'
 import GlobalTabs from '../components/GlobalTabs'
+import SwipeableContent from '../components/SwipeableContent'
 import styles from './AdminAnalytics.module.css'
 
 export default function AdminAnalytics() {
@@ -142,6 +143,7 @@ export default function AdminAnalytics() {
     <div className="container">
       <GlobalHeader title="Admin Analytics" showBackButton={true} />
       <GlobalTabs />
+      <SwipeableContent>
 
       {/* Quick Actions */}
       <div className={styles.quickActions}>
@@ -463,6 +465,7 @@ export default function AdminAnalytics() {
           </div>
         </div>
       )}
+      </SwipeableContent>
     </div>
   )
 }

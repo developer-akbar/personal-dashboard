@@ -4,6 +4,7 @@ import api from '../api/client'
 import toast from 'react-hot-toast'
 import GlobalHeader from '../components/GlobalHeader'
 import GlobalTabs from '../components/GlobalTabs'
+import SwipeableContent from '../components/SwipeableContent'
 import styles from './BillOptimizer.module.css'
 
 export default function BillOptimizer() {
@@ -316,6 +317,7 @@ export default function BillOptimizer() {
     <div className="container">
       <GlobalHeader title="Bill Optimizer" showBackButton={true} />
       <GlobalTabs />
+      <SwipeableContent>
 
       {/* Header with Collapsible Description */}
       <div className={styles.headerSection}>
@@ -731,6 +733,7 @@ export default function BillOptimizer() {
           </div>
         </div>
       )}
+      </SwipeableContent>
     </div>
   )
 }
