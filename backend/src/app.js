@@ -16,6 +16,7 @@ import electricityRoutes from "./routes/electricity.js";
 import metaRoutes from "./routes/meta.js";
 import otpRoutes from "./routes/otp.js";
 import adminRoutes from "./routes/admin.js";
+import billOptimizerRoutes from "./routes/billOptimizer.js";
 import { errorHandler } from "./middleware/error.js";
 import mongoose from 'mongoose'
 
@@ -105,6 +106,7 @@ app.use("/api/electricity", electricityRoutes);
 app.use("/api/meta", metaRoutes);
 app.use("/api/otp", otpRoutes);
 app.use("/api/admin", adminRoutes);
+app.use("/api/bill-optimizer", billOptimizerRoutes);
 
 app.use(errorHandler);
 

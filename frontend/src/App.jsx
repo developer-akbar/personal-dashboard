@@ -11,6 +11,7 @@ import Settings from './pages/Settings'
 import Account from './pages/Account'
 import AdminAnalytics from './pages/AdminAnalytics'
 import AdminTest from './pages/AdminTest'
+import BillOptimizer from './pages/BillOptimizer'
 import { useAuth } from './store/useAuth'
 import ErrorBoundary from './components/ErrorBoundary'
 import ConnectionStatus from './components/ConnectionStatus'
@@ -75,8 +76,9 @@ export default function App(){
           <Route path="/account" element={<RequireAuth><Account/></RequireAuth>} />
           <Route path="/account/:id" element={<RequireAuth><AccountDetails/></RequireAuth>} />
           <Route path="/settings" element={<RequireAuth><Settings/></RequireAuth>} />
-          <Route path="/admin" element={<RequireAdmin><AdminAnalytics/></RequireAdmin>} />
-          <Route path="/admin-test" element={<RequireAuth><AdminTest/></RequireAuth>} />
+        <Route path="/admin" element={<RequireAdmin><AdminAnalytics/></RequireAdmin>} />
+        <Route path="/admin-test" element={<RequireAuth><AdminTest/></RequireAuth>} />
+        <Route path="/bill-optimizer" element={<RequireAdmin><BillOptimizer/></RequireAdmin>} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </HashRouter>
