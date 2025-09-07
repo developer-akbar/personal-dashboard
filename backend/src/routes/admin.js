@@ -75,6 +75,16 @@ router.get("/test", (req, res) => {
   });
 });
 
+// Simple analytics test endpoint (no auth required for debugging)
+router.get("/analytics-test", (req, res) => {
+  res.json({ 
+    message: "Analytics endpoint is accessible", 
+    timestamp: new Date().toISOString(),
+    path: req.path,
+    method: req.method
+  });
+});
+
 // Health check endpoint (no auth required)
 router.get("/health", (req, res) => {
   res.json({ 
@@ -84,17 +94,17 @@ router.get("/health", (req, res) => {
   });
 });
 
-// Apply authentication middleware to all routes except test and health
+// Apply authentication middleware to all routes except test, health, and analytics-test
 router.use((req, res, next) => {
-  if (req.path === '/test' || req.path === '/health') {
+  if (req.path === '/test' || req.path === '/health' || req.path === '/analytics-test') {
     return next();
   }
   return authenticateToken(req, res, next);
 });
 
-// Apply admin middleware to all routes except test and health
+// Apply admin middleware to all routes except test, health, and analytics-test
 router.use((req, res, next) => {
-  if (req.path === '/test' || req.path === '/health') {
+  if (req.path === '/test' || req.path === '/health' || req.path === '/analytics-test') {
     return next();
   }
   return requireAdmin(req, res, next);
@@ -103,6 +113,8 @@ router.use((req, res, next) => {
 // Get analytics data
 router.get("/analytics", async (req, res, next) => {
   try {
+    console.log('🔍 Analytics endpoint hit:', { userId: req.user?.sub, adminUser: req.adminUser?.email });
+    
     // Get all users with their account counts
     const users = await User.find({ isDeleted: { $ne: true } }, {
       name: 1,
@@ -173,7 +185,7 @@ router.get("/analytics", async (req, res, next) => {
     });
   } catch (error) {
     console.error('Analytics error:', error);
-    next(error);
+    res.status(500).json({ message: 'Failed to fetch analytics data' });
   }
 });
 
