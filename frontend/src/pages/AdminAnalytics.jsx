@@ -305,11 +305,11 @@ export default function AdminAnalytics() {
                       <button
                         className={styles.actionBtn}
                         onClick={() => handleUserAction(user.id, 'toggle-status', { 
-                          active: !user.active 
+                          active: user.active === false ? true : false
                         })}
-                        title={user.active ? 'Deactivate' : 'Activate'}
+                        title={user.active === false ? 'Activate' : 'Deactivate'}
                       >
-                        {user.active ? <FiUserDeactivate /> : <FiUserCheck />}
+                        {user.active === false ? <FiUserCheck /> : <FiUserDeactivate />}
                       </button>
                       <button
                         className={styles.actionBtn}

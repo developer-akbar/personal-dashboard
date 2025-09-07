@@ -104,7 +104,7 @@ router.use((req, res, next) => {
 router.get("/analytics", async (req, res, next) => {
   try {
     // Get all users with their account counts
-    const users = await User.find({}, {
+    const users = await User.find({ isDeleted: { $ne: true } }, {
       name: 1,
       email: 1,
       phone: 1,
@@ -133,6 +133,8 @@ router.get("/analytics", async (req, res, next) => {
       return {
         id: user._id,
         ...user.toObject(),
+        // Ensure active defaults to true if undefined in DB
+        active: user.active !== false,
         amazonAccounts: amazonCount,
         electricityServices: electricityCount
       };
@@ -216,7 +218,8 @@ router.post("/users/:userId/toggle-status", async (req, res, next) => {
       return res.status(404).json({ message: "User not found" });
     }
 
-    user.active = active !== undefined ? active : !user.active;
+    const currentActive = user.active !== false; // default true
+    user.active = active !== undefined ? !!active : !currentActive;
     await user.save();
 
     res.json({ 
