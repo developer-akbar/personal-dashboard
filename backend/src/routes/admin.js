@@ -10,19 +10,32 @@ const router = Router();
 const requireAdmin = async (req, res, next) => {
   try {
     const userId = req.user?.sub;
+    console.log('🔍 Admin middleware check:', { userId, user: req.user });
+    
     if (!userId) {
+      console.log('❌ No user ID in request');
       return res.status(401).json({ error: "Authentication required" });
     }
 
     const user = await User.findById(userId);
     if (!user) {
+      console.log('❌ User not found in database');
       return res.status(404).json({ error: "User not found" });
     }
 
+    console.log('👤 User found:', { 
+      id: user._id, 
+      email: user.email, 
+      userType: user.userType, 
+      subscription: user.subscription 
+    });
+
     if (user.userType !== 'Admin' && user.subscription !== 'Admin') {
+      console.log('❌ User is not admin');
       return res.status(403).json({ error: "Admin access required" });
     }
 
+    console.log('✅ Admin access granted');
     req.adminUser = user;
     next();
   } catch (error) {
@@ -31,8 +44,22 @@ const requireAdmin = async (req, res, next) => {
   }
 };
 
-// Apply admin middleware to all routes
-router.use(requireAdmin);
+// Test endpoint (no auth required for debugging)
+router.get("/test", (req, res) => {
+  res.json({ 
+    message: "Admin routes are working", 
+    timestamp: new Date().toISOString(),
+    user: req.user || null
+  });
+});
+
+// Apply admin middleware to all routes except test
+router.use((req, res, next) => {
+  if (req.path === '/test') {
+    return next();
+  }
+  return requireAdmin(req, res, next);
+});
 
 // Get analytics data
 router.get("/analytics", async (req, res, next) => {
@@ -278,6 +305,38 @@ router.get("/stats", async (req, res, next) => {
     res.json(stats);
   } catch (error) {
     console.error('Stats error:', error);
+    next(error);
+  }
+});
+
+// Manual admin update endpoint (for fixing existing users)
+router.post("/fix-admin-users", async (req, res, next) => {
+  try {
+    const { determineUserType } = await import('../utils/userType.js');
+    
+    // Get all users
+    const users = await User.find({});
+    let updatedCount = 0;
+    
+    for (const user of users) {
+      const { userType, subscription } = determineUserType(user);
+      
+      if (user.userType !== userType || user.subscription !== subscription) {
+        console.log(`🔄 Updating user ${user.email}: ${user.userType}/${user.subscription} -> ${userType}/${subscription}`);
+        user.userType = userType;
+        user.subscription = subscription;
+        await user.save();
+        updatedCount++;
+      }
+    }
+    
+    res.json({ 
+      success: true, 
+      message: `Updated ${updatedCount} users`,
+      updatedCount 
+    });
+  } catch (error) {
+    console.error('Fix admin users error:', error);
     next(error);
   }
 });

@@ -13,6 +13,8 @@ export function determineUserType(user) {
   console.log('- Subscribed users list:', subscribedUsers)
   console.log('- Is admin?', adminUsers.includes(email))
   console.log('- Is subscribed?', subscribedUsers.includes(email))
+  console.log('- Environment ADMIN_USERS:', process.env.ADMIN_USERS)
+  console.log('- Environment SUBSCRIBED_USERS:', process.env.SUBSCRIBED_USERS)
   
   if (adminUsers.includes(email)) {
     console.log('✅ User detected as Admin')

@@ -36,6 +36,26 @@ export default function AdminAnalytics() {
       setAnalytics(data)
     } catch (error) {
       console.error('Failed to fetch analytics:', error)
+      
+      if (error?.response?.status === 401) {
+        toast.error('Session expired. Please login again.')
+        // Redirect to login
+        window.location.href = '/login'
+        return
+      }
+      
+      if (error?.response?.status === 403) {
+        toast.error('Admin access required')
+        // Redirect to home
+        window.location.href = '/'
+        return
+      }
+      
+      if (error?.response?.status === 404) {
+        toast.error('Analytics API not found. Please check server configuration.')
+        return
+      }
+      
       toast.error('Failed to load analytics data')
     } finally {
       setLoading(false)
