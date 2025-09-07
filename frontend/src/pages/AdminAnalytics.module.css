@@ -297,6 +297,16 @@
   color: var(--primary-text);
 }
 
+.dangerBtn {
+  background: #fee2e2 !important;
+  color: #dc2626 !important;
+}
+
+.dangerBtn:hover {
+  background: #dc2626 !important;
+  color: white !important;
+}
+
 /* Modal */
 .modalOverlay {
   position: fixed;
@@ -385,6 +395,15 @@
 .detailRow span {
   color: var(--text-secondary);
   text-align: right;
+}
+
+.userInfo {
+  background: var(--muted-bg);
+  padding: 1rem;
+  border-radius: 8px;
+  margin: 1rem 0;
+  font-family: monospace;
+  font-size: 0.9rem;
 }
 
 .modalActions {

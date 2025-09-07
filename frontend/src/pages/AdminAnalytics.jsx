@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { FiUsers, FiCreditCard, FiZap, FiTrendingUp, FiRefreshCw, FiTrash2, FiEdit, FiEye, FiEyeOff } from 'react-icons/fi'
+import { FiUsers, FiCreditCard, FiZap, FiTrendingUp, FiRefreshCw, FiTrash2, FiEdit, FiEye, FiEyeOff, FiUserX } from 'react-icons/fi'
 import { FiBarChart3, FiPieChart, FiActivity } from 'react-icons/fi'
 import api from '../api/client'
 import toast from 'react-hot-toast'
@@ -19,6 +19,8 @@ export default function AdminAnalytics() {
   const [loading, setLoading] = useState(true)
   const [selectedUser, setSelectedUser] = useState(null)
   const [showUserDetails, setShowUserDetails] = useState(false)
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+  const [userToDelete, setUserToDelete] = useState(null)
   const [filters, setFilters] = useState({
     userType: '',
     subscription: '',
@@ -64,12 +66,30 @@ export default function AdminAnalytics() {
 
   const handleUserAction = async (userId, action, data = {}) => {
     try {
-      await api.post(`/admin/users/${userId}/${action}`, data)
-      toast.success(`User ${action} successful`)
+      if (action === 'delete') {
+        await api.delete(`/admin/users/${userId}`)
+        toast.success('User deleted successfully')
+      } else {
+        await api.post(`/admin/users/${userId}/${action}`, data)
+        toast.success(`User ${action} successful`)
+      }
       fetchAnalytics() // Refresh data
     } catch (error) {
       console.error(`Failed to ${action} user:`, error)
       toast.error(`Failed to ${action} user`)
+    }
+  }
+
+  const handleDeleteUser = (user) => {
+    setUserToDelete(user)
+    setShowDeleteConfirm(true)
+  }
+
+  const confirmDelete = async () => {
+    if (userToDelete) {
+      await handleUserAction(userToDelete.id, 'delete')
+      setShowDeleteConfirm(false)
+      setUserToDelete(null)
     }
   }
 
@@ -281,6 +301,13 @@ export default function AdminAnalytics() {
                       >
                         <FiRefreshCw />
                       </button>
+                      <button
+                        className={`${styles.actionBtn} ${styles.dangerBtn}`}
+                        onClick={() => handleDeleteUser(user)}
+                        title="Delete User"
+                      >
+                        <FiUserX />
+                      </button>
                     </div>
                   </td>
                 </tr>
@@ -362,6 +389,50 @@ export default function AdminAnalytics() {
                 onClick={() => setShowUserDetails(false)}
               >
                 Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {showDeleteConfirm && userToDelete && (
+        <div className={styles.modalOverlay} onClick={() => setShowDeleteConfirm(false)}>
+          <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
+            <div className={styles.modalHeader}>
+              <h3>Delete User</h3>
+              <button 
+                className={styles.closeBtn}
+                onClick={() => setShowDeleteConfirm(false)}
+              >
+                ×
+              </button>
+            </div>
+            <div className={styles.modalContent}>
+              <p>Are you sure you want to delete this user?</p>
+              <div className={styles.userInfo}>
+                <strong>Name:</strong> {userToDelete.name || 'No name'}<br/>
+                <strong>Email:</strong> {userToDelete.email}<br/>
+                <strong>Type:</strong> {userToDelete.userType || 'Free'}<br/>
+                <strong>Subscription:</strong> {userToDelete.subscription || 'Free'}
+              </div>
+              <p style={{ color: '#dc2626', fontWeight: 'bold' }}>
+                ⚠️ This action cannot be undone. The user will be permanently deleted.
+              </p>
+            </div>
+            <div className={styles.modalActions}>
+              <button 
+                className={styles.dangerBtn}
+                onClick={confirmDelete}
+                style={{ background: '#dc2626', color: 'white' }}
+              >
+                <FiUserX /> Delete User
+              </button>
+              <button 
+                className={styles.secondaryBtn}
+                onClick={() => setShowDeleteConfirm(false)}
+              >
+                Cancel
               </button>
             </div>
           </div>
