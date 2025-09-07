@@ -52,6 +52,23 @@ const requireAdmin = async (req, res, next) => {
   }
 };
 
+// Test endpoint (no auth required for debugging)
+router.get("/test", (req, res) => {
+  res.json({ 
+    message: "Bill Optimizer API is working", 
+    timestamp: new Date().toISOString(),
+    routes: [
+      "GET /unpaid-bills",
+      "GET /wallet-amounts", 
+      "POST /optimize",
+      "GET /strategies",
+      "GET /strategies/:id",
+      "POST /strategies/:id/recalculate",
+      "DELETE /strategies/:id"
+    ]
+  });
+});
+
 // Apply middleware
 router.use(authenticateToken);
 router.use(requireAdmin);
@@ -194,11 +211,15 @@ router.get("/strategies/:id", async (req, res, next) => {
     const { id } = req.params;
     const userId = req.user.sub;
 
+    console.log('🔍 Getting strategy details:', { id, userId });
+
     const strategy = await BillOptimization.findOne({ _id: id, userId });
     if (!strategy) {
+      console.log('❌ Strategy not found:', { id, userId });
       return res.status(404).json({ error: "Strategy not found" });
     }
 
+    console.log('✅ Strategy found:', strategy._id);
     res.json({ strategy });
   } catch (error) {
     console.error('Get strategy details error:', error);
