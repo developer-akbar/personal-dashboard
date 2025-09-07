@@ -17,6 +17,9 @@ export default function BillOptimizer() {
   const [showSavedStrategies, setShowSavedStrategies] = useState(false)
   const [billsInput, setBillsInput] = useState('')
   const [walletsInput, setWalletsInput] = useState('')
+  const [showDescription, setShowDescription] = useState(false) // For collapsible description
+  const [checkedBills, setCheckedBills] = useState(new Set()) // Track checked bills
+  const [checkedWallets, setCheckedWallets] = useState(new Set()) // Track checked wallets
 
   useEffect(() => {
     fetchData()
@@ -34,37 +37,41 @@ export default function BillOptimizer() {
       const bills = billsResponse.data.bills || []
       const wallets = walletsResponse.data.wallets || []
 
-      // Calculate fees for bills (1% fee + 18% GST on fee)
-      const billsWithFees = bills.map(bill => {
-        const fee = bill.amount * 0.01 // 1% fee
-        const gstOnFee = fee * 0.18 // 18% GST on fee
-        const totalAmount = bill.amount + fee + gstOnFee
-        
-        return {
-          ...bill,
-          originalAmount: bill.amount,
-          fee: fee,
-          gstOnFee: gstOnFee,
-          amount: Math.round(totalAmount * 100) / 100 // Round to 2 decimal places
-        }
-      })
+          // Calculate fees for bills (1% fee + 18% GST on fee) and round amounts
+          const billsWithFees = bills.map(bill => {
+            const fee = bill.amount * 0.01 // 1% fee
+            const gstOnFee = fee * 0.18 // 18% GST on fee
+            const totalAmount = bill.amount + fee + gstOnFee
+            
+            return {
+              ...bill,
+              originalAmount: Math.round(bill.amount * 100) / 100, // Round original amount
+              fee: Math.round(fee * 100) / 100, // Round fee
+              gstOnFee: Math.round(gstOnFee * 100) / 100, // Round GST
+              amount: Math.round(totalAmount * 100) / 100 // Round total amount to 2 decimal places
+            }
+          })
 
       // Filter out wallets with 0 balance
       const walletsWithBalance = wallets.filter(wallet => wallet.amount > 0)
 
-      setBills(billsWithFees)
-      setWallets(walletsWithBalance)
-      
-      // Auto-populate input fields with comma-separated values
-      const billsString = billsWithFees.map(bill => bill.amount).join(', ')
-      const walletsString = walletsWithBalance.map(wallet => wallet.amount).join(', ')
-      
-      setSelectedBills(billsWithFees)
-      setSelectedWallets(walletsWithBalance)
-      
-      // Set input field values
-      setBillsInput(billsString)
-      setWalletsInput(walletsString)
+          setBills(billsWithFees)
+          setWallets(walletsWithBalance)
+          
+          // Set all bills and wallets as checked by default
+          setCheckedBills(new Set(billsWithFees.map((_, index) => index)))
+          setCheckedWallets(new Set(walletsWithBalance.map((_, index) => index)))
+          
+          // Auto-populate input fields with comma-separated values
+          const billsString = billsWithFees.map(bill => bill.amount).join(', ')
+          const walletsString = walletsWithBalance.map(wallet => wallet.amount).join(', ')
+          
+          setSelectedBills(billsWithFees)
+          setSelectedWallets(walletsWithBalance)
+          
+          // Set input field values
+          setBillsInput(billsString)
+          setWalletsInput(walletsString)
       
       toast.success(`Loaded ${billsWithFees.length} bills and ${walletsWithBalance.length} wallets`)
     } catch (error) {
@@ -211,6 +218,38 @@ export default function BillOptimizer() {
     }
   }
 
+  // Handle bill checkbox changes
+  const handleBillCheckboxChange = (index, checked) => {
+    const newCheckedBills = new Set(checkedBills)
+    if (checked) {
+      newCheckedBills.add(index)
+    } else {
+      newCheckedBills.delete(index)
+    }
+    setCheckedBills(newCheckedBills)
+    
+    // Update bills input field
+    const selectedBillsList = bills.filter((_, i) => newCheckedBills.has(i))
+    const billsString = selectedBillsList.map(bill => bill.amount).join(', ')
+    setBillsInput(billsString)
+  }
+
+  // Handle wallet checkbox changes
+  const handleWalletCheckboxChange = (index, checked) => {
+    const newCheckedWallets = new Set(checkedWallets)
+    if (checked) {
+      newCheckedWallets.add(index)
+    } else {
+      newCheckedWallets.delete(index)
+    }
+    setCheckedWallets(newCheckedWallets)
+    
+    // Update wallets input field
+    const selectedWalletsList = wallets.filter((_, i) => newCheckedWallets.has(i))
+    const walletsString = selectedWalletsList.map(wallet => wallet.amount).join(', ')
+    setWalletsInput(walletsString)
+  }
+
   const toggleBillSelection = (bill) => {
     setSelectedBills(prev => 
       prev.find(b => b.id === bill.id) 
@@ -236,23 +275,34 @@ export default function BillOptimizer() {
     <div className="container">
       <GlobalHeader title="Bill Payment Optimizer" showBackButton={true} />
 
-      {/* About Section */}
-      <div className={styles.aboutSection}>
-        <h1 className={styles.mainHeading}>Bill Payment Strategy</h1>
-        <div className={styles.aboutContent}>
-          <p className={styles.aboutDescription}>
-            Welcome to the Bill Payment Optimizer! This tool helps you efficiently manage your bills and digital wallet balances.
-            Enter your bills and wallet balances, and let the optimizer tool suggest an optimal payment strategy for you.
-            It calculates the best way to pay your bills from your available wallets, minimizing additional expenses from your pocket.
-          </p>
-          <h3>Key Features:</h3>
-          <ol>
-            <li><strong>Optimize Payments:</strong> Input your bills and wallet balances, click "Optimize" to receive a strategy that minimizes out-of-pocket expenses</li>
-            <li><strong>Save Strategies:</strong> Save your optimized payment strategy results for future reference</li>
-            <li><strong>Recalculate Anytime:</strong> Recalculate a saved strategy to adapt to changes in your bills</li>
-            <li><strong>Delete Strategies:</strong> Remove saved strategies when no longer needed</li>
-          </ol>
+      {/* Header with Collapsible Description */}
+      <div className={styles.headerSection}>
+        <div className={styles.headerTitle}>
+          <h1 className={styles.mainHeading}>Bill Payment Strategy</h1>
+          <button 
+            className={styles.infoButton}
+            onClick={() => setShowDescription(!showDescription)}
+            title={showDescription ? "Hide description" : "Show description"}
+          >
+            <FiSettings />
+          </button>
         </div>
+        
+        {showDescription && (
+          <div className={styles.aboutContent}>
+            <p className={styles.aboutDescription}>
+              Welcome to the Bill Payment Optimizer! This tool helps you efficiently manage your bills and digital wallet balances.
+              Select your bills and wallet balances below, and let the optimizer suggest an optimal payment strategy.
+            </p>
+            <h3>Key Features:</h3>
+            <ol>
+              <li><strong>Select Bills & Wallets:</strong> Check/uncheck bills and wallets to include in optimization</li>
+              <li><strong>Optimize Payments:</strong> Click "Optimize" to get the best payment strategy</li>
+              <li><strong>Save Strategies:</strong> Save results for future reference</li>
+              <li><strong>Manual Entry:</strong> Add custom bills like Gas, DTH in the input fields</li>
+            </ol>
+          </div>
+        )}
       </div>
 
       {/* Summary Cards */}
@@ -328,6 +378,52 @@ export default function BillOptimizer() {
           value={strategyName}
           onChange={(e) => setStrategyName(e.target.value)}
         />
+      </div>
+
+      {/* Bills and Wallets Selection */}
+      <div className={styles.selectionSection}>
+        <div className={styles.selectionGroup}>
+          <h3>📋 Select Bills to Include</h3>
+          <div className={styles.checkboxList}>
+            {bills.map((bill, index) => (
+              <label key={index} className={styles.checkboxItem}>
+                <input
+                  type="checkbox"
+                  checked={checkedBills.has(index)}
+                  onChange={(e) => handleBillCheckboxChange(index, e.target.checked)}
+                />
+                <span className={styles.checkboxLabel}>
+                  {bill.serviceLabel} - ₹{bill.amount.toLocaleString('en-IN')}
+                  <small>(Original: ₹{bill.originalAmount.toLocaleString('en-IN')})</small>
+                </span>
+              </label>
+            ))}
+            {bills.length === 0 && (
+              <p className={styles.noData}>No unpaid bills found</p>
+            )}
+          </div>
+        </div>
+
+        <div className={styles.selectionGroup}>
+          <h3>💰 Select Wallets to Include</h3>
+          <div className={styles.checkboxList}>
+            {wallets.map((wallet, index) => (
+              <label key={index} className={styles.checkboxItem}>
+                <input
+                  type="checkbox"
+                  checked={checkedWallets.has(index)}
+                  onChange={(e) => handleWalletCheckboxChange(index, e.target.checked)}
+                />
+                <span className={styles.checkboxLabel}>
+                  {wallet.label} - ₹{wallet.amount.toLocaleString('en-IN')}
+                </span>
+              </label>
+            ))}
+            {wallets.length === 0 && (
+              <p className={styles.noData}>No wallet balances found</p>
+            )}
+          </div>
+        </div>
       </div>
 
       {/* Main Form Section */}

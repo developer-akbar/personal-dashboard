@@ -5,27 +5,56 @@
   padding: 1rem;
 }
 
-/* About Section */
-.aboutSection {
+/* Header Section */
+.headerSection {
   background: var(--card-bg);
   border: 1px solid var(--card-border);
   border-radius: 12px;
   padding: 2rem;
   margin-bottom: 2rem;
-  text-align: center;
+}
+
+.headerTitle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  margin-bottom: 1rem;
 }
 
 .mainHeading {
   font-size: 2.5rem;
   font-weight: 700;
   color: var(--text-primary);
-  margin: 0 0 1.5rem 0;
+  margin: 0;
+}
+
+.infoButton {
+  background: var(--muted-bg);
+  border: 1px solid var(--border-color);
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s;
+  color: var(--text-secondary);
+}
+
+.infoButton:hover {
+  background: var(--primary-bg);
+  color: var(--primary-text);
+  transform: scale(1.1);
 }
 
 .aboutContent {
   text-align: left;
   max-width: 800px;
   margin: 0 auto;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border-color);
 }
 
 .aboutDescription {
@@ -49,6 +78,94 @@
   margin-bottom: 0.75rem;
   line-height: 1.5;
   color: var(--text-secondary);
+}
+
+/* Selection Section */
+.selectionSection {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2rem;
+  margin-bottom: 2rem;
+}
+
+.selectionGroup {
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 12px;
+  padding: 1.5rem;
+}
+
+.selectionGroup h3 {
+  margin: 0 0 1rem 0;
+  color: var(--text-primary);
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.checkboxList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.checkboxItem {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  cursor: pointer;
+  padding: 0.5rem;
+  border-radius: 6px;
+  transition: background-color 0.2s;
+}
+
+.checkboxItem:hover {
+  background: var(--muted-bg);
+}
+
+.checkboxItem input[type="checkbox"] {
+  margin: 0;
+  transform: scale(1.2);
+  accent-color: var(--primary-bg);
+}
+
+.checkboxLabel {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  color: var(--text-primary);
+  font-weight: 500;
+}
+
+.checkboxLabel small {
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+  font-weight: 400;
+}
+
+.noData {
+  color: var(--text-secondary);
+  font-style: italic;
+  text-align: center;
+  padding: 2rem;
+  margin: 0;
+}
+
+@media (max-width: 768px) {
+  .selectionSection {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+  
+  .headerTitle {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  
+  .mainHeading {
+    font-size: 2rem;
+  }
 }
 
 /* Summary Grid */
