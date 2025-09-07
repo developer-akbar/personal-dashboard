@@ -24,61 +24,51 @@ export function optimizeBillPayments(bills, wallets) {
     };
   }
 
-  // Sort bills by due date (urgent first), then by amount (largest first)
-  const sortedBills = [...bills].sort((a, b) => {
-    const dateA = new Date(a.dueDate);
-    const dateB = new Date(b.dueDate);
-    if (dateA.getTime() !== dateB.getTime()) {
-      return dateA.getTime() - dateB.getTime();
-    }
-    return b.amount - a.amount;
-  });
+  // Convert to simple arrays for optimization
+  const billAmounts = bills.map(bill => bill.amount);
+  const walletAmounts = wallets.map(wallet => wallet.amount);
 
-  // Sort wallets by amount (largest first)
-  const sortedWallets = [...wallets].sort((a, b) => b.amount - a.amount);
+  // Sort bills in descending order (largest first)
+  const sortedBills = [...bills].sort((a, b) => b.amount - a.amount);
+  const sortedBillAmounts = [...billAmounts].sort((a, b) => b - a);
 
   const strategies = [];
-  const usedBills = new Set();
-  const usedWallets = new Set();
+  let remainingBills = [...sortedBillAmounts];
 
-  // Calculate total amounts
-  const totalBillAmount = bills.reduce((sum, bill) => sum + bill.amount, 0);
-  const totalWalletAmount = wallets.reduce((sum, wallet) => sum + wallet.amount, 0);
+  // For each wallet, find the best combination of bills
+  for (let i = 0; i < walletAmounts.length; i++) {
+    const walletAmount = walletAmounts[i];
+    const wallet = wallets[i];
+    
+    const bestCombination = findBestCombination(remainingBills, walletAmount);
+    
+    if (bestCombination.length > 0) {
+      const strategy = {
+        walletId: wallet.id || `wallet_${i}`,
+        walletLabel: wallet.label || `Wallet ${i + 1}`,
+        walletAmount: walletAmount,
+        bills: [],
+        remainingAmount: walletAmount - bestCombination.reduce((sum, amount) => sum + amount, 0)
+      };
 
-  // For each wallet, try to pay as many bills as possible
-  for (const wallet of sortedWallets) {
-    if (usedWallets.has(wallet.id)) continue;
+      // Map back to original bill objects
+      for (const amount of bestCombination) {
+        const bill = sortedBills.find(b => b.amount === amount);
+        if (bill) {
+          strategy.bills.push({
+            billId: bill.id,
+            serviceNumber: bill.serviceNumber,
+            serviceLabel: bill.serviceLabel,
+            amount: bill.amount,
+            dueDate: bill.dueDate
+          });
+        }
+      }
 
-    const walletStrategy = {
-      walletId: wallet.id,
-      walletLabel: wallet.label,
-      walletAmount: wallet.amount,
-      bills: [],
-      remainingAmount: wallet.amount
-    };
-
-    // Try to pay bills with this wallet
-    for (const bill of sortedBills) {
-      if (usedBills.has(bill.id)) continue;
-      if (walletStrategy.remainingAmount < bill.amount) continue;
-
-      // Can pay this bill
-      walletStrategy.bills.push({
-        billId: bill.id,
-        serviceNumber: bill.serviceNumber,
-        serviceLabel: bill.serviceLabel,
-        amount: bill.amount,
-        dueDate: bill.dueDate
-      });
-
-      walletStrategy.remainingAmount -= bill.amount;
-      usedBills.add(bill.id);
-    }
-
-    // Only add strategy if it pays at least one bill
-    if (walletStrategy.bills.length > 0) {
-      strategies.push(walletStrategy);
-      usedWallets.add(wallet.id);
+      strategies.push(strategy);
+      
+      // Remove used bills from remaining bills
+      remainingBills = remainingBills.filter(amount => !bestCombination.includes(amount));
     }
   }
 
@@ -94,6 +84,43 @@ export function optimizeBillPayments(bills, wallets) {
     savings,
     strategies
   };
+}
+
+// Recursive function to find best combination (matching your GitHub strategy)
+function findBestCombination(bills, walletBalance) {
+  let bestCombination = [];
+  let allCombinations = [];
+
+  function findCombinationRecursive(index, currentCombination, currentSum) {
+    if (currentSum <= walletBalance) {
+      bestCombination = [...currentCombination];
+      allCombinations.push([...bestCombination]);
+    }
+
+    for (let i = index; i < bills.length; i++) {
+      const newSum = currentSum + bills[i];
+      if (newSum <= walletBalance) {
+        currentCombination.push(bills[i]);
+        findCombinationRecursive(i + 1, currentCombination, newSum);
+        currentCombination.pop();
+      }
+    }
+  }
+
+  findCombinationRecursive(0, [], 0);
+
+  // Find the combination with maximum sum
+  let maxSum = -1;
+  let bestCombinationArray = [];
+  for (const combination of allCombinations) {
+    const combinationSum = combination.reduce((acc, current) => acc + current, 0);
+    if (combinationSum > maxSum) {
+      maxSum = combinationSum;
+      bestCombinationArray = combination;
+    }
+  }
+
+  return bestCombinationArray;
 }
 
 /**

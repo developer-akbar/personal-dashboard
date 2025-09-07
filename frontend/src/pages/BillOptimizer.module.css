@@ -121,159 +121,58 @@
   font-weight: 600;
 }
 
-/* Bills Grid */
-.billsGrid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: 1rem;
-}
-
-.billCard {
-  background: var(--muted-bg);
-  border: 2px solid var(--border-color);
-  border-radius: 8px;
-  padding: 1rem;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.billCard:hover {
-  border-color: var(--primary-bg);
-  transform: translateY(-1px);
-}
-
-.billCard.selected {
-  border-color: var(--primary-bg);
-  background: var(--primary-bg);
-  color: var(--primary-text);
-}
-
-.billHeader {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  margin-bottom: 0.75rem;
-}
-
-.billHeader input[type="checkbox"] {
-  width: 18px;
-  height: 18px;
-  cursor: pointer;
-}
-
-.billLabel {
-  font-weight: 600;
-  font-size: 1rem;
-}
-
-.billDetails {
+/* Input Groups */
+.inputGroup {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
-}
-
-.billAmount {
-  font-size: 1.25rem;
-  font-weight: 700;
-  color: var(--primary-bg);
-}
-
-.billCard.selected .billAmount {
-  color: var(--primary-text);
-}
-
-.billDueDate {
-  font-size: 0.9rem;
-  opacity: 0.8;
-}
-
-.priority {
-  display: inline-block;
-  padding: 0.25rem 0.75rem;
-  border-radius: 20px;
-  font-size: 0.8rem;
-  font-weight: 600;
-  text-transform: uppercase;
-}
-
-.priority.overdue {
-  background: #fee2e2;
-  color: #dc2626;
-}
-
-.priority.urgent {
-  background: #fef3c7;
-  color: #d97706;
-}
-
-.priority.high {
-  background: #fde68a;
-  color: #b45309;
-}
-
-.priority.medium {
-  background: #dbeafe;
-  color: #1d4ed8;
-}
-
-.priority.low {
-  background: #f3f4f6;
-  color: #6b7280;
-}
-
-/* Wallets Grid */
-.walletsGrid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-  gap: 1rem;
-}
-
-.walletCard {
-  background: var(--muted-bg);
-  border: 2px solid var(--border-color);
-  border-radius: 8px;
-  padding: 1rem;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
-.walletCard:hover {
-  border-color: var(--primary-bg);
-  transform: translateY(-1px);
-}
-
-.walletCard.selected {
-  border-color: var(--primary-bg);
-  background: var(--primary-bg);
-  color: var(--primary-text);
-}
-
-.walletHeader {
-  display: flex;
-  align-items: center;
   gap: 0.75rem;
-  margin-bottom: 0.75rem;
 }
 
-.walletHeader input[type="checkbox"] {
-  width: 18px;
-  height: 18px;
-  cursor: pointer;
-}
-
-.walletLabel {
+.inputGroup label {
   font-weight: 600;
+  color: var(--text-primary);
   font-size: 1rem;
 }
 
-.walletAmount {
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: var(--primary-bg);
+.textarea {
+  width: 100%;
+  padding: 1rem;
+  border: 2px solid var(--border-color);
+  border-radius: 8px;
+  background: var(--input-bg);
+  color: var(--text-primary);
+  font-size: 1rem;
+  font-family: inherit;
+  resize: vertical;
+  min-height: 80px;
+  transition: border-color 0.2s, box-shadow 0.2s;
 }
 
-.walletCard.selected .walletAmount {
-  color: var(--primary-text);
+.textarea:focus {
+  outline: none;
+  border-color: var(--primary-bg);
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+.textarea::placeholder {
+  color: var(--text-secondary);
+  opacity: 0.7;
+}
+
+.inputInfo {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem;
+  background: var(--muted-bg);
+  border-radius: 6px;
+  border-left: 4px solid var(--primary-bg);
+}
+
+.inputInfo small {
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  line-height: 1.4;
 }
 
 /* Result Grid */

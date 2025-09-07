@@ -131,6 +131,13 @@ export default function AdminAnalytics() {
     <div className="container">
       <GlobalHeader title="Admin Analytics" showBackButton={true} />
 
+      {/* Quick Actions */}
+      <div className={styles.quickActions}>
+        <a href="#/bill-optimizer" className="primary" style={{ textDecoration: 'none', padding: '0.75rem 1.5rem', borderRadius: '8px', display: 'inline-flex', alignItems: 'center', gap: '0.5rem' }}>
+          🧮 Bill Payment Optimizer
+        </a>
+      </div>
+
       {/* Overview Cards */}
       <div className={styles.overviewGrid}>
         <div className={styles.statCard}>

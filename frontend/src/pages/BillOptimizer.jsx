@@ -15,6 +15,8 @@ export default function BillOptimizer() {
   const [loading, setLoading] = useState(false)
   const [strategyName, setStrategyName] = useState('')
   const [showSavedStrategies, setShowSavedStrategies] = useState(false)
+  const [billsInput, setBillsInput] = useState('')
+  const [walletsInput, setWalletsInput] = useState('')
 
   useEffect(() => {
     fetchData()
@@ -29,12 +31,42 @@ export default function BillOptimizer() {
         api.get('/bill-optimizer/wallet-amounts')
       ])
 
-      setBills(billsResponse.data.bills || [])
-      setWallets(walletsResponse.data.wallets || [])
+      const bills = billsResponse.data.bills || []
+      const wallets = walletsResponse.data.wallets || []
+
+      // Calculate fees for bills (1% fee + 18% GST on fee)
+      const billsWithFees = bills.map(bill => {
+        const fee = bill.amount * 0.01 // 1% fee
+        const gstOnFee = fee * 0.18 // 18% GST on fee
+        const totalAmount = bill.amount + fee + gstOnFee
+        
+        return {
+          ...bill,
+          originalAmount: bill.amount,
+          fee: fee,
+          gstOnFee: gstOnFee,
+          amount: Math.round(totalAmount * 100) / 100 // Round to 2 decimal places
+        }
+      })
+
+      // Filter out wallets with 0 balance
+      const walletsWithBalance = wallets.filter(wallet => wallet.amount > 0)
+
+      setBills(billsWithFees)
+      setWallets(walletsWithBalance)
       
-      // Auto-select all bills and wallets
-      setSelectedBills(billsResponse.data.bills || [])
-      setSelectedWallets(walletsResponse.data.wallets || [])
+      // Auto-populate input fields with comma-separated values
+      const billsString = billsWithFees.map(bill => bill.amount).join(', ')
+      const walletsString = walletsWithBalance.map(wallet => wallet.amount).join(', ')
+      
+      setSelectedBills(billsWithFees)
+      setSelectedWallets(walletsWithBalance)
+      
+      // Set input field values
+      setBillsInput(billsString)
+      setWalletsInput(walletsString)
+      
+      toast.success(`Loaded ${billsWithFees.length} bills and ${walletsWithBalance.length} wallets`)
     } catch (error) {
       console.error('Failed to fetch data:', error)
       toast.error('Failed to load bills and wallets')
@@ -53,16 +85,41 @@ export default function BillOptimizer() {
   }
 
   const handleOptimize = async (strategy = 'default') => {
-    if (selectedBills.length === 0 || selectedWallets.length === 0) {
-      toast.error('Please select at least one bill and one wallet')
+    if (!billsInput.trim() || !walletsInput.trim()) {
+      toast.error('Please enter bill amounts and wallet balances')
       return
     }
 
     setLoading(true)
     try {
+      // Parse input values
+      const billAmounts = billsInput.split(',').map(amount => parseFloat(amount.trim())).filter(amount => !isNaN(amount))
+      const walletAmounts = walletsInput.split(',').map(amount => parseFloat(amount.trim())).filter(amount => !isNaN(amount))
+
+      if (billAmounts.length === 0 || walletAmounts.length === 0) {
+        toast.error('Please enter valid numbers')
+        return
+      }
+
+      // Create bill and wallet objects for API
+      const billsForAPI = billAmounts.map((amount, index) => ({
+        id: `bill_${index}`,
+        serviceNumber: `SERVICE_${index + 1}`,
+        serviceLabel: `Bill ${index + 1}`,
+        amount: amount,
+        dueDate: new Date()
+      }))
+
+      const walletsForAPI = walletAmounts.map((amount, index) => ({
+        id: `wallet_${index}`,
+        label: `Wallet ${index + 1}`,
+        amount: amount,
+        currency: 'INR'
+      }))
+
       const response = await api.post('/bill-optimizer/optimize', {
-        bills: selectedBills,
-        wallets: selectedWallets,
+        bills: billsForAPI,
+        wallets: walletsForAPI,
         strategy,
         strategyName: strategyName || `Optimization ${new Date().toLocaleString()}`
       })
@@ -86,27 +143,37 @@ export default function BillOptimizer() {
       })
 
       setOptimizationResult(response.data)
-      toast.success('Strategy recalculated!')
+      toast.success('🔄 Strategy recalculated successfully!', {
+        duration: 3000,
+        icon: '✅'
+      })
     } catch (error) {
       console.error('Recalculation failed:', error)
-      toast.error('Recalculation failed')
+      toast.error('❌ Failed to recalculate strategy', {
+        duration: 4000
+      })
     } finally {
       setLoading(false)
     }
   }
 
   const handleDeleteStrategy = async (strategyId) => {
-    if (!window.confirm('Are you sure you want to delete this strategy?')) {
+    if (!window.confirm('Are you sure you want to delete this strategy? This action cannot be undone.')) {
       return
     }
 
     try {
       await api.delete(`/bill-optimizer/strategies/${strategyId}`)
-      toast.success('Strategy deleted!')
+      toast.success('🗑️ Strategy deleted successfully!', {
+        duration: 3000,
+        icon: '✅'
+      })
       fetchSavedStrategies()
     } catch (error) {
       console.error('Delete failed:', error)
-      toast.error('Failed to delete strategy')
+      toast.error('❌ Failed to delete strategy', {
+        duration: 4000
+      })
     }
   }
 
@@ -126,10 +193,15 @@ export default function BillOptimizer() {
         }
       })
       
-      toast.success('Strategy loaded!')
+      toast.success('📋 Strategy loaded successfully!', {
+        duration: 3000,
+        icon: '✅'
+      })
     } catch (error) {
       console.error('Failed to load strategy:', error)
-      toast.error('Failed to load strategy')
+      toast.error('❌ Failed to load strategy', {
+        duration: 4000
+      })
     }
   }
 
@@ -149,8 +221,10 @@ export default function BillOptimizer() {
     )
   }
 
-  const totalBillAmount = selectedBills.reduce((sum, bill) => sum + bill.amount, 0)
-  const totalWalletAmount = selectedWallets.reduce((sum, wallet) => sum + wallet.amount, 0)
+  const totalBillAmount = billsInput ? billsInput.split(',').reduce((sum, amount) => sum + (parseFloat(amount.trim()) || 0), 0) : 0
+  const totalWalletAmount = walletsInput ? walletsInput.split(',').reduce((sum, amount) => sum + (parseFloat(amount.trim()) || 0), 0) : 0
+  const billCount = billsInput ? billsInput.split(',').filter(amount => amount.trim()).length : 0
+  const walletCount = walletsInput ? walletsInput.split(',').filter(amount => amount.trim()).length : 0
 
   return (
     <div className="container">
@@ -163,8 +237,8 @@ export default function BillOptimizer() {
             <FiCreditCard />
           </div>
           <div className={styles.summaryContent}>
-            <h3>{selectedBills.length}</h3>
-            <p>Selected Bills</p>
+            <h3>{billCount}</h3>
+            <p>Bill Amounts</p>
             <span className={styles.amount}>₹ {totalBillAmount.toLocaleString('en-IN')}</span>
           </div>
         </div>
@@ -174,8 +248,8 @@ export default function BillOptimizer() {
             <FiDollarSign />
           </div>
           <div className={styles.summaryContent}>
-            <h3>{selectedWallets.length}</h3>
-            <p>Selected Wallets</p>
+            <h3>{walletCount}</h3>
+            <p>Wallet Balances</p>
             <span className={styles.amount}>₹ {totalWalletAmount.toLocaleString('en-IN')}</span>
           </div>
         </div>
@@ -199,7 +273,7 @@ export default function BillOptimizer() {
         <button 
           className="primary" 
           onClick={() => handleOptimize('default')}
-          disabled={loading || selectedBills.length === 0 || selectedWallets.length === 0}
+          disabled={loading || !billsInput.trim() || !walletsInput.trim()}
         >
           <FiCalculator /> Optimize Payments
         </button>
@@ -207,7 +281,7 @@ export default function BillOptimizer() {
         <button 
           className="muted" 
           onClick={() => handleOptimize('minimize-leftover')}
-          disabled={loading || selectedBills.length === 0 || selectedWallets.length === 0}
+          disabled={loading || !billsInput.trim() || !walletsInput.trim()}
         >
           <FiRefreshCcw /> Minimize Leftover
         </button>
@@ -238,63 +312,41 @@ export default function BillOptimizer() {
         />
       </div>
 
-      {/* Bills Selection */}
+      {/* Bills Input */}
       <div className={styles.section}>
-        <h3>Unpaid Bills ({bills.length})</h3>
-        <div className={styles.billsGrid}>
-          {bills.map(bill => (
-            <div 
-              key={bill.id} 
-              className={`${styles.billCard} ${selectedBills.find(b => b.id === bill.id) ? styles.selected : ''}`}
-              onClick={() => toggleBillSelection(bill)}
-            >
-              <div className={styles.billHeader}>
-                <input
-                  type="checkbox"
-                  checked={!!selectedBills.find(b => b.id === bill.id)}
-                  onChange={() => toggleBillSelection(bill)}
-                  onClick={(e) => e.stopPropagation()}
-                />
-                <span className={styles.billLabel}>{bill.serviceLabel}</span>
-              </div>
-              <div className={styles.billDetails}>
-                <span className={styles.billAmount}>₹ {bill.amount.toLocaleString('en-IN')}</span>
-                <span className={styles.billDueDate}>
-                  Due: {new Date(bill.dueDate).toLocaleDateString()}
-                </span>
-                <span className={`${styles.priority} ${styles[bill.priority]}`}>
-                  {bill.priority}
-                </span>
-              </div>
-            </div>
-          ))}
+        <h3>Bill Amounts (with fees)</h3>
+        <div className={styles.inputGroup}>
+          <label htmlFor="billsInput">Enter bill amounts separated by commas:</label>
+          <textarea
+            id="billsInput"
+            value={billsInput}
+            onChange={(e) => setBillsInput(e.target.value)}
+            placeholder="e.g., 1212.13, 856.45, 2341.78"
+            className={styles.textarea}
+            rows={3}
+          />
+          <div className={styles.inputInfo}>
+            <small>💡 Bills include 1% fee + 18% GST on fee. Original amounts: {bills.map(bill => `₹${bill.originalAmount}`).join(', ')}</small>
+          </div>
         </div>
       </div>
 
-      {/* Wallets Selection */}
+      {/* Wallets Input */}
       <div className={styles.section}>
-        <h3>Available Wallets ({wallets.length})</h3>
-        <div className={styles.walletsGrid}>
-          {wallets.map(wallet => (
-            <div 
-              key={wallet.id} 
-              className={`${styles.walletCard} ${selectedWallets.find(w => w.id === wallet.id) ? styles.selected : ''}`}
-              onClick={() => toggleWalletSelection(wallet)}
-            >
-              <div className={styles.walletHeader}>
-                <input
-                  type="checkbox"
-                  checked={!!selectedWallets.find(w => w.id === wallet.id)}
-                  onChange={() => toggleWalletSelection(wallet)}
-                  onClick={(e) => e.stopPropagation()}
-                />
-                <span className={styles.walletLabel}>{wallet.label}</span>
-              </div>
-              <div className={styles.walletAmount}>
-                ₹ {wallet.amount.toLocaleString('en-IN')}
-              </div>
-            </div>
-          ))}
+        <h3>Wallet Balances</h3>
+        <div className={styles.inputGroup}>
+          <label htmlFor="walletsInput">Enter wallet balances separated by commas:</label>
+          <textarea
+            id="walletsInput"
+            value={walletsInput}
+            onChange={(e) => setWalletsInput(e.target.value)}
+            placeholder="e.g., 5000, 3200, 1500"
+            className={styles.textarea}
+            rows={3}
+          />
+          <div className={styles.inputInfo}>
+            <small>💡 Only wallets with balance > ₹0 are shown</small>
+          </div>
         </div>
       </div>
 
