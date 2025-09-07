@@ -56,10 +56,13 @@ const requireAdmin = async (req, res, next) => {
 router.use(authenticateToken);
 router.use(requireAdmin);
 
-// Get unpaid bills from electricity services
+// Get unpaid bills from electricity services for logged-in user
 router.get("/unpaid-bills", async (req, res, next) => {
   try {
+    const userId = req.user.sub;
+    
     const unpaidBills = await ElectricityService.find({
+      userId: userId,
       lastStatus: 'DUE',
       lastAmountDue: { $gt: 0 },
       isDeleted: { $ne: true }
@@ -81,10 +84,13 @@ router.get("/unpaid-bills", async (req, res, next) => {
   }
 });
 
-// Get wallet amounts from Amazon accounts
+// Get wallet amounts from Amazon accounts for logged-in user
 router.get("/wallet-amounts", async (req, res, next) => {
   try {
+    const userId = req.user.sub;
+    
     const amazonAccounts = await AmazonAccount.find({
+      userId: userId,
       isDeleted: { $ne: true }
     }).select('label email lastBalance lastCurrency');
 

@@ -5,6 +5,52 @@
   padding: 1rem;
 }
 
+/* About Section */
+.aboutSection {
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 12px;
+  padding: 2rem;
+  margin-bottom: 2rem;
+  text-align: center;
+}
+
+.mainHeading {
+  font-size: 2.5rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin: 0 0 1.5rem 0;
+}
+
+.aboutContent {
+  text-align: left;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.aboutDescription {
+  font-size: 1.1rem;
+  line-height: 1.6;
+  color: var(--text-secondary);
+  margin-bottom: 1.5rem;
+}
+
+.aboutContent h3 {
+  color: var(--text-primary);
+  font-size: 1.25rem;
+  margin: 1.5rem 0 1rem 0;
+}
+
+.aboutContent ol {
+  padding-left: 1.5rem;
+}
+
+.aboutContent li {
+  margin-bottom: 0.75rem;
+  line-height: 1.5;
+  color: var(--text-secondary);
+}
+
 /* Summary Grid */
 .summaryGrid {
   display: grid;
@@ -121,14 +167,28 @@
   font-weight: 600;
 }
 
-/* Input Groups */
-.inputGroup {
+/* Main Section */
+.mainSection {
+  background: var(--card-bg);
+  border: 1px solid var(--card-border);
+  border-radius: 12px;
+  padding: 2rem;
+  margin-bottom: 2rem;
+}
+
+.formFields {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.formField {
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
 }
 
-.inputGroup label {
+.formField label {
   font-weight: 600;
   color: var(--text-primary);
   font-size: 1rem;
@@ -173,6 +233,103 @@
   color: var(--text-secondary);
   font-size: 0.9rem;
   line-height: 1.4;
+}
+
+.submitButton {
+  background: var(--primary-bg);
+  color: var(--primary-text);
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: all 0.2s;
+}
+
+.submitButton:hover:not(:disabled) {
+  background: var(--primary-bg-hover);
+  transform: translateY(-1px);
+}
+
+.submitButton:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.clearButton {
+  background: var(--muted-bg);
+  color: var(--text-primary);
+  border: 1px solid var(--border-color);
+  padding: 0.75rem 1.5rem;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  margin-left: 1rem;
+}
+
+.clearButton:hover {
+  background: var(--border-color);
+}
+
+/* Strategies Table */
+.strategiesTable {
+  margin-top: 2rem;
+}
+
+.optimizedStrategy {
+  width: 100%;
+  border-collapse: collapse;
+  background: var(--card-bg);
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.optimizedStrategy th {
+  background: var(--primary-bg);
+  color: var(--primary-text);
+  padding: 1rem;
+  text-align: left;
+  font-weight: 600;
+}
+
+.optimizedStrategy td {
+  padding: 1rem;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.optimizedStrategy tr:hover {
+  background: var(--muted-bg);
+}
+
+.totalRow {
+  background: var(--muted-bg) !important;
+  font-weight: 600;
+}
+
+.totalAmount {
+  font-weight: 600;
+  color: var(--primary-bg);
+}
+
+.saveStrategyButton {
+  background: var(--primary-bg);
+  color: var(--primary-text);
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.saveStrategyButton:hover {
+  background: var(--primary-bg-hover);
+  transform: translateY(-1px);
 }
 
 /* Result Grid */

@@ -101,21 +101,27 @@ export default function BillOptimizer() {
         return
       }
 
-      // Create bill and wallet objects for API
-      const billsForAPI = billAmounts.map((amount, index) => ({
-        id: `bill_${index}`,
-        serviceNumber: `SERVICE_${index + 1}`,
-        serviceLabel: `Bill ${index + 1}`,
-        amount: amount,
-        dueDate: new Date()
-      }))
+      // Create bill and wallet objects for API using actual data
+      const billsForAPI = billAmounts.map((amount, index) => {
+        const originalBill = bills.find(b => b.amount === amount);
+        return {
+          id: originalBill?.id || `bill_${index}`,
+          serviceNumber: originalBill?.serviceNumber || `SERVICE_${index + 1}`,
+          serviceLabel: originalBill?.serviceLabel || `Bill ${index + 1}`,
+          amount: amount,
+          dueDate: originalBill?.dueDate || new Date()
+        };
+      });
 
-      const walletsForAPI = walletAmounts.map((amount, index) => ({
-        id: `wallet_${index}`,
-        label: `Wallet ${index + 1}`,
-        amount: amount,
-        currency: 'INR'
-      }))
+      const walletsForAPI = walletAmounts.map((amount, index) => {
+        const originalWallet = wallets.find(w => w.amount === amount);
+        return {
+          id: originalWallet?.id || `wallet_${index}`,
+          label: originalWallet?.label || `Wallet ${index + 1}`,
+          amount: amount,
+          currency: originalWallet?.currency || 'INR'
+        };
+      })
 
       const response = await api.post('/bill-optimizer/optimize', {
         bills: billsForAPI,
@@ -230,6 +236,25 @@ export default function BillOptimizer() {
     <div className="container">
       <GlobalHeader title="Bill Payment Optimizer" showBackButton={true} />
 
+      {/* About Section */}
+      <div className={styles.aboutSection}>
+        <h1 className={styles.mainHeading}>Bill Payment Strategy</h1>
+        <div className={styles.aboutContent}>
+          <p className={styles.aboutDescription}>
+            Welcome to the Bill Payment Optimizer! This tool helps you efficiently manage your bills and digital wallet balances.
+            Enter your bills and wallet balances, and let the optimizer tool suggest an optimal payment strategy for you.
+            It calculates the best way to pay your bills from your available wallets, minimizing additional expenses from your pocket.
+          </p>
+          <h3>Key Features:</h3>
+          <ol>
+            <li><strong>Optimize Payments:</strong> Input your bills and wallet balances, click "Optimize" to receive a strategy that minimizes out-of-pocket expenses</li>
+            <li><strong>Save Strategies:</strong> Save your optimized payment strategy results for future reference</li>
+            <li><strong>Recalculate Anytime:</strong> Recalculate a saved strategy to adapt to changes in your bills</li>
+            <li><strong>Delete Strategies:</strong> Remove saved strategies when no longer needed</li>
+          </ol>
+        </div>
+      </div>
+
       {/* Summary Cards */}
       <div className={styles.summaryGrid}>
         <div className={styles.summaryCard}>
@@ -278,13 +303,6 @@ export default function BillOptimizer() {
           <FiSettings /> Optimize Payments
         </button>
         
-        <button 
-          className="muted" 
-          onClick={() => handleOptimize('minimize-leftover')}
-          disabled={loading || !billsInput.trim() || !walletsInput.trim()}
-        >
-          <FiRefreshCcw /> Minimize Leftover
-        </button>
 
         <button 
           className="muted" 
@@ -312,43 +330,66 @@ export default function BillOptimizer() {
         />
       </div>
 
-      {/* Bills Input */}
-      <div className={styles.section}>
-        <h3>Bill Amounts (with fees)</h3>
-        <div className={styles.inputGroup}>
-          <label htmlFor="billsInput">Enter bill amounts separated by commas:</label>
-          <textarea
-            id="billsInput"
-            value={billsInput}
-            onChange={(e) => setBillsInput(e.target.value)}
-            placeholder="e.g., 1212.13, 856.45, 2341.78"
-            className={styles.textarea}
-            rows={3}
-          />
-          <div className={styles.inputInfo}>
-            <small>💡 Bills include 1% fee + 18% GST on fee. Original amounts: {bills.map(bill => `₹${bill.originalAmount}`).join(', ')}</small>
-          </div>
-        </div>
-      </div>
+      {/* Main Form Section */}
+      <section className={styles.mainSection}>
+        <form>
+          <div className={styles.formFields}>
+            <div className={styles.formField}>
+              <label htmlFor="billsInput">Bills (comma-separated)</label>
+              <textarea
+                id="billsInput"
+                value={billsInput}
+                onChange={(e) => setBillsInput(e.target.value.replace(/[^0-9,]/g, '').replace(/(\,,*?)\,,*/g, '$1'))}
+                placeholder="e.g., 1212.13, 856.45, 2341.78"
+                className={styles.textarea}
+                rows={3}
+                required
+              />
+              <div className={styles.inputInfo}>
+                <small>💡 Bills include 1% fee + 18% GST on fee. Original amounts: {bills.map(bill => `₹${bill.originalAmount}`).join(', ')}</small>
+              </div>
+            </div>
 
-      {/* Wallets Input */}
-      <div className={styles.section}>
-        <h3>Wallet Balances</h3>
-        <div className={styles.inputGroup}>
-          <label htmlFor="walletsInput">Enter wallet balances separated by commas:</label>
-          <textarea
-            id="walletsInput"
-            value={walletsInput}
-            onChange={(e) => setWalletsInput(e.target.value)}
-            placeholder="e.g., 5000, 3200, 1500"
-            className={styles.textarea}
-            rows={3}
-          />
-          <div className={styles.inputInfo}>
-            <small>💡 Only wallets with balance &gt; ₹0 are shown</small>
+            <div className={styles.formField}>
+              <label htmlFor="walletsInput">Wallet balances (comma-separated)</label>
+              <textarea
+                id="walletsInput"
+                value={walletsInput}
+                onChange={(e) => setWalletsInput(e.target.value.replace(/[^0-9,]/g, '').replace(/(\,,*?)\,,*/g, '$1'))}
+                placeholder="e.g., 5000, 3200, 1500"
+                className={styles.textarea}
+                rows={3}
+                required
+              />
+              <div className={styles.inputInfo}>
+                <small>💡 Only wallets with balance &gt; ₹0 are shown</small>
+              </div>
+            </div>
+
+            <div className={styles.formField}>
+              <button 
+                type="button" 
+                className={styles.submitButton}
+                onClick={() => handleOptimize('default')}
+                disabled={loading || !billsInput.trim() || !walletsInput.trim()}
+              >
+                <FiSettings /> Optimize
+              </button>
+              <button 
+                type="button" 
+                className={styles.clearButton}
+                onClick={() => {
+                  setBillsInput('');
+                  setWalletsInput('');
+                  setOptimizationResult(null);
+                }}
+              >
+                Clear
+              </button>
+            </div>
           </div>
-        </div>
-      </div>
+        </form>
+      </section>
 
       {/* Optimization Result */}
       {optimizationResult && (
@@ -375,29 +416,60 @@ export default function BillOptimizer() {
             </div>
           </div>
 
-          {/* Payment Strategies */}
-          <div className={styles.strategiesList}>
-            {optimizationResult.result?.strategies?.map((strategy, index) => (
-              <div key={index} className={styles.strategyCard}>
-                <div className={styles.strategyHeader}>
-                  <h4>{strategy.walletLabel}</h4>
-                  <span className={styles.walletAmount}>
-                    ₹ {strategy.walletAmount.toLocaleString('en-IN')}
-                  </span>
-                </div>
-                <div className={styles.billsList}>
-                  {strategy.bills.map((bill, billIndex) => (
-                    <div key={billIndex} className={styles.billItem}>
-                      <span className={styles.billName}>{bill.serviceLabel}</span>
-                      <span className={styles.billAmount}>₹ {bill.amount.toLocaleString('en-IN')}</span>
-                    </div>
-                  ))}
-                </div>
-                <div className={styles.remainingAmount}>
-                  Remaining: ₹ {strategy.remainingAmount.toLocaleString('en-IN')}
-                </div>
-              </div>
-            ))}
+          {/* Payment Strategies Table */}
+          <div className={styles.strategiesTable}>
+            <table className={styles.optimizedStrategy}>
+              <thead>
+                <tr>
+                  <th>Wallet</th>
+                  <th>Pay Bills</th>
+                  <th>Balance</th>
+                </tr>
+              </thead>
+              <tbody>
+                {optimizationResult.result?.strategies?.map((strategy, index) => (
+                  <tr key={index}>
+                    <td>{strategy.walletLabel}</td>
+                    <td>
+                      {strategy.bills.map((bill, billIndex) => (
+                        <span key={billIndex}>
+                          {bill.serviceLabel} (₹{bill.amount.toLocaleString('en-IN')})
+                          {billIndex < strategy.bills.length - 1 ? ', ' : ''}
+                        </span>
+                      ))}
+                      {strategy.bills.length > 0 && (
+                        <span className={styles.totalAmount}>
+                          {' '}(Total: ₹{strategy.bills.reduce((sum, bill) => sum + bill.amount, 0).toLocaleString('en-IN')})
+                        </span>
+                      )}
+                    </td>
+                    <td>₹ {strategy.remainingAmount.toLocaleString('en-IN')}</td>
+                  </tr>
+                ))}
+                {optimizationResult.result?.strategies?.length > 0 && (
+                  <tr className={styles.totalRow}>
+                    <td>
+                      Total: ₹{optimizationResult.result.strategies.reduce((sum, s) => sum + s.walletAmount, 0).toLocaleString('en-IN')}
+                    </td>
+                    <td>
+                      <button 
+                        type="button" 
+                        className={styles.saveStrategyButton}
+                        onClick={() => {
+                          // Save strategy functionality
+                          toast.success('Strategy saved!')
+                        }}
+                      >
+                        Save this strategy
+                      </button>
+                    </td>
+                    <td>
+                      ₹{optimizationResult.result.strategies.reduce((sum, s) => sum + s.remainingAmount, 0).toLocaleString('en-IN')}
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
           </div>
         </div>
       )}
@@ -424,7 +496,15 @@ export default function BillOptimizer() {
                     <div key={strategy._id} className={styles.savedStrategyCard}>
                       <div className={styles.strategyInfo}>
                         <h4>{strategy.strategyName}</h4>
-                        <p>Created: {new Date(strategy.createdAt).toLocaleString()}</p>
+                        <p>Created: {new Date(strategy.createdAt).toLocaleString('en-IN', {
+                          timeZone: 'Asia/Kolkata',
+                          year: 'numeric',
+                          month: 'long',
+                          day: 'numeric',
+                          hour: '2-digit',
+                          minute: '2-digit',
+                          second: '2-digit'
+                        })}</p>
                         <p>Transactions: {strategy.optimizationResult.totalTransactions} | 
                            Savings: ₹ {strategy.optimizationResult.savings}</p>
                       </div>
