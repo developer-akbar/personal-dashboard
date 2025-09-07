@@ -69,9 +69,27 @@ router.get("/test", (req, res) => {
   });
 });
 
+// Test endpoint for authentication (no admin required)
+router.get("/auth-test", authenticateToken, (req, res) => {
+  res.json({ 
+    message: "Bill Optimizer auth test passed", 
+    userId: req.user?.sub,
+    timestamp: new Date().toISOString()
+  });
+});
+
 // Apply middleware
 router.use(authenticateToken);
 router.use(requireAdmin);
+
+// Debug middleware to log all requests
+router.use((req, res, next) => {
+  console.log(`🔍 Bill Optimizer request: ${req.method} ${req.path}`, {
+    userId: req.user?.sub,
+    adminUser: req.adminUser?.email
+  });
+  next();
+});
 
 // Get unpaid bills from electricity services for logged-in user
 router.get("/unpaid-bills", async (req, res, next) => {

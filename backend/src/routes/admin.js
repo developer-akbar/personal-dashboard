@@ -114,8 +114,13 @@ router.use((req, res, next) => {
 router.get("/analytics", async (req, res, next) => {
   try {
     console.log('🔍 Fetching analytics data...');
-    // Get all users with their account counts
-    const users = await User.find({ isDeleted: { $ne: true } }, {
+    // Get all users with their account counts (exclude soft-deleted users)
+    const users = await User.find({ 
+      $or: [
+        { isDeleted: { $exists: false } },
+        { isDeleted: { $ne: true } }
+      ]
+    }, {
       name: 1,
       email: 1,
       phone: 1,
