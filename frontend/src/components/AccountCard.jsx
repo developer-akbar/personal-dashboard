@@ -1,10 +1,11 @@
-import React from "react";
+import React, { useState } from "react";
 import styles from "./AccountCard.module.css";
 import { Link } from "react-router-dom";
 import { FiRefreshCcw, FiStar } from "react-icons/fi";
 import { FaStar } from "react-icons/fa";
 
 export default function AccountCard({ account, onRefresh, onEdit, onDelete, onTogglePin, selected=false, onToggleSelect, onLongPressActivate, showCheckboxes=false }) {
+  const [isRefreshing, setIsRefreshing] = useState(false);
   // simple long-press activation for mobile
   let pressTimer;
   const onTouchStart = (e)=>{
@@ -28,6 +29,16 @@ export default function AccountCard({ account, onRefresh, onEdit, onDelete, onTo
       if (!showing) document.addEventListener('click', onDoc)
     }
   }
+
+  const handleRefresh = async () => {
+    if (isRefreshing) return // Prevent double clicks
+    setIsRefreshing(true)
+    try {
+      await onRefresh(account)
+    } finally {
+      setIsRefreshing(false)
+    }
+  }
   const accent = (()=>{
     const key = (account.label||account.id||account.email||'').toString()
     let h=0; for (let i=0;i<key.length;i++){ h = (h*31 + key.charCodeAt(i)) % 360 }
@@ -46,7 +57,19 @@ export default function AccountCard({ account, onRefresh, onEdit, onDelete, onTo
           <button type="button" onClick={(e)=>{ e.stopPropagation(); onTogglePin?.(account) }} title={account.pinned? 'Unpin' : 'Pin'} style={{ background:'transparent', border:0, cursor:'pointer' }}>
             {account.pinned ? <FaStar color="#fbbf24" /> : <FiStar style={{ color: '#888' }}/>} 
           </button>
-          <button type="button" onClick={(e) => { e.stopPropagation(); onRefresh(account) }} className={styles.muted} aria-label="Refresh"><FiRefreshCcw/></button>
+          <button 
+            type="button" 
+            onClick={(e) => { e.stopPropagation(); handleRefresh() }} 
+            className={styles.muted} 
+            aria-label="Refresh"
+            disabled={isRefreshing}
+            style={{ 
+              opacity: isRefreshing ? 0.6 : 1,
+              cursor: isRefreshing ? 'not-allowed' : 'pointer'
+            }}
+          >
+            <FiRefreshCcw className={isRefreshing ? 'spin' : ''} />
+          </button>
           <div style={{position:'relative'}}>
             <div onClick={onToggleMenu} style={{cursor:'pointer', padding:'4px 8px'}}>⋮</div>
             <div className="panel" style={{position:'absolute',right:0,top:'120%',minWidth:160,zIndex:10,display:'none'}} onClick={(e)=> e.stopPropagation()}>

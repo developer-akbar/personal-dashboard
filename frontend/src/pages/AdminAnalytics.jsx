@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { FiUsers, FiCreditCard, FiZap, FiTrendingUp, FiRefreshCw, FiTrash2, FiEdit, FiEye, FiEyeOff, FiUserX } from 'react-icons/fi'
+import { FiUsers, FiCreditCard, FiZap, FiTrendingUp, FiRefreshCw, FiTrash2, FiEdit, FiEye, FiUserX, FiUserCheck, FiUserX as FiUserDeactivate } from 'react-icons/fi'
 import { FiBarChart3, FiPieChart, FiActivity } from 'react-icons/fi'
 import api from '../api/client'
 import toast from 'react-hot-toast'
@@ -69,6 +69,12 @@ export default function AdminAnalytics() {
       if (action === 'delete') {
         await api.delete(`/admin/users/${userId}`)
         toast.success('User deleted successfully')
+      } else if (action === 'toggle-status') {
+        await api.post(`/admin/users/${userId}/toggle-status`, data)
+        toast.success(`User ${data.active ? 'activated' : 'deactivated'} successfully`)
+      } else if (action === 'reset-limits') {
+        await api.post(`/admin/users/${userId}/reset-limits`)
+        toast.success('User limits reset successfully')
       } else {
         await api.post(`/admin/users/${userId}/${action}`, data)
         toast.success(`User ${action} successful`)
@@ -292,7 +298,7 @@ export default function AdminAnalytics() {
                         })}
                         title={user.active ? 'Deactivate' : 'Activate'}
                       >
-                        {user.active ? <FiEyeOff /> : <FiEye />}
+                        {user.active ? <FiUserDeactivate /> : <FiUserCheck />}
                       </button>
                       <button
                         className={styles.actionBtn}
