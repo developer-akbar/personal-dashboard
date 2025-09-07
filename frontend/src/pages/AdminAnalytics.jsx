@@ -82,7 +82,11 @@ export default function AdminAnalytics() {
       fetchAnalytics() // Refresh data
     } catch (error) {
       console.error(`Failed to ${action} user:`, error)
-      toast.error(`Failed to ${action} user`)
+      // Avoid duplicate toasts: show backend message if present, otherwise rely on global interceptor
+      const backendMessage = error?.response?.data?.message || error?.response?.data?.error
+      if (backendMessage) {
+        toast.error(backendMessage)
+      }
     }
   }
 

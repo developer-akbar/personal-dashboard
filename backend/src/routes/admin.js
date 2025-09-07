@@ -213,7 +213,7 @@ router.post("/users/:userId/toggle-status", async (req, res, next) => {
 
     const user = await User.findById(userId);
     if (!user) {
-      return res.status(404).json({ error: "User not found" });
+      return res.status(404).json({ message: "User not found" });
     }
 
     user.active = active !== undefined ? active : !user.active;
@@ -230,7 +230,7 @@ router.post("/users/:userId/toggle-status", async (req, res, next) => {
     });
   } catch (error) {
     console.error('Toggle user status error:', error);
-    next(error);
+    res.status(500).json({ message: 'Failed to update user status' });
   }
 });
 
@@ -241,7 +241,7 @@ router.post("/users/:userId/reset-limits", async (req, res, next) => {
 
     const user = await User.findById(userId);
     if (!user) {
-      return res.status(404).json({ error: "User not found" });
+      return res.status(404).json({ message: "User not found" });
     }
 
     // Reset refresh counts (if you have daily refresh tracking)
@@ -261,7 +261,7 @@ router.post("/users/:userId/reset-limits", async (req, res, next) => {
     });
   } catch (error) {
     console.error('Reset limits error:', error);
-    next(error);
+    res.status(500).json({ message: 'Failed to reset user limits' });
   }
 });
 
@@ -304,7 +304,7 @@ router.delete("/users/:userId", async (req, res, next) => {
 
     const user = await User.findById(userId);
     if (!user) {
-      return res.status(404).json({ error: "User not found" });
+      return res.status(404).json({ message: "User not found" });
     }
 
     // Soft delete - mark as deleted
@@ -312,13 +312,10 @@ router.delete("/users/:userId", async (req, res, next) => {
     user.deletedAt = new Date();
     await user.save();
 
-    res.json({ 
-      success: true, 
-      message: "User deleted successfully"
-    });
+    res.json({ success: true, message: "User deleted successfully" });
   } catch (error) {
     console.error('Delete user error:', error);
-    next(error);
+    res.status(500).json({ message: 'Failed to delete user' });
   }
 });
 
