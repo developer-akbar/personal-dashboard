@@ -131,6 +131,7 @@ router.get("/analytics", async (req, res, next) => {
       });
       
       return {
+        id: user._id,
         ...user.toObject(),
         amazonAccounts: amazonCount,
         electricityServices: electricityCount
