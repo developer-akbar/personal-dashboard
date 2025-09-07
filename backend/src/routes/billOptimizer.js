@@ -95,7 +95,9 @@ router.use((req, res, next) => {
   console.log(`🔍 Bill Optimizer request: ${req.method} ${req.path}`, {
     hasAuth: !!req.headers.authorization,
     userId: req.user?.sub,
-    adminUser: req.adminUser?.email
+    adminUser: req.adminUser?.email,
+    url: req.url,
+    originalUrl: req.originalUrl
   });
   next();
 });

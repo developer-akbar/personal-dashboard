@@ -48,35 +48,42 @@ const useSwipeNavigation = (tabs, isAdmin = false) => {
   const hasHorizontalScroll = useCallback((element) => {
     if (!element) return false;
     
-    // Check for common horizontally scrollable elements
+    // Check for specific horizontally scrollable elements (more restrictive)
     const scrollableTags = ['table', 'tbody', 'thead', 'tr', 'td', 'th'];
-    const scrollableClasses = ['table', 'table-container', 'scrollable', 'overflow-x'];
+    const scrollableClasses = ['table-container', 'scrollable', 'overflow-x-auto', 'overflow-x-scroll'];
     
     // Check if element is a scrollable table element
     if (scrollableTags.includes(element.tagName?.toLowerCase())) {
       return true;
     }
     
-    // Check if element has scrollable classes
+    // Check if element has specific scrollable classes (not just 'table')
     if (element.className && scrollableClasses.some(cls => element.className.includes(cls))) {
       return true;
     }
     
-    // Check if element has horizontal scroll
+    // Check if element has horizontal scroll AND is specifically designed for horizontal scrolling
     if (element.scrollWidth > element.clientWidth) {
-      return true;
+      // Only consider it scrollable if it has overflow-x styles or is a table
+      const style = window.getComputedStyle(element);
+      if (style.overflowX === 'auto' || style.overflowX === 'scroll' || 
+          element.tagName?.toLowerCase() === 'table') {
+        return true;
+      }
     }
     
-    // Check parent elements up to 3 levels
+    // Check parent elements up to 2 levels (reduced from 3)
     let parent = element.parentElement;
-    for (let i = 0; i < 3 && parent; i++) {
+    for (let i = 0; i < 2 && parent; i++) {
       if (scrollableTags.includes(parent.tagName?.toLowerCase())) {
         return true;
       }
       if (parent.className && scrollableClasses.some(cls => parent.className.includes(cls))) {
         return true;
       }
-      if (parent.scrollWidth > parent.clientWidth) {
+      const parentStyle = window.getComputedStyle(parent);
+      if (parent.scrollWidth > parent.clientWidth && 
+          (parentStyle.overflowX === 'auto' || parentStyle.overflowX === 'scroll')) {
         return true;
       }
       parent = parent.parentElement;
