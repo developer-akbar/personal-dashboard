@@ -150,24 +150,8 @@ router.post("/optimize", async (req, res, next) => {
     // Calculate additional metrics
     const metrics = calculateOptimizationMetrics(bills, wallets, optimizationResult.strategies);
 
-    // Create optimization record
-    const optimization = new BillOptimization({
-      userId,
-      strategyName: strategyName || `Optimization ${new Date().toLocaleString()}`,
-      totalBills: bills.length,
-      totalAmount: bills.reduce((sum, bill) => sum + bill.amount, 0),
-      totalWallets: wallets.length,
-      totalWalletAmount: wallets.reduce((sum, wallet) => sum + wallet.amount, 0),
-      optimizationResult,
-      inputData: { bills, wallets }
-    });
-
-    await optimization.save();
-
     res.json({
       success: true,
-      optimizationId: optimization._id,
-      strategyName: optimization.strategyName,
       metrics,
       result: optimizationResult
     });
@@ -201,6 +185,35 @@ router.get("/strategies", async (req, res, next) => {
     });
   } catch (error) {
     console.error('Get strategies error:', error);
+    next(error);
+  }
+});
+
+// Save optimization strategy explicitly
+router.post("/strategies", async (req, res, next) => {
+  try {
+    const userId = req.user.sub;
+    const { strategyName, bills, wallets, optimizationResult } = req.body;
+    if (!strategyName || !Array.isArray(bills) || !Array.isArray(wallets) || !optimizationResult) {
+      return res.status(400).json({ message: 'strategyName, bills, wallets and optimizationResult are required' });
+    }
+
+    const optimization = new BillOptimization({
+      userId,
+      strategyName,
+      totalBills: bills.length,
+      totalAmount: bills.reduce((sum, bill) => sum + bill.amount, 0),
+      totalWallets: wallets.length,
+      totalWalletAmount: wallets.reduce((sum, wallet) => sum + wallet.amount, 0),
+      optimizationResult,
+      inputData: { bills, wallets }
+    });
+
+    await optimization.save();
+
+    res.json({ success: true, id: optimization._id, message: 'Strategy saved' });
+  } catch (error) {
+    console.error('Save strategy error:', error);
     next(error);
   }
 });

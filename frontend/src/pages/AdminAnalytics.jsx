@@ -34,7 +34,7 @@ export default function AdminAnalytics() {
   const fetchAnalytics = async () => {
     setLoading(true)
     try {
-      const { data } = await api.get('/admin/analytics')
+      const { data } = await api.get('/api/admin/analytics')
       setAnalytics(data)
     } catch (error) {
       console.error('Failed to fetch analytics:', error)
@@ -67,16 +67,16 @@ export default function AdminAnalytics() {
   const handleUserAction = async (userId, action, data = {}) => {
     try {
       if (action === 'delete') {
-        await api.delete(`/admin/users/${userId}`)
+        await api.delete(`/api/admin/users/${userId}`)
         toast.success('User deleted successfully')
       } else if (action === 'toggle-status') {
-        await api.post(`/admin/users/${userId}/toggle-status`, data)
+        await api.post(`/api/admin/users/${userId}/toggle-status`, data)
         toast.success(`User ${data.active ? 'activated' : 'deactivated'} successfully`)
       } else if (action === 'reset-limits') {
-        await api.post(`/admin/users/${userId}/reset-limits`)
+        await api.post(`/api/admin/users/${userId}/reset-limits`)
         toast.success('User limits reset successfully')
       } else {
-        await api.post(`/admin/users/${userId}/${action}`, data)
+        await api.post(`/api/admin/users/${userId}/${action}`, data)
         toast.success(`User ${action} successful`)
       }
       fetchAnalytics() // Refresh data

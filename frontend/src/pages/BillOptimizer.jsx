@@ -145,8 +145,7 @@ export default function BillOptimizer() {
       })
 
       setOptimizationResult(response.data)
-      toast.success('Optimization completed!')
-      fetchSavedStrategies() // Refresh saved strategies
+      toast.success('Optimization completed! You can save the strategy if you like.')
     } catch (error) {
       console.error('Optimization failed:', error)
       toast.error('Optimization failed')
@@ -634,9 +633,21 @@ export default function BillOptimizer() {
                       <button 
                         type="button" 
                         className={styles.saveStrategyButton}
-                        onClick={() => {
-                          // Save strategy functionality
-                          toast.success('Strategy saved!')
+                        onClick={async () => {
+                          try {
+                            const payload = {
+                              strategyName: strategyName || `Optimization ${new Date().toLocaleString()}`,
+                              bills: selectedBills.length ? selectedBills : bills,
+                              wallets: selectedWallets.length ? selectedWallets : wallets,
+                              optimizationResult: optimizationResult.result
+                            }
+                            await api.post('/bill-optimizer/strategies', payload)
+                            toast.success('Strategy saved!')
+                            fetchSavedStrategies()
+                          } catch (e) {
+                            console.error('Save strategy failed', e)
+                            toast.error('Failed to save strategy')
+                          }
                         }}
                       >
                         Save this strategy
