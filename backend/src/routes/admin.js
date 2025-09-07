@@ -113,6 +113,7 @@ router.use((req, res, next) => {
 // Get analytics data
 router.get("/analytics", async (req, res, next) => {
   try {
+    console.log('🔍 Fetching analytics data...');
     // Get all users with their account counts
     const users = await User.find({ isDeleted: { $ne: true } }, {
       name: 1,
@@ -124,6 +125,8 @@ router.get("/analytics", async (req, res, next) => {
       lastActive: 1,
       active: 1
     }).sort({ createdAt: -1 });
+
+    console.log(`📊 Found ${users.length} users (excluding deleted)`);
 
     // Get user type distribution
     const userTypes = {};
@@ -314,17 +317,22 @@ router.post("/users/:userId/update-type", async (req, res, next) => {
 router.delete("/users/:userId", async (req, res, next) => {
   try {
     const { userId } = req.params;
+    console.log(`🗑️ Deleting user: ${userId}`);
 
     const user = await User.findById(userId);
     if (!user) {
+      console.log(`❌ User not found: ${userId}`);
       return res.status(404).json({ message: "User not found" });
     }
+
+    console.log(`👤 User found: ${user.email}, isDeleted: ${user.isDeleted}`);
 
     // Soft delete - mark as deleted
     user.isDeleted = true;
     user.deletedAt = new Date();
     await user.save();
 
+    console.log(`✅ User soft deleted: ${user.email}`);
     res.json({ success: true, message: "User deleted successfully" });
   } catch (error) {
     console.error('Delete user error:', error);

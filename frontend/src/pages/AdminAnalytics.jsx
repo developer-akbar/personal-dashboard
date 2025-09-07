@@ -67,6 +67,8 @@ export default function AdminAnalytics() {
 
   const handleUserAction = async (userId, action, data = {}) => {
     try {
+      console.log(`🔧 Performing action: ${action} on user: ${userId}`);
+      
       if (action === 'delete') {
         await api.delete(`/api/admin/users/${userId}`)
         toast.success('User deleted successfully')
@@ -80,7 +82,10 @@ export default function AdminAnalytics() {
         await api.post(`/api/admin/users/${userId}/${action}`, data)
         toast.success(`User ${action} successful`)
       }
-      fetchAnalytics() // Refresh data
+      
+      console.log('🔄 Refreshing analytics data...');
+      await fetchAnalytics() // Refresh data
+      console.log('✅ Analytics data refreshed');
     } catch (error) {
       console.error(`Failed to ${action} user:`, error)
       // Avoid duplicate toasts: show backend message if present, otherwise rely on global interceptor
