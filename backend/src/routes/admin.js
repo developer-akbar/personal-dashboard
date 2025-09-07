@@ -348,6 +348,46 @@ router.get("/stats", async (req, res, next) => {
   }
 });
 
+// Debug endpoint to check admin user detection
+router.get("/debug-admin-detection", async (req, res, next) => {
+  try {
+    const { getAdminUsers, getSubscribedUsers } = await import('../config/limits.js');
+    
+    const adminUsers = getAdminUsers();
+    const subscribedUsers = getSubscribedUsers();
+    
+    // Get all users and check their detection
+    const users = await User.find({}, { email: 1, userType: 1, subscription: 1 });
+    
+    const debugInfo = {
+      environment: {
+        ADMIN_USERS: process.env.ADMIN_USERS,
+        SUBSCRIBED_USERS: process.env.SUBSCRIBED_USERS
+      },
+      parsed: {
+        adminUsers,
+        subscribedUsers
+      },
+      users: users.map(user => {
+        const email = user.email?.toLowerCase();
+        return {
+          email: user.email,
+          lowercaseEmail: email,
+          currentUserType: user.userType,
+          currentSubscription: user.subscription,
+          isInAdminList: adminUsers.includes(email),
+          isInSubscribedList: subscribedUsers.includes(email)
+        };
+      })
+    };
+    
+    res.json(debugInfo);
+  } catch (error) {
+    console.error('Debug admin detection error:', error);
+    next(error);
+  }
+});
+
 // Manual admin update endpoint (for fixing existing users)
 router.post("/fix-admin-users", async (req, res, next) => {
   try {
@@ -356,6 +396,7 @@ router.post("/fix-admin-users", async (req, res, next) => {
     // Get all users
     const users = await User.find({});
     let updatedCount = 0;
+    const updates = [];
     
     for (const user of users) {
       const { userType, subscription } = determineUserType(user);
@@ -366,16 +407,62 @@ router.post("/fix-admin-users", async (req, res, next) => {
         user.subscription = subscription;
         await user.save();
         updatedCount++;
+        updates.push({
+          email: user.email,
+          oldUserType: user.userType,
+          oldSubscription: user.subscription,
+          newUserType: userType,
+          newSubscription: subscription
+        });
       }
     }
     
     res.json({ 
       success: true, 
       message: `Updated ${updatedCount} users`,
-      updatedCount 
+      updatedCount,
+      updates
     });
   } catch (error) {
     console.error('Fix admin users error:', error);
+    next(error);
+  }
+});
+
+// Manual admin assignment endpoint (bypass environment check)
+router.post("/make-admin", async (req, res, next) => {
+  try {
+    const { email } = req.body;
+    
+    if (!email) {
+      return res.status(400).json({ error: "Email is required" });
+    }
+    
+    const user = await User.findOne({ email: email.toLowerCase() });
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+    
+    const oldUserType = user.userType;
+    const oldSubscription = user.subscription;
+    
+    user.userType = 'Admin';
+    user.subscription = 'Admin';
+    await user.save();
+    
+    res.json({ 
+      success: true, 
+      message: `User ${email} is now an admin`,
+      user: {
+        email: user.email,
+        oldUserType,
+        oldSubscription,
+        newUserType: user.userType,
+        newSubscription: user.subscription
+      }
+    });
+  } catch (error) {
+    console.error('Make admin error:', error);
     next(error);
   }
 });
