@@ -465,7 +465,7 @@
 /* Responsive */
 @media (max-width: 768px) {
   .overviewGrid {
-    grid-template-columns: 1fr auto;
+    grid-template-columns: 1fr 1fr;
   }
 
   .filters {

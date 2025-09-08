@@ -36,12 +36,9 @@ export default function ElectricityServiceCard({ item, onRefresh, onEdit, onDele
   return (
     <article id={domId} className={`panel ${highlight? 'flash':''}`} style={{display:'flex',flexDirection:'column',gap:8,borderLeft:'4px solid var(--primary-bg)'}}>
       <div style={{display:'flex',justifyContent:'space-between',alignItems:'center'}}>
-        <div style={{display:'flex',flexDirection:'column'}}>
+        <div style={{display:'flex',flexDirection:'column',gap:8}}>
           <strong>{item.label || '—'}</strong>
-          <small style={{opacity:.8}}>Service: {String(item.serviceNumber||'')}
-            {String(item.serviceNumber||'').length>=4 && (
-              <b style={{marginLeft:4,fontSize:'13px'}}>••••{String(item.serviceNumber).slice(-4)}</b>
-            )}
+          <small style={{opacity:.8,fontWeight:700}}>Service: {String(item.serviceNumber||'')}
           </small>
         </div>
         <div style={{display:'inline-flex',gap:8,alignItems:'center'}}>
@@ -85,14 +82,14 @@ export default function ElectricityServiceCard({ item, onRefresh, onEdit, onDele
             })()
           )}
         </div>
-        <div>
+        <div style={{display:'flex', alignItems:'center', gap:8}}>
           <span style={{opacity:.7}}>Amount Due</span>{' '}
-          <div style={{display:'flex', alignItems:'center', gap:6}}>
-            <b style={{fontSize:16, color:item.lastStatus==='DUE'?'#0ea5e9':'#94a3b8'}}>
+          <div>
+            <b style={{fontSize:16,color:'rgb(14, 165, 233)',paddingRight:4}} className='amount-due'>
               {item.lastStatus==='DUE' ? `₹ ${Number(item.lastAmountDue||0).toLocaleString('en-IN')}` : '₹ 0'}
             </b>
             {item.billBreakup && (
-              <button
+              <button className='breakup-button'
                 onClick={() => {
                   console.log('Bill breakup clicked for service:', item.serviceNumber, 'Current state:', showBillBreakup)
                   setShowBillBreakup(!showBillBreakup)
@@ -104,9 +101,10 @@ export default function ElectricityServiceCard({ item, onRefresh, onEdit, onDele
                   cursor:'pointer',
                   padding:2,
                   borderRadius:4,
-                  display:'flex',
                   alignItems:'center',
-                  opacity:0.7
+                  opacity:0.7,
+                  minWidth:0,
+                  minHeight:0
                 }}
                 title="Show bill breakdown"
               >
