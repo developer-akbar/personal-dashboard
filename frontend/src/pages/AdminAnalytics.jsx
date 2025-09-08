@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { FiUsers, FiCreditCard, FiZap, FiTrendingUp, FiRefreshCw, FiTrash2, FiEdit, FiEye, FiUserX, FiUserCheck, FiUserX as FiUserDeactivate } from 'react-icons/fi'
-import { FiBarChart3, FiPieChart, FiActivity } from 'react-icons/fi'
+import { FiBarChart } from 'react-icons/fi'
 import api from '../api/client'
 import toast from 'react-hot-toast'
 import GlobalHeader from '../components/GlobalHeader'
@@ -144,13 +144,6 @@ export default function AdminAnalytics() {
       <GlobalHeader />
       <GlobalTabs />
       <SwipeableContent>
-
-      {/* Quick Actions */}
-      <div className={styles.quickActions}>
-        <a href="#/bill-optimizer" className="primary" style={{ textDecoration: 'none', padding: '0.75rem 1.5rem', borderRadius: '8px', display: 'inline-flex', alignItems: 'center', gap: '0.5rem' }}>
-          🧮 Bill Payment Optimizer
-        </a>
-      </div>
 
       {/* Overview Cards */}
       <div className={styles.overviewGrid}>

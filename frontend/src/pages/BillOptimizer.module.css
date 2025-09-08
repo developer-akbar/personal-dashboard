@@ -8,9 +8,10 @@
 /* Header Section */
 .headerSection {
   background: var(--card-bg);
-  border: 2px solid #666;
+  border: 2px solid var(--input-border);
   border-radius: 12px;
   padding: 1rem;
+  margin-bottom: 1rem;
 }
 
 .headerTitle {
@@ -83,11 +84,12 @@
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 1rem;
+  margin-bottom: 1rem;
 }
 
 .selectionGroup {
   background: var(--card-bg);
-  border: 2px solid #666;
+  border: 2px solid var(--input-border);
   border-radius: 12px;
   padding: 0.5rem;
 }
@@ -113,7 +115,6 @@
   align-items: center;
   gap: 0.5rem;
   cursor: pointer;
-  font-size: 0.9rem;
   color: var(--text-secondary);
   font-weight: 500;
 }
@@ -141,12 +142,11 @@
   align-items: center;
   gap: 0.75rem;
   cursor: pointer;
-  padding: 0.5rem;
   border-radius: 6px;
   transition: background-color 0.2s;
 }
 
-.checkboxItem label {
+label.checkboxItem {
   flex-direction: row;
 }
 
@@ -174,7 +174,6 @@
 
 .checkboxLabel small {
   color: var(--text-secondary);
-  font-size: 0.85rem;
   font-weight: 400;
 }
 
@@ -188,12 +187,11 @@
 
 @media (max-width: 768px) {
   .selectionSection {
-    grid-template-columns: 1fr;
-    gap: 1rem;
+    gap: 0.5rem;
   }
   
   .mainHeading {
-    font-size: 2rem;
+    font-size: 1rem;
   }
   
   .checkboxItem input[type="checkbox"] {
@@ -210,6 +208,7 @@
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
   gap: 1rem;
+  margin-bottom: 1rem;
 }
 
 .summaryCard {
@@ -269,7 +268,7 @@
 .actionButtons {
   display: flex;
   gap: 1rem;
-  margin-bottom: 1.5rem;
+  margin-bottom: 1rem;
   flex-wrap: wrap;
 }
 
@@ -290,7 +289,7 @@
 
 /* Strategy Name Input */
 .strategyNameInput {
-  margin-bottom: 2rem;
+  margin-bottom: 1rem;
 }
 
 .strategyNameInput input {
@@ -323,7 +322,7 @@
 /* Main Section */
 .mainSection {
   background: var(--card-bg);
-  border: 2px solid #666;
+  border: 2px solid var(--input-border);
   border-radius: 12px;
   padding: 0.5rem;
   margin-bottom: 1rem;
@@ -332,7 +331,7 @@
 .formFields {
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
+  gap: 1rem;
 }
 
 .formField {
@@ -345,7 +344,6 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 0.5rem;
 }
 
 .formField label {
@@ -353,6 +351,16 @@
   color: var(--text-primary);
   font-size: 1rem;
   margin: 0;
+}
+
+.billOptimizerActionButtons {
+  display: flex;
+  justify-content: space-between; 
+  gap: 1rem;
+}
+
+.billOptimizerActionButtons button {
+  flex: 1;
 }
 
 .infoToggle {
@@ -376,7 +384,7 @@
 .textarea {
   width: 100%;
   padding: 1rem;
-  border: 2px solid #666;
+  border: 2px solid var(--input-border);
   border-radius: 8px;
   background: var(--input-bg);
   color: var(--text-primary);
@@ -479,7 +487,8 @@
 
 .optimizedStrategy td {
   padding: 1rem;
-  border-bottom: 1px solid var(--border-color);
+  border-bottom: 1px solid var();
+  text-align: center;
 }
 
 .optimizedStrategy tr:hover {
