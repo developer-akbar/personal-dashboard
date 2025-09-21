@@ -183,7 +183,7 @@ export default function ForgotPasswordModal({ open, onClose, onSuccess }) {
                   </div>
                 </button>
 
-                <button
+                <button disabled title='SMS integration is yet to be done, please use Email method'
                   className={`${styles.methodButton} ${otpMethod === 'sms' ? styles.active : ''}`}
                   onClick={() => setOtpMethod('sms')}
                 >
