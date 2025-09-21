@@ -6,8 +6,8 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node src/server.js",
     "dev": "nodemon src/server.js",
-    "postinstall": "cross-env PLAYWRIGHT_BROWSERS_PATH=0 npx playwright install chromium-headless-shell",
-    "install-playwright": "cross-env PLAYWRIGHT_BROWSERS_PATH=0 npx playwright install chromium-headless-shell",
+    "postinstall": "if [ \"$NODE_ENV\" = \"production\" ]; then PLAYWRIGHT_BROWSERS_PATH=0 npx playwright install chromium-headless-shell; else echo 'Skipping Playwright installation for local development'; fi",
+    "install-playwright": "PLAYWRIGHT_BROWSERS_PATH=0 npx playwright install chromium-headless-shell",
     "install-all": "npm install && npm run install-playwright",
     "migrate:cleanup-duplicates": "node src/scripts/cleanup-duplicate-data.js",
     "setup-test-data": "node src/scripts/setup-test-data.js",
@@ -34,6 +34,7 @@
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.18.0",
     "morgan": "^1.10.1",
+    "msg91": "^2.2.8",
     "nanoid": "^5.1.5",
     "nodemailer": "^6.9.8",
     "p-retry": "^7.0.0",
@@ -43,7 +44,6 @@
     "zod": "^4.1.5"
   },
   "devDependencies": {
-    "cross-env": "^10.0.0",
     "nodemon": "^3.1.10"
   },
   "type": "module"
