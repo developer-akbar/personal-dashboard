@@ -22,6 +22,16 @@ import mongoose from 'mongoose'
 
 const app = express();
 
+// ✅ Enable trust proxy for correct IP detection behind load balancers
+app.set('trust proxy', true);
+
+// ✅ Middleware to log incoming IP address
+app.use((req, res, next) => {
+  const clientIp = req.headers['x-forwarded-for'] || req.ip;
+  console.log(`🔍 Incoming request from IP: ${clientIp}`);
+  next();
+});
+
 const normalizeOrigin = (s) => (s || "").trim().replace(/\/$/, "");
 const rawOrigins = (process.env.CORS_ORIGIN || "").split(",").map((s) => s.trim()).filter(Boolean);
 const envOrigins = rawOrigins.length ? rawOrigins : ["*"];
