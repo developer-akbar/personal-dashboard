@@ -89,7 +89,13 @@ const limiter = rateLimit({
 });
 app.use(limiter);
 
-app.get("/health", (_req, res) => res.json({ ok: true }));
+app.get("/health", (req, res) => {
+  const clientIp = req.headers['x-forwarded-for'] || req.ip;
+  res.json({ 
+    ok: true,
+    incomingIp: clientIp
+  });
+});
 app.get("/api/health", (_req, res) => {
   const db = mongoose.connection?.readyState
   res.json({ ok: true, db: db === 1 ? 'connected' : db === 2 ? 'connecting' : db === 0 ? 'disconnected' : 'unknown' })
